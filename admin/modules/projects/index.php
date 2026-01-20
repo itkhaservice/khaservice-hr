@@ -5,7 +5,7 @@ include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 
 // Pagination & Filters
-$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 5;
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 $kw = isset($_GET['kw']) ? clean_input($_GET['kw']) : '';
@@ -34,7 +34,7 @@ $total_records = db_fetch_row($total_sql, $params)['count'];
 $sql = "SELECT * FROM projects $where ORDER BY stt ASC, id ASC LIMIT $offset, $limit";
 $projects = db_fetch_all($sql, $params);
 
-// Generate Link Template for Pagination
+// Pagination Link Template
 $query_string = $_GET;
 unset($query_string['page']);
 $link_template = "index.php?" . http_build_query($query_string) . "&page={page}";
@@ -45,30 +45,34 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
         <div class="toggle-sidebar" id="sidebarToggle">
             <i class="fas fa-bars"></i>
         </div>
-        <div class="user-info">
-            <span>Admin</span>
+        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
+            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
             <div class="user-avatar">A</div>
+            <div class="user-dropdown">
+                <a href="/khaservice-hr/admin/logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+            </div>
         </div>
     </header>
 
     <div class="content-wrapper">
         <div class="action-header">
             <h1 class="page-title">Quản lý Dự án</h1>
-            <a href="add.php" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm dự án</a>
+            <!-- Moved "Add New" button here, separated from Filters -->
+            <a href="add.php" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm dự án mới</a>
         </div>
 
-        <!-- Filters -->
+        <!-- Filter Section (Full Width) -->
         <form method="GET" class="filter-section">
-            <input type="text" name="kw" value="<?php echo $kw; ?>" placeholder="Tìm tên, mã, địa chỉ...">
+            <input type="text" name="kw" value="<?php echo $kw; ?>" placeholder="Tìm kiếm tên, mã, địa chỉ...">
             <select name="status">
-                <option value="">-- Trạng thái --</option>
+                <option value="">-- Tất cả trạng thái --</option>
                 <option value="active" <?php echo $status == 'active' ? 'selected' : ''; ?>>Đang hoạt động</option>
                 <option value="completed" <?php echo $status == 'completed' ? 'selected' : ''; ?>>Đã hoàn thành</option>
                 <option value="pending" <?php echo $status == 'pending' ? 'selected' : ''; ?>>Tạm dừng</option>
             </select>
-            <button type="submit" class="btn btn-secondary">Lọc</button>
+            <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Lọc dữ liệu</button>
             <?php if ($kw || $status): ?>
-                <a href="index.php" class="btn btn-danger">Xóa lọc</a>
+                <a href="index.php" class="btn btn-danger" style="min-width: auto;"><i class="fas fa-times"></i></a>
             <?php endif; ?>
         </form>
 
@@ -77,46 +81,43 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <table class="table">
                     <thead>
                         <tr>
-                            <th width="50">STT</th>
+                            <th width="60" style="text-align:center;">STT</th>
                             <th>Mã dự án</th>
                             <th>Tên dự án</th>
                             <th>Địa chỉ</th>
                             <th>Trạng thái</th>
-                            <th width="150">Thao tác</th>
+                            <th width="120" style="text-align:center;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($projects)): ?>
-                            <tr><td colspan="6" style="text-align:center;">Không tìm thấy dữ liệu</td></tr>
+                            <tr><td colspan="6" style="text-align:center; padding: 30px;">Không tìm thấy dữ liệu</td></tr>
                         <?php else: ?>
-                            <?php foreach ($projects as $p): ?>
+                            <?php 
+                                $stt = $offset; // Init STT based on offset
+                                foreach ($projects as $p): 
+                                    $stt++; // Increment STT
+                            ?>
                                 <tr>
-                                    <td><?php echo $p['stt']; ?></td>
+                                    <td style="text-align:center; color: #94a3b8;"><?php echo $stt; ?></td>
                                     <td><strong><?php echo $p['code']; ?></strong></td>
-                                    <td><?php echo $p['name']; ?></td>
-                                    <td><?php echo $p['address']; ?></td>
+                                    <td>
+                                        <a href="view.php?id=<?php echo $p['id']; ?>" class="text-primary-hover" style="font-weight: 500;">
+                                            <?php echo $p['name']; ?>
+                                        </a>
+                                    </td>
+                                    <td style="color: #64748b;"><?php echo $p['address']; ?></td>
                                     <td>
                                         <?php 
-                                            $status_class = [
-                                                'active' => 'badge-success',
-                                                'completed' => 'badge-info',
-                                                'pending' => 'badge-warning'
-                                            ][$p['status']] ?? 'badge-secondary';
+                                            $s_cls = ['active'=>'badge-success', 'completed'=>'badge-info', 'pending'=>'badge-warning'];
                                         ?>
-                                        <span class="badge <?php echo $status_class; ?>">
-                                            <?php 
-                                                echo [
-                                                    'active' => 'Đang hoạt động',
-                                                    'completed' => 'Hoàn thành',
-                                                    'pending' => 'Tạm dừng'
-                                                ][$p['status']] ?? $p['status'];
-                                            ?>
+                                        <span class="badge <?php echo $s_cls[$p['status']] ?? 'badge-secondary'; ?>">
+                                            <?php echo $p['status'] == 'active' ? 'Hoạt động' : $p['status']; ?>
                                         </span>
                                     </td>
-                                    <td>
-                                        <a href="view.php?id=<?php echo $p['id']; ?>" title="Xem & Cấu hình ca"><i class="fas fa-eye text-primary"></i></a> &nbsp;
-                                        <a href="edit.php?id=<?php echo $p['id']; ?>" title="Sửa"><i class="fas fa-edit text-warning"></i></a> &nbsp;
-                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $p['id']; ?>)" title="Xóa"><i class="fas fa-trash text-danger"></i></a>
+                                    <td style="text-align:center;">
+                                        <a href="view.php?id=<?php echo $p['id']; ?>" class="btn btn-secondary btn-sm" style="padding: 5px 10px;" title="Chi tiết"><i class="fas fa-eye"></i></a>
+                                        <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $p['id']; ?>)" class="btn btn-danger btn-sm" style="padding: 5px 10px;" title="Xóa"><i class="fas fa-trash"></i></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -130,11 +131,10 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <div class="display-count">
                     <span>Hiển thị:</span>
                     <select onchange="location.href='index.php?<?php echo http_build_query(array_merge($_GET, ['limit' => ''])); ?>' + this.value">
-                        <?php foreach ([5, 10, 15, 20, 50] as $l): ?>
+                        <?php foreach ([10, 20, 50, 100] as $l): ?>
                             <option value="<?php echo $l; ?>" <?php echo $limit == $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
                         <?php endforeach; ?>
                     </select>
-                    <span> dòng / trang</span>
                 </div>
                 <div class="pagination-wrapper">
                     <?php echo paginate($total_records, $page, $limit, $link_template); ?>
@@ -145,26 +145,14 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
 
 <script>
 function confirmDelete(id) {
-    Modal.confirm('Bạn có chắc chắn muốn xóa dự án này? Hành động này không thể hoàn tác.', () => {
+    Modal.confirm('Bạn có chắc chắn muốn xóa dự án này?', () => {
         location.href = 'delete.php?id=' + id;
     });
 }
 </script>
 
 <style>
-.badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    color: #fff;
-}
-.badge-success { background-color: #28a745; }
-.badge-info { background-color: #17a2b8; }
-.badge-warning { background-color: #ffc107; color: #333; }
-.badge-secondary { background-color: #6c757d; }
-.text-primary { color: #007bff; }
-.text-warning { color: #ffc107; }
-.text-danger { color: #dc3545; }
+.text-primary-hover:hover { color: var(--primary-color); text-decoration: underline; }
 </style>
 
 <?php include '../../../includes/footer.php'; ?>

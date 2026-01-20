@@ -2,8 +2,12 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-// Check login status (Skip for now, will implement Auth later)
-// if (!isset($_SESSION['user_id'])) { header('Location: login.php'); exit; }
+
+// Auth Check
+if (!isset($_SESSION['user_id']) && basename($_SERVER['PHP_SELF']) != 'login.php') {
+    header('Location: /khaservice-hr/admin/login.php');
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
