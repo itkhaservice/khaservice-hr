@@ -122,19 +122,7 @@ include '../../../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
-            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
-            <div class="user-avatar">A</div>
-            <div class="user-dropdown">
-                <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
-                <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">
@@ -182,11 +170,11 @@ include '../../../includes/sidebar.php';
                                         <table style="width:100%; margin:0; border:none;">
                                         <?php foreach($file_list as $f): ?>
                                             <tr>
-                                                <td style="border:none; border-bottom:1px solid #eee;">
+                                                <td style="border:none; border-bottom:1px solid var(--border-color);">
                                                     <?php echo ($f['expiry_date']) ? date('d/m/Y', strtotime($f['expiry_date'])) : '-'; ?>
                                                     <?php if ($f['expiry_date'] && strtotime($f['expiry_date']) < time()) echo ' <span class="text-danger">(Hết hạn)</span>'; ?>
                                                 </td>
-                                                <td style="border:none; border-bottom:1px solid #eee;">
+                                                <td style="border:none; border-bottom:1px solid var(--border-color);">
                                                     <a href="/khaservice-hr/<?php echo $f['file_path']; ?>" target="_blank" class="text-info"><i class="fas fa-download"></i> Tải về</a>
                                                     <?php 
                                                         if ($f['approval_status'] == 'pending') echo ' <span class="badge badge-warning">Chờ duyệt</span>';
@@ -194,7 +182,7 @@ include '../../../includes/sidebar.php';
                                                         else echo ' <i class="fas fa-check-circle text-success" title="Đã duyệt"></i>';
                                                     ?>
                                                 </td>
-                                                <td style="width:100px; border:none; border-bottom:1px solid #eee; text-align:right;">
+                                                <td style="width:100px; border:none; border-bottom:1px solid var(--border-color); text-align:right;">
                                                     <?php if ($f['approval_status'] == 'pending'): ?>
                                                         <a href="?id=<?php echo $id; ?>&approve_id=<?php echo $f['id']; ?>&status=approved" class="btn btn-success btn-sm" style="padding:2px 5px;" title="Duyệt"><i class="fas fa-check"></i></a>
                                                         <a href="?id=<?php echo $id; ?>&approve_id=<?php echo $f['id']; ?>&status=rejected" class="btn btn-danger btn-sm" style="padding:2px 5px;" title="Từ chối"><i class="fas fa-times"></i></a>
@@ -259,13 +247,5 @@ function confirmDelete(id) {
     });
 }
 </script>
-
-<style>
-.btn-sm { padding: 4px 8px; font-size: 12px; }
-.badge-success { background-color: #28a745; }
-.badge-warning { background-color: #ffc107; color: #333; }
-.badge-danger { background-color: #dc3545; }
-.text-info { color: #17a2b8; }
-</style>
 
 <?php include '../../../includes/footer.php'; ?>

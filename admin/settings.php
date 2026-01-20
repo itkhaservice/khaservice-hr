@@ -153,19 +153,7 @@ include '../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
-            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
-            <div class="user-avatar">A</div>
-            <div class="user-dropdown">
-                <a href="change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
-                <a href="logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
-        </div>
-    </header>
+    <?php include '../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">
@@ -216,8 +204,8 @@ include '../includes/sidebar.php';
             <div id="departments" class="tab-content">
                 <div style="display: flex; gap: 20px;">
                     <!-- Add/Edit Form -->
-                    <div style="flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; height: fit-content;">
-                        <h4 id="deptFormTitle" style="margin-top: 0; margin-bottom: 20px; color: var(--primary-dark);">Thêm phòng ban mới</h4>
+                    <div class="bg-subtle" style="flex: 1; min-width: 300px; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); height: fit-content;">
+                        <h4 id="deptFormTitle" style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color);">Thêm phòng ban mới</h4>
                         <form method="POST" id="deptForm">
                             <input type="hidden" name="dept_id" id="deptId">
                             <div class="form-group">
@@ -261,7 +249,7 @@ include '../includes/sidebar.php';
                                                 <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
                                                     <?php if (isset($positions_by_dept[$d['id']])): ?>
                                                         <?php foreach ($positions_by_dept[$d['id']] as $p): ?>
-                                                            <li style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #eee;">
+                                                            <li class="border-dashed" style="display: flex; justify-content: space-between; padding: 4px 0;">
                                                                 <span>- <?php echo $p['name']; ?></span>
                                                                 <span style="opacity: 0.6;">
                                                                     <a href="javascript:void(0)" onclick="editPos(<?php echo htmlspecialchars(json_encode($p)); ?>, '<?php echo $d['name']; ?>')" title="Sửa"><i class="fas fa-edit"></i></a>
@@ -311,8 +299,8 @@ include '../includes/sidebar.php';
             <div id="documents" class="tab-content">
                 <div style="display: flex; gap: 20px;">
                     <!-- Add/Edit Form -->
-                    <div style="flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; height: fit-content;">
-                        <h4 id="docFormTitle" style="margin-top: 0; margin-bottom: 20px; color: var(--primary-dark);">Thêm loại hồ sơ</h4>
+                    <div class="bg-subtle" style="flex: 1; min-width: 300px; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); height: fit-content;">
+                        <h4 id="docFormTitle" style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color);">Thêm loại hồ sơ</h4>
                         <form method="POST" id="docForm">
                             <input type="hidden" name="doc_id" id="docId">
                             <div class="form-group">

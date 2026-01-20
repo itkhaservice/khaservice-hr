@@ -2,6 +2,13 @@
     <div class="toggle-sidebar" id="sidebarToggle">
         <i class="fas fa-bars"></i>
     </div>
+    
+    <div style="flex: 1;"></div>
+
+    <div id="theme-toggle" style="margin-right: 20px; cursor: pointer; font-size: 1.2rem; color: var(--text-sub); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.3s;">
+        <i class="fas fa-moon"></i>
+    </div>
+
     <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
         <span><?php echo $_SESSION['user_fullname'] ?? $_SESSION['user_name'] ?? 'Quản trị viên'; ?></span>
         <div class="user-avatar"><?php echo mb_substr($_SESSION['user_fullname'] ?? 'A', 0, 1); ?></div>

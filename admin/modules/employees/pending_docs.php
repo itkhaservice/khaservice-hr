@@ -48,15 +48,7 @@ $pending_docs = db_fetch_all($sql);
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info">
-            <span><?php echo $_SESSION['user_name']; ?></span>
-            <div class="user-avatar">A</div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">
@@ -99,7 +91,7 @@ $pending_docs = db_fetch_all($sql);
                                     </td>
                                     <td style="text-align:center;">
                                         <div style="display: flex; gap: 8px; justify-content: center;">
-                                            <a href="?action=approve&doc_id=<?php echo $pd['id']; ?>" class="btn btn-primary btn-sm" style="background: #24a25c;">
+                                            <a href="?action=approve&doc_id=<?php echo $pd['id']; ?>" class="btn btn-primary btn-sm">
                                                 <i class="fas fa-check"></i> Duyệt
                                             </a>
                                             <a href="javascript:void(0)" onclick="confirmReject(<?php echo $pd['id']; ?>)" class="btn btn-danger btn-sm">
@@ -125,8 +117,3 @@ function confirmReject(id) {
     });
 }
 </script>
-
-<style>
-.text-sub { color: #94a3b8; }
-.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
-</style>

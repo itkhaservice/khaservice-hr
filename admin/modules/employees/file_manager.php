@@ -32,6 +32,12 @@ if (isset($_GET['delete'])) {
 
 // 3. Tham số đường dẫn & Lọc
 $current_dir = $_GET['dir'] ?? '';
+
+// Fix: Handle case where full URL path is passed mistakenly
+if (strpos($current_dir, 'modules/employees/') !== false) {
+    $current_dir = basename($current_dir);
+}
+
 $current_dir = str_replace(['..', './', '\\'], ['', '', '/'], $current_dir);
 $current_dir = trim($current_dir, '/');
 
