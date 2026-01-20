@@ -16,38 +16,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_project'])) {
     $name = clean_input($_POST['name']);
     $address = clean_input($_POST['address']);
     $status = clean_input($_POST['status']);
+    $headcount = (int)$_POST['headcount_required'];
 
-    $sql = "UPDATE projects SET stt = ?, code = ?, name = ?, address = ?, status = ? WHERE id = ?";
-    if (db_query($sql, [$stt, $code, $name, $address, $status, $id])) {
+    $sql = "UPDATE projects SET stt = ?, code = ?, name = ?, address = ?, status = ?, headcount_required = ? WHERE id = ?";
+    if (db_query($sql, [$stt, $code, $name, $address, $status, $headcount, $id])) {
         set_toast('success', 'Cập nhật dự án thành công!');
         $project = db_fetch_row("SELECT * FROM projects WHERE id = ?", [$id]);
     }
 }
 
-// Handle Shift Management
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_shift'])) {
-    $s_name = clean_input($_POST['s_name']);
-    $s_type = clean_input($_POST['s_type']);
-    $s_start = clean_input($_POST['s_start']);
-    $s_end = clean_input($_POST['s_end']);
+// Handle Headcount Details (Project Positions)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_pos_req'])) {
+    $pos_name = clean_input($_POST['pos_name']);
+    $count = (int)$_POST['pos_count'];
     
-    if ($s_name && $s_start && $s_end) {
-        db_query("INSERT INTO shifts (project_id, name, type, start_time, end_time) VALUES (?, ?, ?, ?, ?)", 
-                 [$id, $s_name, $s_type, $s_start, $s_end]);
-        set_toast('success', 'Đã thêm ca làm việc mới!');
-    } else {
-        set_toast('error', 'Vui lòng nhập đầy đủ thông tin ca!');
+    if ($pos_name && $count > 0) {
+        try {
+            db_query("INSERT INTO project_positions (project_id, position_name, count_required) VALUES (?, ?, ?)", 
+                     [$id, $pos_name, $count]);
+            set_toast('success', 'Thêm định biên chi tiết thành công!');
+        } catch (PDOException $e) {
+            set_toast('error', 'Vị trí này đã tồn tại trong dự án!');
+        }
     }
 }
 
-if (isset($_GET['del_shift'])) {
-    $sid = (int)$_GET['del_shift'];
-    db_query("DELETE FROM shifts WHERE id = ? AND project_id = ?", [$sid, $id]);
-    set_toast('success', 'Đã xóa ca làm việc!');
-    redirect("edit.php?id=$id#shifts");
+if (isset($_GET['del_pos_req'])) {
+    $pid = (int)$_GET['del_pos_req'];
+    db_query("DELETE FROM project_positions WHERE id = ? AND project_id = ?", [$pid, $id]);
+    set_toast('success', 'Đã xóa định biên!');
+    redirect("edit.php?id=$id#staffing");
 }
 
 $shifts = db_fetch_all("SELECT * FROM shifts WHERE project_id = ? ORDER BY start_time ASC", [$id]);
+$positions_req = db_fetch_all("SELECT * FROM project_positions WHERE project_id = ? ORDER BY position_name ASC", [$id]);
+// Fetch all position names for suggestions
+$all_pos_names = db_fetch_all("SELECT DISTINCT name FROM positions ORDER BY name ASC");
 
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
@@ -79,6 +83,7 @@ include '../../../includes/sidebar.php';
             <div class="card">
                 <div class="tabs">
                     <div class="tab-item active" data-tab="general">Thông tin chung</div>
+                    <div class="tab-item" data-tab="staffing">Định biên chi tiết</div>
                     <div class="tab-item" data-tab="shifts">Cấu hình ca làm việc</div>
                     <div class="tab-item" data-tab="notes">Ghi chú vận hành</div>
                 </div>
@@ -106,13 +111,84 @@ include '../../../includes/sidebar.php';
                         <input type="text" name="address" class="form-control" value="<?php echo $project['address']; ?>">
                     </div>
 
-                    <div class="form-group">
-                        <label>Trạng thái vận hành</label>
-                        <select name="status" class="form-control">
-                            <option value="active" <?php echo $project['status'] == 'active' ? 'selected' : ''; ?>>Đang hoạt động</option>
-                            <option value="completed" <?php echo $project['status'] == 'completed' ? 'selected' : ''; ?>>Đã hoàn thành</option>
-                            <option value="pending" <?php echo $project['status'] == 'pending' ? 'selected' : ''; ?>>Tạm dừng</option>
-                        </select>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>Trạng thái vận hành</label>
+                            <select name="status" class="form-control">
+                                <option value="active" <?php echo $project['status'] == 'active' ? 'selected' : ''; ?>>Đang hoạt động</option>
+                                <option value="completed" <?php echo $project['status'] == 'completed' ? 'selected' : ''; ?>>Đã hoàn thành</option>
+                                <option value="pending" <?php echo $project['status'] == 'pending' ? 'selected' : ''; ?>>Tạm dừng</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Định biên nhân sự</label>
+                            <input type="number" name="headcount_required" class="form-control" value="<?php echo $project['headcount_required']; ?>" min="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Định biên nhân sự -->
+                <div id="staffing" class="tab-content">
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color);">
+                        <h4 style="margin-bottom: 15px; color: var(--primary-dark);">Thêm định biên vị trí</h4>
+                        <div style="display: flex; gap: 15px; align-items: end;">
+                            <div class="form-group" style="flex: 2; margin-bottom:0;">
+                                <label>Vị trí / Chức danh</label>
+                                <input type="text" name="pos_name" list="pos_list" class="form-control" placeholder="Nhập hoặc chọn chức danh">
+                                <datalist id="pos_list">
+                                    <?php foreach ($all_pos_names as $p): ?>
+                                        <option value="<?php echo $p['name']; ?>">
+                                    <?php endforeach; ?>
+                                </datalist>
+                            </div>
+                            <div class="form-group" style="flex: 1; margin-bottom:0;">
+                                <label>Số lượng cần</label>
+                                <input type="number" name="pos_count" class="form-control" value="1" min="1">
+                            </div>
+                            <button type="submit" name="add_pos_req" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm</button>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Vị trí / Chức danh</th>
+                                    <th>Định biên (Yêu cầu)</th>
+                                    <th>Thực tế (Hiện tại)</th>
+                                    <th>Chênh lệch</th>
+                                    <th width="100" style="text-align:center;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($positions_req)): ?>
+                                    <tr><td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">Chưa có cấu hình định biên chi tiết.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($positions_req as $pr): 
+                                        // Calculate actual
+                                        $actual_count = db_fetch_row("SELECT COUNT(*) as c FROM employees WHERE current_project_id = ? AND position = ? AND status = 'working'", [$id, $pr['position_name']])['c'];
+                                        $diff = $actual_count - $pr['count_required'];
+                                        $status_color = $diff >= 0 ? ($diff == 0 ? '#24a25c' : '#f59e0b') : '#dc2626';
+                                    ?>
+                                        <tr>
+                                            <td><strong><?php echo $pr['position_name']; ?></strong></td>
+                                            <td><?php echo $pr['count_required']; ?></td>
+                                            <td><?php echo $actual_count; ?></td>
+                                            <td>
+                                                <span style="font-weight:bold; color: <?php echo $status_color; ?>">
+                                                    <?php echo ($diff > 0 ? '+' : '') . $diff; ?>
+                                                </span>
+                                            </td>
+                                            <td style="text-align:center;">
+                                                <a href="javascript:void(0)" class="btn btn-danger btn-sm" onclick="confirmDeletePosReq(<?php echo $pr['id']; ?>)" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -189,6 +265,8 @@ include '../../../includes/sidebar.php';
         </form>
     </div>
 
+<?php include '../../../includes/footer.php'; ?>
+
 <script>
 $(document).ready(function() {
     // Tab switching logic
@@ -217,10 +295,14 @@ function confirmDeleteShift(sid) {
         location.href = '?id=<?php echo $id; ?>&del_shift=' + sid;
     });
 }
+
+function confirmDeletePosReq(pid) {
+    Modal.confirm('Bạn có chắc chắn muốn xóa định biên này?', () => {
+        location.href = '?id=<?php echo $id; ?>&del_pos_req=' + pid;
+    });
+}
 </script>
 
 <style>
 .btn-sm { padding: 6px 10px; font-size: 12px; }
 </style>
-
-<?php include '../../../includes/footer.php'; ?>

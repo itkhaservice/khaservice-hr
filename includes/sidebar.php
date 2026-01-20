@@ -1,9 +1,11 @@
 <?php
 $current_uri = $_SERVER['REQUEST_URI'];
-// Simple helper to check active state
-function is_active($path) {
-    global $current_uri;
-    return strpos($current_uri, $path) !== false ? 'active' : '';
+// Calculate Pending Docs
+$pending_docs_count = 0;
+// Use try-catch or ensure DB is connected before this runs (sidebar is included after header which connects DB)
+if (isset($pdo)) {
+    $stmt = $pdo->query("SELECT COUNT(*) as c FROM documents WHERE approval_status = 'pending'");
+    if ($stmt) $pending_docs_count = $stmt->fetch()['c'];
 }
 ?>
 <nav class="sidebar" id="sidebar">
@@ -24,8 +26,16 @@ function is_active($path) {
             </a>
         </li>
         <li>
-            <a href="/khaservice-hr/admin/modules/employees/index.php" class="<?php echo is_active('/modules/employees/'); ?>">
+            <a href="/khaservice-hr/admin/modules/employees/index.php" class="<?php echo is_active('/modules/employees/index.php'); ?>">
                 <i class="fas fa-user-tie"></i> <span>Quản lý Nhân sự</span>
+            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/employees/pending_docs.php" class="<?php echo is_active('pending_docs.php'); ?>" style="position: relative;">
+                <i class="fas fa-file-signature"></i> <span>Duyệt hồ sơ</span>
+                <?php if ($pending_docs_count > 0): ?>
+                    <span class="badge badge-danger" style="position: absolute; right: 10px; top: 12px; font-size: 0.7rem; padding: 2px 6px;"><?php echo $pending_docs_count; ?></span>
+                <?php endif; ?>
             </a>
         </li>
         <li>
@@ -43,6 +53,13 @@ function is_active($path) {
                 <i class="fas fa-chart-bar"></i> <span>Báo cáo</span>
             </a>
         </li>
+        <?php if (is_hr_staff()): ?>
+        <li>
+            <a href="/khaservice-hr/admin/modules/employees/file_manager.php" class="<?php echo is_active('file_manager.php'); ?>">
+                <i class="fas fa-folder-tree"></i> <span>File Server</span>
+            </a>
+        </li>
+        <?php endif; ?>
         <li>
             <a href="/khaservice-hr/admin/settings.php" class="<?php echo is_active('/settings.php'); ?>">
                 <i class="fas fa-cogs"></i> <span>Cấu hình</span>

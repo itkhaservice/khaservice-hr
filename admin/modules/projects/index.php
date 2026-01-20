@@ -31,7 +31,12 @@ $total_sql = "SELECT COUNT(*) as count FROM projects $where";
 $total_records = db_fetch_row($total_sql, $params)['count'];
 
 // Get Data
-$sql = "SELECT * FROM projects $where ORDER BY stt ASC, id ASC LIMIT $offset, $limit";
+$sql = "SELECT p.*, 
+        (SELECT COUNT(*) FROM employees e WHERE e.current_project_id = p.id AND e.status = 'working') as headcount_actual
+        FROM projects p 
+        $where 
+        ORDER BY p.stt ASC, p.id ASC 
+        LIMIT $offset, $limit";
 $projects = db_fetch_all($sql, $params);
 
 // Pagination Link Template
@@ -49,7 +54,8 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
             <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
             <div class="user-avatar">A</div>
             <div class="user-dropdown">
-                <a href="/khaservice-hr/admin/logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
+                <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
             </div>
         </div>
     </header>
@@ -85,18 +91,39 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                             <th>Mã dự án</th>
                             <th>Tên dự án</th>
                             <th>Địa chỉ</th>
+                            <th>Nhân sự (ĐB)</th>
                             <th>Trạng thái</th>
                             <th width="120" style="text-align:center;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($projects)): ?>
-                            <tr><td colspan="6" style="text-align:center; padding: 30px;">Không tìm thấy dữ liệu</td></tr>
+                            <tr><td colspan="7" style="text-align:center; padding: 30px;">Không tìm thấy dữ liệu</td></tr>
                         <?php else: ?>
                             <?php 
                                 $stt = $offset; // Init STT based on offset
                                 foreach ($projects as $p): 
                                     $stt++; // Increment STT
+                                    $actual = $p['headcount_actual'];
+                                    $required = $p['headcount_required'];
+                                    
+                                    // Status Logic
+                                    $hc_status = '';
+                                    $hc_color = '#64748b'; // default gray
+                                    if ($required > 0) {
+                                        if ($actual < $required) {
+                                            $diff = $required - $actual;
+                                            $hc_status = "Thiếu $diff";
+                                            $hc_color = '#dc2626'; // red
+                                        } elseif ($actual > $required) {
+                                            $diff = $actual - $required;
+                                            $hc_status = "Dư $diff";
+                                            $hc_color = '#f59e0b'; // orange
+                                        } else {
+                                            $hc_status = "Đủ";
+                                            $hc_color = '#24a25c'; // green
+                                        }
+                                    }
                             ?>
                                 <tr>
                                     <td style="text-align:center; color: #94a3b8;"><?php echo $stt; ?></td>
@@ -107,6 +134,12 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                         </a>
                                     </td>
                                     <td style="color: #64748b;"><?php echo $p['address']; ?></td>
+                                    <td>
+                                        <span style="font-weight:700; color:<?php echo $hc_color; ?>"><?php echo $actual; ?></span> / <?php echo $required; ?>
+                                        <?php if($hc_status): ?>
+                                            <span style="font-size:0.75rem; background:<?php echo $hc_color; ?>; color:#fff; padding:2px 6px; border-radius:4px; margin-left:5px;"><?php echo $hc_status; ?></span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php 
                                             $s_cls = ['active'=>'badge-success', 'completed'=>'badge-info', 'pending'=>'badge-warning'];

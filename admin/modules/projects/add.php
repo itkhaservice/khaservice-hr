@@ -8,9 +8,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $name = clean_input($_POST['name']);
     $address = clean_input($_POST['address']);
     $status = clean_input($_POST['status']);
+    $headcount = (int)$_POST['headcount_required'];
 
-    $sql = "INSERT INTO projects (stt, code, name, address, status) VALUES (?, ?, ?, ?, ?)";
-    if (db_query($sql, [$stt, $code, $name, $address, $status])) {
+    $sql = "INSERT INTO projects (stt, code, name, address, status, headcount_required) VALUES (?, ?, ?, ?, ?, ?)";
+    if (db_query($sql, [$stt, $code, $name, $address, $status, $headcount])) {
         set_toast('success', 'Thêm dự án thành công!');
         redirect('index.php');
     }
@@ -64,20 +65,26 @@ include '../../../includes/sidebar.php';
                         <input type="text" name="name" class="form-control" required placeholder="Tên tòa nhà / dự án">
                     </div>
 
-                    <div class="form-group">
-                        <label>Địa chỉ</label>
-                        <input type="text" name="address" class="form-control" placeholder="Địa chỉ dự án">
-                    </div>
+                        <div class="form-group">
+                            <label>Địa chỉ</label>
+                            <input type="text" name="address" class="form-control" placeholder="Địa chỉ dự án">
+                        </div>
 
-                    <div class="form-group">
-                        <label>Trạng thái</label>
-                        <select name="status" class="form-control">
-                            <option value="active">Đang hoạt động</option>
-                            <option value="completed">Đã hoàn thành</option>
-                            <option value="pending">Tạm dừng</option>
-                        </select>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label>Trạng thái</label>
+                                <select name="status" class="form-control">
+                                    <option value="active">Đang hoạt động</option>
+                                    <option value="completed">Đã hoàn thành</option>
+                                    <option value="pending">Tạm dừng</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Định biên nhân sự</label>
+                                <input type="number" name="headcount_required" class="form-control" value="0" min="0" placeholder="Số lượng cần thiết">
+                            </div>
+                        </div>
                     </div>
-                </div>
 
                 <div id="shifts" class="tab-content">
                     <p style="color: #777; font-style: italic;">Bạn cần lưu thông tin dự án trước khi có thể cấu hình ca làm việc.</p>

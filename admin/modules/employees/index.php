@@ -13,6 +13,11 @@ $kw = isset($_GET['kw']) ? clean_input($_GET['kw']) : '';
 $dept_id = isset($_GET['dept_id']) ? (int)$_GET['dept_id'] : 0;
 $proj_id = isset($_GET['proj_id']) ? (int)$_GET['proj_id'] : 0;
 $status = isset($_GET['status']) ? clean_input($_GET['status']) : '';
+$doc_status = isset($_GET['doc_status']) ? clean_input($_GET['doc_status']) : '';
+
+// Mandatory Docs for Status Check
+$mandatory_docs = ['CCCD', 'DXV', 'SYLL', 'CK', 'GKSK', 'HDLD'];
+$mandatory_list = "'" . implode("','", $mandatory_docs) . "'";
 
 // Build Query
 $where = "WHERE 1=1";
@@ -38,12 +43,23 @@ if ($status) {
     $params[] = $status;
 }
 
+// Special Filter for Document Status
+if ($doc_status) {
+    if ($doc_status == 'complete') {
+        // Must have all mandatory docs
+        $where .= " AND (SELECT COUNT(DISTINCT doc_type) FROM documents d WHERE d.employee_id = e.id AND d.is_submitted = 1 AND d.doc_type IN ($mandatory_list)) >= " . count($mandatory_docs);
+    } elseif ($doc_status == 'incomplete') {
+        $where .= " AND (SELECT COUNT(DISTINCT doc_type) FROM documents d WHERE d.employee_id = e.id AND d.is_submitted = 1 AND d.doc_type IN ($mandatory_list)) < " . count($mandatory_docs);
+    }
+}
+
 // Get Total
 $total_sql = "SELECT COUNT(*) as count FROM employees e $where";
 $total_records = db_fetch_row($total_sql, $params)['count'];
 
-// Get Data
-$sql = "SELECT e.*, d.name as dept_name, p.name as proj_name 
+// Get Data with Doc Count
+$sql = "SELECT e.*, d.name as dept_name, p.name as proj_name,
+        (SELECT COUNT(DISTINCT doc_type) FROM documents doc WHERE doc.employee_id = e.id AND doc.is_submitted = 1 AND doc.doc_type IN ($mandatory_list)) as submitted_count
         FROM employees e 
         LEFT JOIN departments d ON e.department_id = d.id 
         LEFT JOIN projects p ON e.current_project_id = p.id 
@@ -66,9 +82,13 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
         <div class="toggle-sidebar" id="sidebarToggle">
             <i class="fas fa-bars"></i>
         </div>
-        <div class="user-info">
-            <span>Admin</span>
+        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
+            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
             <div class="user-avatar">A</div>
+            <div class="user-dropdown">
+                <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
+                <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+            </div>
         </div>
     </header>
 
@@ -94,12 +114,17 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <?php endforeach; ?>
             </select>
             <select name="status">
-                <option value="">-- Trạng thái --</option>
+                <option value="">-- Trạng thái làm việc --</option>
                 <option value="working" <?php echo $status == 'working' ? 'selected' : ''; ?>>Đang làm việc</option>
                 <option value="resigned" <?php echo $status == 'resigned' ? 'selected' : ''; ?>>Đã nghỉ việc</option>
             </select>
+            <select name="doc_status">
+                <option value="">-- Trạng thái hồ sơ --</option>
+                <option value="complete" <?php echo $doc_status == 'complete' ? 'selected' : ''; ?>>Đã hoàn tất</option>
+                <option value="incomplete" <?php echo $doc_status == 'incomplete' ? 'selected' : ''; ?>>Chưa hoàn tất</option>
+            </select>
             <button type="submit" class="btn btn-secondary">Lọc</button>
-            <?php if ($kw || $dept_id || $proj_id || $status): ?>
+            <?php if ($kw || $dept_id || $proj_id || $status || $doc_status): ?>
                 <a href="index.php" class="btn btn-danger">Xóa lọc</a>
             <?php endif; ?>
         </form>
@@ -115,15 +140,20 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                             <th>Dự án hiện tại</th>
                             <th>Chức vụ</th>
                             <th>SĐT</th>
+                            <th>Hồ sơ</th>
                             <th>Trạng thái</th>
                             <th width="120">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($employees)): ?>
-                            <tr><td colspan="8" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>
+                            <tr><td colspan="9" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>
                         <?php else: ?>
-                            <?php foreach ($employees as $e): ?>
+                            <?php 
+                                $total_req = count($mandatory_docs);
+                                foreach ($employees as $e): 
+                                    $is_complete = $e['submitted_count'] >= $total_req;
+                            ?>
                                 <tr>
                                     <td><strong><?php echo $e['code']; ?></strong></td>
                                     <td><?php echo $e['fullname']; ?></td>
@@ -132,7 +162,14 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                     <td><?php echo $e['position']; ?></td>
                                     <td><?php echo $e['phone']; ?></td>
                                     <td>
-                                        <span class="badge <?php echo $e['status'] == 'working' ? 'badge-success' : 'badge-danger'; ?>">
+                                        <?php if ($is_complete): ?>
+                                            <span class="badge badge-success"><i class="fas fa-check"></i> Đủ</span>
+                                        <?php else: ?>
+                                            <span class="badge badge-warning" title="Thiếu <?php echo $total_req - $e['submitted_count']; ?> loại"><i class="fas fa-exclamation-triangle"></i> Thiếu</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <span class="badge <?php echo $e['status'] == 'working' ? 'badge-info' : 'badge-danger'; ?>">
                                             <?php echo $e['status'] == 'working' ? 'Đang làm việc' : 'Đã nghỉ'; ?>
                                         </span>
                                     </td>

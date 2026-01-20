@@ -31,9 +31,6 @@ $sql = "SELECT a.*, e.fullname, e.code as emp_code, p.name as proj_name, s.name 
 $logs = db_fetch_all($sql, $params);
 
 $projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
-
-include '../../../includes/header.php';
-include '../../../includes/sidebar.php';
 ?>
 
 <div class="main-content">

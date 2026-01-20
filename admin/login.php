@@ -16,7 +16,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Simple query (In production use password_verify)
     $user = db_fetch_row("SELECT * FROM users WHERE username = ? AND status = 1", [$username]);
 
-    if ($user && $user['password'] == $password) {
+    $login_success = false;
+    
+    if ($user) {
+        // 1. Check hash
+        if (password_verify($password, $user['password'])) {
+            $login_success = true;
+        } 
+        // 2. Check plaintext (legacy fallback)
+        elseif ($user['password'] === $password) {
+            $login_success = true;
+            // Upgrade to hash automatically
+            $new_hash = password_hash($password, PASSWORD_DEFAULT);
+            db_query("UPDATE users SET password = ? WHERE id = ?", [$new_hash, $user['id']]);
+        }
+    }
+
+    if ($login_success) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['fullname'];
         $_SESSION['user_role'] = $user['role'];

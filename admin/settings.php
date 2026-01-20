@@ -50,6 +50,85 @@ if (isset($_GET['del_dept'])) {
     redirect('settings.php#departments');
 }
 
+// --- HANDLE DOCUMENT SETTINGS ---
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_doctype'])) {
+    $name = clean_input($_POST['doc_name']);
+    $code = clean_input($_POST['doc_code']);
+    $is_required = isset($_POST['is_required']) ? 1 : 0;
+    $is_multiple = isset($_POST['is_multiple']) ? 1 : 0;
+    
+    if ($name && $code) {
+        try {
+            db_query("INSERT INTO document_settings (name, code, is_required, is_multiple) VALUES (?, ?, ?, ?)", [$name, $code, $is_required, $is_multiple]);
+            set_toast('success', 'Thêm loại hồ sơ thành công!');
+        } catch (PDOException $e) {
+            set_toast('error', 'Mã hồ sơ đã tồn tại!');
+        }
+    }
+    redirect('settings.php#documents');
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_doctype'])) {
+    $id = (int)$_POST['doc_id'];
+    $name = clean_input($_POST['doc_name']);
+    $code = clean_input($_POST['doc_code']);
+    $is_required = isset($_POST['is_required']) ? 1 : 0;
+    $is_multiple = isset($_POST['is_multiple']) ? 1 : 0;
+    
+    db_query("UPDATE document_settings SET name = ?, code = ?, is_required = ?, is_multiple = ? WHERE id = ?", [$name, $code, $is_required, $is_multiple, $id]);
+    set_toast('success', 'Cập nhật loại hồ sơ thành công!');
+    redirect('settings.php#documents');
+}
+
+if (isset($_GET['del_doctype'])) {
+    $id = (int)$_GET['del_doctype'];
+    // Check usage
+    $code = db_fetch_row("SELECT code FROM document_settings WHERE id = ?", [$id])['code'];
+    $count = db_fetch_row("SELECT COUNT(*) as c FROM documents WHERE doc_type = ?", [$code])['c'];
+    
+    if ($count > 0) {
+        set_toast('error', 'Không thể xóa loại hồ sơ đang được sử dụng!');
+    } else {
+        db_query("DELETE FROM document_settings WHERE id = ?", [$id]);
+        set_toast('success', 'Đã xóa loại hồ sơ!');
+    }
+    redirect('settings.php#documents');
+}
+
+// --- HANDLE POSITIONS ---
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_position'])) {
+    $dept_id = (int)$_POST['dept_id'];
+    $name = clean_input($_POST['pos_name']);
+    
+    if ($dept_id && $name) {
+        db_query("INSERT INTO positions (department_id, name) VALUES (?, ?)", [$dept_id, $name]);
+        set_toast('success', 'Thêm chức vụ thành công!');
+    }
+    redirect('settings.php#departments');
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_position'])) {
+    $id = (int)$_POST['pos_id'];
+    $name = clean_input($_POST['pos_name']);
+    
+    db_query("UPDATE positions SET name = ? WHERE id = ?", [$name, $id]);
+    set_toast('success', 'Cập nhật chức vụ thành công!');
+    redirect('settings.php#departments');
+}
+
+if (isset($_GET['del_position'])) {
+    $id = (int)$_GET['del_position'];
+    // Check usage
+    $count = db_fetch_row("SELECT COUNT(*) as c FROM employees WHERE position_id = ?", [$id])['c'];
+    if ($count > 0) {
+        set_toast('error', 'Không thể xóa chức vụ đang có nhân viên!');
+    } else {
+        db_query("DELETE FROM positions WHERE id = ?", [$id]);
+        set_toast('success', 'Đã xóa chức vụ!');
+    }
+    redirect('settings.php#departments');
+}
+
 // --- FETCH DATA ---
 // Settings
 $settings_raw = db_fetch_all("SELECT * FROM settings");
@@ -58,6 +137,16 @@ foreach ($settings_raw as $s) $settings[$s['setting_key']] = $s['setting_value']
 
 // Departments
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY id ASC");
+
+// Positions
+$positions = db_fetch_all("SELECT * FROM positions ORDER BY department_id ASC, id ASC");
+$positions_by_dept = [];
+foreach ($positions as $p) {
+    $positions_by_dept[$p['department_id']][] = $p;
+}
+
+// Document Types
+$doc_types = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
 
 include '../includes/header.php';
 include '../includes/sidebar.php';
@@ -72,6 +161,7 @@ include '../includes/sidebar.php';
             <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
             <div class="user-avatar">A</div>
             <div class="user-dropdown">
+                <a href="change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
                 <a href="logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
             </div>
         </div>
@@ -86,6 +176,7 @@ include '../includes/sidebar.php';
             <div class="tabs">
                 <div class="tab-item active" data-tab="company">Thông tin Công ty</div>
                 <div class="tab-item" data-tab="departments">Quản lý Phòng ban</div>
+                <div class="tab-item" data-tab="documents">Cấu hình Hồ sơ</div>
             </div>
 
             <!-- Tab 1: Company Info -->
@@ -153,16 +244,37 @@ include '../includes/sidebar.php';
                                         <th width="50">ID</th>
                                         <th>Mã PB</th>
                                         <th>Tên phòng ban</th>
+                                        <th>Cơ cấu chức vụ</th>
                                         <th width="100" style="text-align:center;">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($departments as $d): ?>
                                         <tr>
-                                            <td><?php echo $d['id']; ?></td>
-                                            <td><span class="badge badge-secondary"><?php echo $d['code']; ?></span></td>
-                                            <td><strong><?php echo $d['name']; ?></strong></td>
-                                            <td style="text-align:center;">
+                                            <td style="vertical-align:top;"><?php echo $d['id']; ?></td>
+                                            <td style="vertical-align:top;"><span class="badge badge-secondary"><?php echo $d['code']; ?></span></td>
+                                            <td style="vertical-align:top;"><strong><?php echo $d['name']; ?></strong></td>
+                                            <td>
+                                                <div style="margin-bottom: 8px;">
+                                                    <a href="javascript:void(0)" onclick="openPosModal(<?php echo $d['id']; ?>, '<?php echo $d['name']; ?>')" class="badge badge-success" style="cursor:pointer;">+ Thêm chức vụ</a>
+                                                </div>
+                                                <ul style="list-style: none; padding: 0; font-size: 0.9rem;">
+                                                    <?php if (isset($positions_by_dept[$d['id']])): ?>
+                                                        <?php foreach ($positions_by_dept[$d['id']] as $p): ?>
+                                                            <li style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #eee;">
+                                                                <span>- <?php echo $p['name']; ?></span>
+                                                                <span style="opacity: 0.6;">
+                                                                    <a href="javascript:void(0)" onclick="editPos(<?php echo htmlspecialchars(json_encode($p)); ?>, '<?php echo $d['name']; ?>')" title="Sửa"><i class="fas fa-edit"></i></a>
+                                                                    <a href="javascript:void(0)" onclick="confirmDelPos(<?php echo $p['id']; ?>)" title="Xóa" style="margin-left:5px; color:#dc2626;"><i class="fas fa-trash"></i></a>
+                                                                </span>
+                                                            </li>
+                                                        <?php endforeach; ?>
+                                                    <?php else: ?>
+                                                        <li style="color: #999; font-style: italic;">Chưa có chức vụ</li>
+                                                    <?php endif; ?>
+                                                </ul>
+                                            </td>
+                                            <td style="vertical-align:top; text-align:center;">
                                                 <a href="javascript:void(0)" onclick="editDept(<?php echo htmlspecialchars(json_encode($d)); ?>)" class="text-primary-hover" style="margin-right: 10px;"><i class="fas fa-edit"></i></a>
                                                 <a href="javascript:void(0)" onclick="confirmDelDept(<?php echo $d['id']; ?>)" class="text-danger"><i class="fas fa-trash"></i></a>
                                             </td>
@@ -174,8 +286,102 @@ include '../includes/sidebar.php';
                     </div>
                 </div>
             </div>
+
+            <!-- Position Modal -->
+            <div id="posModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
+                <div class="card" style="width:400px;">
+                    <h3 id="posModalTitle">Thêm chức vụ</h3>
+                    <p id="posModalSubtitle" style="color:#666; margin-bottom:15px; font-style:italic;"></p>
+                    <form method="POST">
+                        <input type="hidden" name="dept_id" id="posDeptId">
+                        <input type="hidden" name="pos_id" id="posId">
+                        <div class="form-group">
+                            <label>Tên chức vụ <span style="color:red;">*</span></label>
+                            <input type="text" name="pos_name" id="posName" class="form-control" required placeholder="VD: Trưởng phòng">
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:20px;">
+                            <button type="submit" name="add_position" id="posBtn" class="btn btn-primary">Lưu</button>
+                            <button type="button" class="btn btn-secondary" onclick="$('#posModal').hide()">Đóng</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab 3: Document Types -->
+            <div id="documents" class="tab-content">
+                <div style="display: flex; gap: 20px;">
+                    <!-- Add/Edit Form -->
+                    <div style="flex: 1; min-width: 300px; background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; height: fit-content;">
+                        <h4 id="docFormTitle" style="margin-top: 0; margin-bottom: 20px; color: var(--primary-dark);">Thêm loại hồ sơ</h4>
+                        <form method="POST" id="docForm">
+                            <input type="hidden" name="doc_id" id="docId">
+                            <div class="form-group">
+                                <label>Mã hồ sơ <span style="color:red;">*</span></label>
+                                <input type="text" name="doc_code" id="docCode" class="form-control" required placeholder="VD: CCCD">
+                            </div>
+                            <div class="form-group">
+                                <label>Tên loại hồ sơ <span style="color:red;">*</span></label>
+                                <input type="text" name="doc_name" id="docName" class="form-control" required placeholder="VD: Căn cước công dân">
+                            </div>
+                            <div class="form-group" style="display:flex; gap:20px;">
+                                <label style="display:flex; align-items:center; cursor:pointer;">
+                                    <input type="checkbox" name="is_required" id="docRequired" value="1" checked style="margin-right:8px;"> Bắt buộc
+                                </label>
+                                <label style="display:flex; align-items:center; cursor:pointer;">
+                                    <input type="checkbox" name="is_multiple" id="docMultiple" value="1" style="margin-right:8px;"> Cho phép nhiều file
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" name="add_doctype" id="docBtn" class="btn btn-primary" style="flex:1;">Thêm mới</button>
+                                <button type="button" id="docCancel" class="btn btn-secondary" style="display:none;" onclick="resetDocForm()">Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- List -->
+                    <div style="flex: 2;">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th width="50">ID</th>
+                                        <th>Mã</th>
+                                        <th>Tên loại hồ sơ</th>
+                                        <th>Tính chất</th>
+                                        <th width="100" style="text-align:center;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($doc_types as $d): ?>
+                                        <tr>
+                                            <td><?php echo $d['id']; ?></td>
+                                            <td><span class="badge badge-secondary"><?php echo $d['code']; ?></span></td>
+                                            <td><strong><?php echo $d['name']; ?></strong></td>
+                                            <td>
+                                                <?php if($d['is_required']): ?><span class="badge badge-warning">Bắt buộc</span><?php endif; ?>
+                                                <?php if($d['is_multiple']): ?><span class="badge badge-info">Nhiều file</span><?php endif; ?>
+                                            </td>
+                                            <td style="text-align:center;">
+                                                <a href="javascript:void(0)" onclick="editDoc(<?php echo htmlspecialchars(json_encode($d)); ?>)" class="text-primary-hover" style="margin-right: 10px;"><i class="fas fa-edit"></i></a>
+                                                <a href="javascript:void(0)" onclick="confirmDelDoc(<?php echo $d['id']; ?>)" class="text-danger"><i class="fas fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+<style>
+.text-primary-hover:hover { color: var(--primary-color); }
+.text-danger:hover { color: #b91c1c; }
+</style>
+
+<?php include '../includes/footer.php'; ?>
 
 <script>
 $(document).ready(function() {
@@ -223,11 +429,62 @@ function confirmDelDept(id) {
         location.href = 'settings.php?del_dept=' + id;
     });
 }
+
+// Position Logic
+function openPosModal(deptId, deptName) {
+    $('#posModalTitle').text('Thêm chức vụ');
+    $('#posModalSubtitle').text('Phòng ban: ' + deptName);
+    $('#posDeptId').val(deptId);
+    $('#posId').val('');
+    $('#posName').val('');
+    
+    $('#posBtn').attr('name', 'add_position').text('Thêm mới');
+    $('#posModal').css('display', 'flex');
+}
+
+function editPos(data, deptName) {
+    $('#posModalTitle').text('Sửa chức vụ');
+    $('#posModalSubtitle').text('Phòng ban: ' + deptName);
+    $('#posDeptId').val(data.department_id);
+    $('#posId').val(data.id);
+    $('#posName').val(data.name);
+    
+    $('#posBtn').attr('name', 'edit_position').text('Cập nhật');
+    $('#posModal').css('display', 'flex');
+}
+
+function confirmDelPos(id) {
+    Modal.confirm('Bạn có chắc muốn xóa chức vụ này?', () => {
+        location.href = 'settings.php?del_position=' + id;
+    });
+}
+
+// Document Type Logic
+function editDoc(data) {
+    $('#docFormTitle').text('Sửa loại hồ sơ');
+    $('#docId').val(data.id);
+    $('#docCode').val(data.code);
+    $('#docName').val(data.name);
+    $('#docRequired').prop('checked', data.is_required == 1);
+    $('#docMultiple').prop('checked', data.is_multiple == 1);
+    
+    $('#docBtn').attr('name', 'edit_doctype').html('<i class="fas fa-save"></i> Cập nhật');
+    $('#docCancel').show();
+}
+
+function resetDocForm() {
+    $('#docFormTitle').text('Thêm loại hồ sơ');
+    $('#docForm')[0].reset();
+    $('#docId').val('');
+    $('#docRequired').prop('checked', true); // Default
+    
+    $('#docBtn').attr('name', 'add_doctype').html('Thêm mới');
+    $('#docCancel').hide();
+}
+
+function confirmDelDoc(id) {
+    Modal.confirm('Bạn có chắc muốn xóa loại hồ sơ này? Các tài liệu liên quan sẽ bị lỗi hiển thị.', () => {
+        location.href = 'settings.php?del_doctype=' + id;
+    });
+}
 </script>
-
-<style>
-.text-primary-hover:hover { color: var(--primary-color); }
-.text-danger:hover { color: #b91c1c; }
-</style>
-
-<?php include '../includes/footer.php'; ?>

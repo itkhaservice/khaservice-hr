@@ -47,6 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_notes'])) {
 
 $shifts = db_fetch_all("SELECT * FROM shifts WHERE project_id = ? ORDER BY start_time ASC", [$id]);
 $emp_count = db_fetch_row("SELECT COUNT(*) as count FROM employees WHERE current_project_id = ?", [$id])['count'];
+$positions_req = db_fetch_all("SELECT * FROM project_positions WHERE project_id = ? ORDER BY position_name ASC", [$id]);
 
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
@@ -61,7 +62,8 @@ include '../../../includes/sidebar.php';
             <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
             <div class="user-avatar">A</div>
             <div class="user-dropdown">
-                <a href="/khaservice-hr/admin/logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+                <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
+                <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
             </div>
         </div>
     </header>
@@ -117,9 +119,51 @@ include '../../../includes/sidebar.php';
             </div>
 
             <!-- Right Column: Shifts & Config -->
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3>Cấu hình ca làm việc</h3>
+            <div style="display: flex; flex-direction: column; gap: 25px;">
+                
+                <!-- Staffing Details -->
+                <div class="card">
+                    <h3 style="border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px;">Định biên nhân sự chi tiết</h3>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Vị trí</th>
+                                    <th>Định biên</th>
+                                    <th>Thực tế</th>
+                                    <th>Chênh lệch</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($positions_req)): ?>
+                                    <tr><td colspan="4" style="text-align:center; padding: 20px; color: #94a3b8;">Chưa cấu hình định biên chi tiết.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($positions_req as $pr): 
+                                        $actual_count = db_fetch_row("SELECT COUNT(*) as c FROM employees WHERE current_project_id = ? AND position = ? AND status = 'working'", [$id, $pr['position_name']])['c'];
+                                        $diff = $actual_count - $pr['count_required'];
+                                        $status_color = $diff >= 0 ? ($diff == 0 ? '#24a25c' : '#f59e0b') : '#dc2626';
+                                    ?>
+                                        <tr>
+                                            <td><strong><?php echo $pr['position_name']; ?></strong></td>
+                                            <td><?php echo $pr['count_required']; ?></td>
+                                            <td><?php echo $actual_count; ?></td>
+                                            <td>
+                                                <span style="font-weight:bold; color: <?php echo $status_color; ?>">
+                                                    <?php echo ($diff > 0 ? '+' : '') . $diff; ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Shifts -->
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3>Cấu hình ca làm việc</h3>
                     <button class="btn btn-secondary btn-sm" onclick="$('#addShiftForm').slideToggle()">
                         <i class="fas fa-plus"></i> Thêm ca nhanh
                     </button>

@@ -1,0 +1,61 @@
+Chung: 
+Mở rộng/Thu gọn sidebar-header
+Sáng module đang active trên sidebar-header
+Đăng nhập/ Đăng xuất ADMIN
+Nút "Thêm mới" tách liền với "Cụm Lọc - Tìm kiếm"
+Nút "Chỉnh sửa" và "Quay lại"/ "Lưu dữ liệu" và "Hủy" tách liền với phần Nội dung
+Sử dụng tối đa chiều rộng của "Cụm Lọc - Tìm kiếm"
+Số thứ tự của bảng dữ liệu
+CSS Hiện thị dòng/ trang
+Quản lý dự án:
+Thêm CSS trong Chi tiết dự án
+Thêm Cấu hình ca trong Chi tiết dự án
+Thêm Ghi chú vận hành trong Chi tiết dự án
+===============================================================
+Cấu hình:
+Cấu hình các thông tin cơ bản về công ty
+Cấu hình các phòng ban
+===============================================================
+Thêm quản lý Danh mục hồ sơ bắt buộc
+Trường hợp hồ sơ có nhiều tệp như Chứng chỉ, Bằng cấp?
+===============================================================
+Xem lại cơ cấu chức vụ
+Ban Giám Đốc
+- Tổng Giám Đốc
+- Phó Tổng Giám Đốc
+Ban Kế toán
+- Trưởng phòng Kế toán
+- Kế toán
+- Kế toán dự án
+Ban Kinh doanh
+- Trưởng phòng Kinh doanh
+- Nhân viên
+Ban Nhân sự
+- Trưởng phòng Nhân sự
+- Nhân viên
+Ban Công nghệ thông tin
+- Trưởng phòng IT
+- Nhân viên
+Ban Kỹ thuật
+- Kỹ sư trưởng
+- Tổ trưởng Kỹ thuật
+- Nhân viên
+Ban Vệ sinh - Tạp Vụ
+- Tổ trưởng vệ sinh - tạp vụ
+- Nhân viên
+===============================================================
+Cấu hình website có thể truy cập được bằng ip máy tính khi chạy localhost
+
+Kiểm tra Mở rộng/Thu nhỏ sildebar, Đăng xuất, Đổi mật khẩu
+===============================================================
+Bổ sung thông tin Hồ sơ/Giấy tờ
+CCCD: Căn cước công dân
+ĐXV: Đơn xin việc
+SYLL: Sơ yếu lý lịch
+BC: Bằng cấp
+XNHK: Xác nhận hạnh kiểm (Đối với Bảo vệ/An ninh)
+CK: Cam kết nhân viên
+CK Thuế: Cam kết thuế thu nhập cá nhân (Đối với người không tham gia HĐLĐ)
+Bằng cấp/Chứng chỉ (Có thể có nhiều, có thể không áp dụng cho An ninh/Bảo vệ/Tạp vụ/Cây xanh
+Hệ thống cần thống kê và nắm được dự án đã đũ người hay còn thiếu nhân sự cần phải tuyển dụng thêm, để đáp ứng theo HĐ QLVH
+===============================================================
