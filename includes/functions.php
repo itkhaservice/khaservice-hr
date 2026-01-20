@@ -142,4 +142,12 @@ function get_allowed_projects() {
     }
     return $ids;
 }
+
+/**
+ * Safe fetch count helper
+ */
+function get_count($sql, $params = []) {
+    $row = db_fetch_row($sql, $params);
+    return ($row && isset($row['count'])) ? (int)$row['count'] : 0;
+}
 ?>

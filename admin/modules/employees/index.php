@@ -104,7 +104,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
 
         <!-- Filters -->
         <form method="GET" class="filter-section">
-            <input type="text" name="kw" value="<?php echo $kw; ?>" placeholder="Tên, mã, SĐT, CCCD..." style="width:200px;">
+            <input type="text" name="kw" value="<?php echo $kw; ?>" class="form-control" placeholder="Tên, mã, SĐT, CCCD...">
             <select name="dept_id">
                 <option value="">-- Phòng ban --</option>
                 <?php foreach ($departments as $d): ?>
@@ -130,10 +130,13 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <option value="complete" <?php echo $doc_status == 'complete' ? 'selected' : ''; ?>>Đã hoàn tất</option>
                 <option value="incomplete" <?php echo $doc_status == 'incomplete' ? 'selected' : ''; ?>>Chưa hoàn tất</option>
             </select>
-            <button type="submit" class="btn btn-secondary">Lọc</button>
-            <?php if ($kw || $dept_id || $proj_id || $status || $doc_status): ?>
-                <a href="index.php" class="btn btn-danger">Xóa lọc</a>
-            <?php endif; ?>
+            
+            <div style="display: flex; gap: 5px;">
+                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
+                <?php if ($kw || $dept_id || $proj_id || $status || $doc_status): ?>
+                    <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                <?php endif; ?>
+            </div>
         </form>
 
         <div class="card">
@@ -212,8 +215,6 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <div class="pagination-wrapper">
                     <?php echo paginate($total_records, $page, $limit, $link_template); ?>
                 </div>
-            </div>
-        </div>
     </div>
 
 <script>

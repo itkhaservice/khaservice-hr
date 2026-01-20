@@ -20,7 +20,7 @@ if (!isset($_SESSION['user_id']) && basename($_SERVER['PHP_SELF']) != 'login.php
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/khaservice-hr/assets/css/admin_style.css">
+    <link rel="stylesheet" href="/khaservice-hr/assets/css/admin_style.css?v=<?php echo time(); ?>">
 </head>
 <body>
 <div class="wrapper">

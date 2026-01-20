@@ -3,12 +3,6 @@ require_once '../config/db.php';
 include '../includes/header.php';
 include '../includes/sidebar.php';
 
-// Safe Fetch Helper
-function get_count($sql, $params = []) {
-    $row = db_fetch_row($sql, $params);
-    return ($row && isset($row['count'])) ? (int)$row['count'] : 0;
-}
-
 // Real data for dashboard
 $total_employees = get_count("SELECT COUNT(*) as count FROM employees WHERE status = 'working'");
 $total_projects = get_count("SELECT COUNT(*) as count FROM projects WHERE status = 'active'");
@@ -275,6 +269,5 @@ $recent_logs = db_fetch_all("
             </div>
         </div>
     </div>
-</div>
 
 <?php include '../includes/footer.php'; ?>

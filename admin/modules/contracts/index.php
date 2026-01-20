@@ -67,27 +67,25 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
         </div>
 
         <!-- Filters -->
-        <form method="GET" class="filter-section" style="justify-content: space-between;">
-            <div style="display: flex; gap: 10px; align-items: center; flex: 1;">
-                <div style="position: relative; flex: 1;">
-                    <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub);"></i>
-                    <input type="text" name="kw" class="form-control" value="<?php echo htmlspecialchars($kw); ?>" placeholder="Tìm tên nhân viên, mã NV..." style="padding-left: 45px; width: 100%;">
-                </div>
-                
-                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
-                    <i class="fas fa-filter"></i> Lọc dữ liệu
-                </button>
-
-                <?php if ($kw): ?>
-                    <a href="index.php" class="btn btn-secondary" title="Xóa bộ lọc" style="white-space: nowrap;">
-                        <i class="fas fa-times"></i> Xóa lọc
-                    </a>
-                <?php endif; ?>
+        <form method="GET" class="filter-section" style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
+            <div style="position: relative; flex: 1; min-width: 200px;">
+                <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub);"></i>
+                <input type="text" name="kw" class="form-control" value="<?php echo htmlspecialchars($kw); ?>" placeholder="Tìm tên nhân viên, mã NV..." style="padding-left: 45px; width: 100%; height: 42px;">
             </div>
+            
+            <button type="submit" class="btn btn-primary" style="white-space: nowrap; height: 42px; padding: 0 20px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-filter"></i> <span>Lọc dữ liệu</span>
+            </button>
 
-            <div class="header-actions" style="margin-left: 20px;">
-                <span class="badge badge-info" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 8px;">
-                    <i class="fas fa-users"></i> Tổng số: <strong><?php echo $total_records; ?></strong> nhân viên
+            <?php if ($kw): ?>
+                <a href="index.php" class="btn btn-secondary" title="Xóa bộ lọc" style="width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-times"></i>
+                </a>
+            <?php endif; ?>
+
+            <div class="header-actions" style="flex-shrink: 0;">
+                <span class="badge badge-info" style="padding: 0 20px; font-size: 0.9rem; border-radius: 8px; height: 42px; display: flex; align-items: center; white-space: nowrap; border: 1px solid rgba(0,0,0,0.05);">
+                    <i class="fas fa-users" style="margin-right: 8px;"></i> Tổng số: <strong><?php echo $total_records; ?></strong> <span class="hide-mobile" style="margin-left:4px;"> NV</span>
                 </span>
             </div>
         </form>
