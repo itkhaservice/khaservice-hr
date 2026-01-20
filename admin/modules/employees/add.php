@@ -56,24 +56,15 @@ $departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
 $projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
 $positions = db_fetch_all("SELECT * FROM positions ORDER BY name ASC");
 
+// Security: Get Allowed Projects
+$allowed_projs = get_allowed_projects();
+
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
-            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
-            <div class="user-avatar">A</div>
-            <div class="user-dropdown">
-                <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
-                <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <form action="" method="POST" enctype="multipart/form-data">
@@ -167,7 +158,10 @@ include '../../../includes/sidebar.php';
                                     <label>Dự án hiện tại</label>
                                     <select name="current_project_id" class="form-control">
                                         <option value="">-- Chọn dự án --</option>
-                                        <?php foreach ($projects as $p): ?>
+                                        <?php foreach ($projects as $p): 
+                                            // Filter allowed projects
+                                            if ($allowed_projs !== 'ALL' && !in_array($p['id'], $allowed_projs)) continue;
+                                        ?>
                                             <option value="<?php echo $p['id']; ?>"><?php echo $p['name']; ?></option>
                                         <?php endforeach; ?>
                                     </select>

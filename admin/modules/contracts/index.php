@@ -14,6 +14,18 @@ $kw = isset($_GET['kw']) ? clean_input($_GET['kw']) : '';
 $where = "WHERE e.status = 'working'";
 $params = [];
 
+// Security: Project Filter
+$allowed_projs = get_allowed_projects();
+if ($allowed_projs !== 'ALL') {
+    if (empty($allowed_projs)) {
+        $where .= " AND 1=0";
+    } else {
+        $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+        $where .= " AND e.current_project_id IN ($in_placeholder)";
+        $params = array_merge($params, $allowed_projs);
+    }
+}
+
 if ($kw) {
     $where .= " AND (e.fullname LIKE ? OR e.code LIKE ?)";
     $params[] = "%$kw%";
@@ -43,15 +55,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info">
-            <span>Admin</span>
-            <div class="user-avatar">A</div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <h1 class="page-title">Quản lý Hợp đồng & Bảo hiểm</h1>
@@ -62,59 +66,71 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
             <button type="submit" class="btn btn-secondary">Tìm kiếm</button>
         </form>
 
-        <div class="card">
-            <div class="table-container">
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div class="table-container" style="border: none; border-radius: 0;">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>Mã NV</th>
+                            <th width="80" style="text-align:center;">Mã NV</th>
                             <th>Họ và tên</th>
                             <th>Số Hợp đồng</th>
-                            <th>Ngày hết hạn HĐ</th>
-                            <th>Trạng thái HĐ</th>
-                            <th>BHXH</th>
-                            <th width="100">Thao tác</th>
+                            <th>Thời hạn HĐ</th>
+                            <th style="text-align:center;">Trạng thái HĐ</th>
+                            <th style="text-align:center;">BHXH</th>
+                            <th width="120" style="text-align:center;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($list)): ?>
-                            <tr><td colspan="7" style="text-align:center;">Không tìm thấy dữ liệu</td></tr>
+                            <tr><td colspan="7" style="text-align:center; padding: 40px; color: #94a3b8;">Không tìm thấy dữ liệu phù hợp</td></tr>
                         <?php else: ?>
                             <?php foreach ($list as $row): ?>
                                 <tr>
-                                    <td><?php echo $row['code']; ?></td>
-                                    <td><strong><?php echo $row['fullname']; ?></strong></td>
-                                    <td><?php echo $row['contract_number'] ? $row['contract_number'] : '<span style="color:#999;">--</span>'; ?></td>
+                                    <td style="text-align:center;"><strong><?php echo $row['code']; ?></strong></td>
                                     <td>
-                                        <?php 
-                                            if ($row['contract_end']) {
-                                                echo date('d/m/Y', strtotime($row['contract_end']));
-                                                if (strtotime($row['contract_end']) < time()) {
-                                                    echo ' <span class="badge badge-danger">Hết hạn</span>';
-                                                } elseif (strtotime($row['contract_end']) < time() + 30*86400) {
-                                                    echo ' <span class="badge badge-warning">Sắp hết</span>';
-                                                }
-                                            } else {
-                                                echo '-';
-                                            }
-                                        ?>
+                                        <div style="font-weight: 600; color: var(--text-main);"><?php echo $row['fullname']; ?></div>
                                     </td>
                                     <td>
                                         <?php if ($row['contract_number']): ?>
+                                            <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569;"><?php echo $row['contract_number']; ?></code>
+                                        <?php else: ?>
+                                            <span style="color: #cbd5e1;">Chưa cập nhật</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php 
+                                            if ($row['contract_end']) {
+                                                $end_ts = strtotime($row['contract_end']);
+                                                echo '<div style="font-weight: 500;">' . date('d/m/Y', $end_ts) . '</div>';
+                                                
+                                                if ($end_ts < time()) {
+                                                    echo '<small class="text-danger" style="font-weight:600;"><i class="fas fa-times-circle"></i> Đã hết hạn</small>';
+                                                } elseif ($end_ts < time() + 30*86400) {
+                                                    echo '<small class="text-warning" style="font-weight:600;"><i class="fas fa-exclamation-circle"></i> Sắp hết hạn</small>';
+                                                }
+                                            } else {
+                                                echo '<span style="color: #cbd5e1;">--</span>';
+                                            }
+                                        ?>
+                                    </td>
+                                    <td style="text-align:center;">
+                                        <?php if ($row['contract_number']): ?>
                                             <span class="badge badge-success">Đang hiệu lực</span>
                                         <?php else: ?>
-                                            <span class="badge badge-secondary">Chưa có</span>
+                                            <span class="badge badge-secondary">Chưa có HĐ</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td>
+                                    <td style="text-align:center;">
                                         <?php if ($row['bhxh_status']): ?>
-                                            <span class="badge badge-success">Đã tham gia</span>
+                                            <span class="badge badge-info"><i class="fas fa-check"></i> Đã đóng</span>
                                         <?php else: ?>
-                                            <span class="badge badge-secondary">Chưa</span>
+                                            <span class="badge badge-secondary">Chưa tham gia</span>
                                         <?php endif; ?>
                                     </td>
-                                    <td>
-                                        <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-primary btn-sm">Cập nhật</a>
+                                    <td style="text-align:center;">
+                                        <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" style="padding: 5px 12px; font-size: 0.75rem;">
+                                            <i class="fas fa-edit"></i> Cập nhật
+                                        </a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

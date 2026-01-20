@@ -1,0 +1,27 @@
+# Khaservice HR Security Configuration
+
+# 1. Custom Error Pages
+ErrorDocument 404 /khaservice-hr/404.php
+ErrorDocument 403 /khaservice-hr/404.php
+
+# 2. Disable Directory Browsing (Security)
+Options -Indexes
+
+# 3. Protect Sensitive Files (Dotfiles like .git, .env, .htaccess)
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 4. Protect Config Files (Double check)
+<FilesMatch "^(config|database)\.(php|json|sql)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# 5. Prevent XSS/Clickjacking headers (Optional but recommended)
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>

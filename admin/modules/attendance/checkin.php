@@ -2,12 +2,20 @@
 require_once '../../../config/db.php';
 require_once '../../../includes/functions.php';
 
+$allowed_projs = get_allowed_projects();
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $emp_id = (int)$_POST['employee_id'];
     $proj_id = (int)$_POST['project_id'];
     $shift_id = (int)$_POST['shift_id'];
     $date = date('Y-m-d');
     $check_in = date('Y-m-d H:i:s');
+
+    // Security: Check if user manages this project
+    if ($allowed_projs !== 'ALL' && !in_array($proj_id, $allowed_projs)) {
+        echo "<script>alert('Bạn không có quyền chấm công cho dự án này!'); window.history.back();</script>";
+        exit;
+    }
 
     // Check if already checked in today
     $exists = db_fetch_row("SELECT id FROM attendance WHERE employee_id = ? AND date = ?", [$emp_id, $date]);
@@ -23,8 +31,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-$employees = db_fetch_all("SELECT e.*, p.name as proj_name FROM employees e LEFT JOIN projects p ON e.current_project_id = p.id WHERE e.status = 'working' ORDER BY e.fullname ASC");
-$projects = db_fetch_all("SELECT * FROM projects WHERE status = 'active' ORDER BY name ASC");
+// Build WHERE clauses based on permissions
+$where_emp = "e.status = 'working'";
+$params_emp = [];
+$where_proj = "status = 'active'";
+$params_proj = [];
+
+if ($allowed_projs !== 'ALL') {
+    if (empty($allowed_projs)) {
+        $where_emp .= " AND 1=0";
+        $where_proj .= " AND 1=0";
+    } else {
+        $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+        
+        $where_emp .= " AND e.current_project_id IN ($in_placeholder)";
+        $params_emp = $allowed_projs;
+        
+        $where_proj .= " AND id IN ($in_placeholder)";
+        $params_proj = $allowed_projs;
+    }
+}
+
+$employees = db_fetch_all("SELECT e.*, p.name as proj_name FROM employees e LEFT JOIN projects p ON e.current_project_id = p.id WHERE $where_emp ORDER BY e.fullname ASC", $params_emp);
+$projects = db_fetch_all("SELECT * FROM projects WHERE $where_proj ORDER BY name ASC", $params_proj);
 $shifts = db_fetch_all("SELECT * FROM shifts"); // Will filter by JS
 
 include '../../../includes/header.php';
@@ -32,15 +61,7 @@ include '../../../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info">
-            <span>Admin</span>
-            <div class="user-avatar">A</div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">

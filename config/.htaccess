@@ -1,0 +1,4 @@
+# SECURITY: Deny all direct access
+# These files should only be included by other scripts
+Order Deny,Allow
+Deny from all

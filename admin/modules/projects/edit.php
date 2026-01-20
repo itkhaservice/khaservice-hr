@@ -9,6 +9,16 @@ if (!$project) {
     redirect('index.php');
 }
 
+// Security: Check Permissions
+$allowed_projs = get_allowed_projects();
+if ($allowed_projs !== 'ALL') {
+    if (!in_array($id, $allowed_projs)) {
+        echo "<div class='main-content'><div class='content-wrapper'><h3>Bạn không có quyền chỉnh sửa dự án này.</h3><a href='index.php' class='btn btn-secondary'>Quay lại</a></div></div>";
+        include '../../../includes/footer.php';
+        exit;
+    }
+}
+
 // Handle Project Update
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_project'])) {
     $stt = (int)$_POST['stt'];
@@ -28,16 +38,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_project'])) {
 // Handle Headcount Details (Project Positions)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_pos_req'])) {
     $pos_name = clean_input($_POST['pos_name']);
+    $dept_id = (int)$_POST['req_dept_id'];
     $count = (int)$_POST['pos_count'];
     
-    if ($pos_name && $count > 0) {
+    if ($pos_name && $count > 0 && $dept_id > 0) {
         try {
-            db_query("INSERT INTO project_positions (project_id, position_name, count_required) VALUES (?, ?, ?)", 
-                     [$id, $pos_name, $count]);
-            set_toast('success', 'Thêm định biên chi tiết thành công!');
+            db_query("INSERT INTO project_positions (project_id, department_id, position_name, count_required) VALUES (?, ?, ?, ?)", 
+                     [$id, $dept_id, $pos_name, $count]);
+            set_toast('success', 'Thêm định biên thành công!');
         } catch (PDOException $e) {
-            set_toast('error', 'Vị trí này đã tồn tại trong dự án!');
+            set_toast('error', 'Vị trí này đã tồn tại trong phòng ban của dự án!');
         }
+    } else {
+        set_toast('error', 'Vui lòng chọn đầy đủ Phòng ban, Vị trí và Số lượng!');
     }
 }
 
@@ -49,24 +62,24 @@ if (isset($_GET['del_pos_req'])) {
 }
 
 $shifts = db_fetch_all("SELECT * FROM shifts WHERE project_id = ? ORDER BY start_time ASC", [$id]);
-$positions_req = db_fetch_all("SELECT * FROM project_positions WHERE project_id = ? ORDER BY position_name ASC", [$id]);
-// Fetch all position names for suggestions
+// Fetch positions required joined with department name
+$positions_req = db_fetch_all("
+    SELECT pr.*, d.name as dept_name 
+    FROM project_positions pr 
+    LEFT JOIN departments d ON pr.department_id = d.id 
+    WHERE pr.project_id = ? 
+    ORDER BY d.name ASC, pr.position_name ASC
+", [$id]);
+
 $all_pos_names = db_fetch_all("SELECT DISTINCT name FROM positions ORDER BY name ASC");
+$departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
 
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info">
-            <span>Quản trị viên</span>
-            <div class="user-avatar">AD</div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <form action="" method="POST" id="editProjectForm">
@@ -121,7 +134,7 @@ include '../../../includes/sidebar.php';
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Định biên nhân sự</label>
+                            <label>Định biên nhân sự (Tổng số)</label>
                             <input type="number" name="headcount_required" class="form-control" value="<?php echo $project['headcount_required']; ?>" min="0">
                         </div>
                     </div>
@@ -130,22 +143,31 @@ include '../../../includes/sidebar.php';
                 <!-- Tab: Định biên nhân sự -->
                 <div id="staffing" class="tab-content">
                     <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color);">
-                        <h4 style="margin-bottom: 15px; color: var(--primary-dark);">Thêm định biên vị trí</h4>
-                        <div style="display: flex; gap: 15px; align-items: end;">
-                            <div class="form-group" style="flex: 2; margin-bottom:0;">
+                        <h4 style="margin-bottom: 15px; color: var(--primary-dark);">Thêm định biên theo Phòng ban</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 15px; align-items: end;">
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Phòng ban</label>
+                                <select name="req_dept_id" class="form-control">
+                                    <option value="">-- Chọn ban --</option>
+                                    <?php foreach($departments as $d): ?>
+                                        <option value="<?php echo $d['id']; ?>"><?php echo $d['name']; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom:0;">
                                 <label>Vị trí / Chức danh</label>
-                                <input type="text" name="pos_name" list="pos_list" class="form-control" placeholder="Nhập hoặc chọn chức danh">
+                                <input type="text" name="pos_name" list="pos_list" class="form-control" placeholder="Nhập chức danh">
                                 <datalist id="pos_list">
                                     <?php foreach ($all_pos_names as $p): ?>
                                         <option value="<?php echo $p['name']; ?>">
                                     <?php endforeach; ?>
                                 </datalist>
                             </div>
-                            <div class="form-group" style="flex: 1; margin-bottom:0;">
-                                <label>Số lượng cần</label>
+                            <div class="form-group" style="margin-bottom:0;">
+                                <label>Số lượng</label>
                                 <input type="number" name="pos_count" class="form-control" value="1" min="1">
                             </div>
-                            <button type="submit" name="add_pos_req" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm</button>
+                            <button type="submit" name="add_pos_req" class="btn btn-primary" style="height: 42px;"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
 
@@ -153,10 +175,10 @@ include '../../../includes/sidebar.php';
                         <table class="table">
                             <thead>
                                 <tr>
+                                    <th>Phòng ban</th>
                                     <th>Vị trí / Chức danh</th>
-                                    <th>Định biên (Yêu cầu)</th>
-                                    <th>Thực tế (Hiện tại)</th>
-                                    <th>Chênh lệch</th>
+                                    <th style="text-align:center;">Định biên</th>
+                                    <th style="text-align:center;">Thực tế</th>
                                     <th width="100" style="text-align:center;">Thao tác</th>
                                 </tr>
                             </thead>
@@ -165,18 +187,18 @@ include '../../../includes/sidebar.php';
                                     <tr><td colspan="5" style="text-align:center; padding: 20px; color: #94a3b8;">Chưa có cấu hình định biên chi tiết.</td></tr>
                                 <?php else: ?>
                                     <?php foreach ($positions_req as $pr): 
-                                        // Calculate actual
-                                        $actual_count = db_fetch_row("SELECT COUNT(*) as c FROM employees WHERE current_project_id = ? AND position = ? AND status = 'working'", [$id, $pr['position_name']])['c'];
+                                        // Calculate actual by Dept AND Position
+                                        $actual_count = db_fetch_row("SELECT COUNT(*) as c FROM employees WHERE current_project_id = ? AND department_id = ? AND position = ? AND status = 'working'", [$id, $pr['department_id'], $pr['position_name']])['c'];
                                         $diff = $actual_count - $pr['count_required'];
                                         $status_color = $diff >= 0 ? ($diff == 0 ? '#24a25c' : '#f59e0b') : '#dc2626';
                                     ?>
                                         <tr>
+                                            <td><span class="badge badge-secondary"><?php echo $pr['dept_name']; ?></span></td>
                                             <td><strong><?php echo $pr['position_name']; ?></strong></td>
-                                            <td><?php echo $pr['count_required']; ?></td>
-                                            <td><?php echo $actual_count; ?></td>
-                                            <td>
+                                            <td style="text-align:center;"><?php echo $pr['count_required']; ?></td>
+                                            <td style="text-align:center;">
                                                 <span style="font-weight:bold; color: <?php echo $status_color; ?>">
-                                                    <?php echo ($diff > 0 ? '+' : '') . $diff; ?>
+                                                    <?php echo $actual_count; ?>
                                                 </span>
                                             </td>
                                             <td style="text-align:center;">
@@ -194,6 +216,7 @@ include '../../../includes/sidebar.php';
 
                 <!-- Tab: Cấu hình ca -->
                 <div id="shifts" class="tab-content">
+                    <!-- Shift management logic keeps existing -->
                     <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color);">
                         <h4 style="margin-bottom: 15px; color: var(--primary-dark);">Thêm ca làm việc mới</h4>
                         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
@@ -292,17 +315,18 @@ $(document).ready(function() {
 
 function confirmDeleteShift(sid) {
     Modal.confirm('Bạn có chắc chắn muốn xóa ca làm việc này không?', () => {
-        location.href = '?id=<?php echo $id; ?>&del_shift=' + sid;
+        location.href = `?id=<?php echo $id; ?>&del_shift=${sid}`;
     });
 }
 
 function confirmDeletePosReq(pid) {
     Modal.confirm('Bạn có chắc chắn muốn xóa định biên này?', () => {
-        location.href = '?id=<?php echo $id; ?>&del_pos_req=' + pid;
+        location.href = `?id=<?php echo $id; ?>&del_pos_req=${pid}`;
     });
 }
 </script>
 
 <style>
 .btn-sm { padding: 6px 10px; font-size: 12px; }
+.badge-secondary { background: #e2e8f0; color: #475569; }
 </style>

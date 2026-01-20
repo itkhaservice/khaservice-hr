@@ -127,10 +127,35 @@ const Loader = {
     }
 };
 
+// 4. Password Toggle
+function togglePassword(inputId, iconElement) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+
+    if (input.type === 'password') {
+        input.type = 'text';
+        iconElement.classList.remove('fa-eye');
+        iconElement.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        iconElement.classList.remove('fa-eye-slash');
+        iconElement.classList.add('fa-eye');
+    }
+}
+
 // Global Init
 document.addEventListener('DOMContentLoaded', () => {
     // Intercept form submissions for loader
     document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', () => Loader.start());
+    });
+
+    // Auto-setup password toggles
+    document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const icon = this.querySelector('i');
+            togglePassword(targetId, icon);
+        });
     });
 });

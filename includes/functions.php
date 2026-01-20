@@ -116,4 +116,30 @@ function is_hr_staff() {
     
     return false;
 }
+
+/**
+ * Check if user is Admin
+ */
+function is_admin() {
+    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+}
+
+/**
+ * Get list of Project IDs that the current user manages.
+ * Returns: array of IDs, or 'ALL' if admin.
+ */
+function get_allowed_projects() {
+    if (is_admin()) {
+        return 'ALL';
+    }
+
+    $user_id = $_SESSION['user_id'];
+    $rows = db_fetch_all("SELECT id FROM projects WHERE manager_id = ?", [$user_id]);
+    
+    $ids = [];
+    foreach ($rows as $r) {
+        $ids[] = $r['id'];
+    }
+    return $ids;
+}
 ?>

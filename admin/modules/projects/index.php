@@ -15,6 +15,19 @@ $status = isset($_GET['status']) ? clean_input($_GET['status']) : '';
 $where = "WHERE 1=1";
 $params = [];
 
+// Permission Filter
+$allowed_projs = get_allowed_projects();
+if ($allowed_projs !== 'ALL') {
+    if (empty($allowed_projs)) {
+        // User has no projects, show nothing (force impossible condition)
+        $where .= " AND 1=0"; 
+    } else {
+        $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+        $where .= " AND p.id IN ($in_placeholder)";
+        $params = array_merge($params, $allowed_projs);
+    }
+}
+
 if ($kw) {
     $where .= " AND (name LIKE ? OR code LIKE ? OR address LIKE ?)";
     $params[] = "%$kw%";
@@ -27,7 +40,7 @@ if ($status) {
 }
 
 // Get Total
-$total_sql = "SELECT COUNT(*) as count FROM projects $where";
+$total_sql = "SELECT COUNT(*) as count FROM projects p $where"; // Alias p added
 $total_records = db_fetch_row($total_sql, $params)['count'];
 
 // Get Data
@@ -46,19 +59,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
-            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
-            <div class="user-avatar">A</div>
-            <div class="user-dropdown">
-                <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
-                <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">

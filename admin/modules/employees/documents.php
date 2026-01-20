@@ -9,6 +9,23 @@ if (!$employee) {
     redirect('index.php');
 }
 
+// Security: Check Permissions
+$allowed_projs = get_allowed_projects();
+if ($allowed_projs !== 'ALL') {
+    $emp_proj_id = $employee['current_project_id'];
+    if (!$emp_proj_id || !in_array($emp_proj_id, $allowed_projs)) {
+        echo "<div class='main-content'><div class='content-wrapper'>
+                <div class='alert alert-danger'>
+                    <h3><i class='fas fa-lock'></i> Truy cập bị từ chối</h3>
+                    <p>Nhân viên này không thuộc dự án bạn quản lý.</p>
+                    <a href='index.php' class='btn btn-secondary'>Quay lại</a>
+                </div>
+              </div></div>";
+        include '../../../includes/footer.php';
+        exit;
+    }
+}
+
 // Fetch Document Types
 $doc_types_raw = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
 $doc_types = [];

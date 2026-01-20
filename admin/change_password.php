@@ -39,19 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
-            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
-            <div class="user-avatar">A</div>
-            <div class="user-dropdown">
-                <a href="change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
-                <a href="logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
-        </div>
-    </header>
+    <?php include '../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">
@@ -63,16 +51,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <form action="" method="POST">
                     <div class="form-group">
                         <label>Mật khẩu hiện tại</label>
-                        <input type="password" name="current_password" class="form-control" required placeholder="Nhập mật khẩu hiện tại">
+                        <div class="password-wrapper">
+                            <input type="password" name="current_password" id="old_pass" class="form-control" required placeholder="Nhập mật khẩu hiện tại">
+                            <button type="button" class="password-toggle-btn" data-target="old_pass"><i class="fas fa-eye"></i></button>
+                        </div>
                     </div>
                     <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
                     <div class="form-group">
                         <label>Mật khẩu mới</label>
-                        <input type="password" name="new_password" class="form-control" required placeholder="Tối thiểu 6 ký tự">
+                        <div class="password-wrapper">
+                            <input type="password" name="new_password" id="new_pass" class="form-control" required placeholder="Tối thiểu 6 ký tự">
+                            <button type="button" class="password-toggle-btn" data-target="new_pass"><i class="fas fa-eye"></i></button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Xác nhận mật khẩu mới</label>
-                        <input type="password" name="confirm_password" class="form-control" required placeholder="Nhập lại mật khẩu mới">
+                        <div class="password-wrapper">
+                            <input type="password" name="confirm_password" id="confirm_pass" class="form-control" required placeholder="Nhập lại mật khẩu mới">
+                            <button type="button" class="password-toggle-btn" data-target="confirm_pass"><i class="fas fa-eye"></i></button>
+                        </div>
                     </div>
                     <div style="margin-top: 25px; display: flex; gap: 10px;">
                         <button type="submit" class="btn btn-primary" style="flex: 1;"><i class="fas fa-key"></i> Cập nhật mật khẩu</button>

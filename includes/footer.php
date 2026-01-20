@@ -1,5 +1,5 @@
-    <!-- Footer Content (Bottom of Main Content) -->
-    <footer style="padding: 20px; text-align: center; color: #777; font-size: 12px; border-top: 1px solid #eee;">
+    <!-- Footer Content -->
+    <footer class="main-footer">
         &copy; <?php echo date('Y'); ?> Khaservice HR Management System. All rights reserved.
     </footer>
     </div> <!-- End Main Content -->

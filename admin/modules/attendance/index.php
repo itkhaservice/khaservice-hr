@@ -8,14 +8,58 @@ $date = isset($_GET['date']) ? clean_input($_GET['date']) : date('Y-m-d');
 $proj_id = isset($_GET['proj_id']) ? (int)$_GET['proj_id'] : 0;
 $kw = isset($_GET['kw']) ? clean_input($_GET['kw']) : '';
 
-// Build Query
+// Permission Check
+$allowed_projs = get_allowed_projects();
+$where_proj = "1=1";
+$params_proj = [];
+
+if ($allowed_projs !== 'ALL') {
+    if (empty($allowed_projs)) {
+        // User manages no projects
+        $where_proj = "1=0";
+    } else {
+        $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+        $where_proj = "id IN ($in_placeholder)";
+        $params_proj = $allowed_projs;
+    }
+}
+// Fetch allowed projects for Dropdown
+$projects = db_fetch_all("SELECT * FROM projects WHERE $where_proj ORDER BY name ASC", $params_proj);
+
+// Build Log Query
 $where = "WHERE a.date = ?";
 $params = [$date];
 
-if ($proj_id) {
+// Apply Project Filter (Security + User Selection)
+if ($allowed_projs !== 'ALL') {
+    // Force filter to allowed projects
+    if ($proj_id) {
+        // If user selected a project, verify access
+        if (in_array($proj_id, $allowed_projs)) {
+            $where .= " AND a.project_id = ?";
+            $params[] = $proj_id;
+        } else {
+            // Illegal access attempt, fallback to all allowed
+            $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+            $where .= " AND a.project_id IN ($in_placeholder)";
+            $params = array_merge($params, $allowed_projs);
+        }
+    } else {
+        // No specific project selected, show all allowed
+        if (!empty($allowed_projs)) {
+            $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+            $where .= " AND a.project_id IN ($in_placeholder)";
+            $params = array_merge($params, $allowed_projs);
+        } else {
+            $where .= " AND 1=0";
+        }
+    }
+} elseif ($proj_id) {
+    // Admin selected a project
     $where .= " AND a.project_id = ?";
     $params[] = $proj_id;
 }
+
 if ($kw) {
     $where .= " AND e.fullname LIKE ?";
     $params[] = "%$kw%";
@@ -29,20 +73,10 @@ $sql = "SELECT a.*, e.fullname, e.code as emp_code, p.name as proj_name, s.name 
         $where 
         ORDER BY a.check_in DESC";
 $logs = db_fetch_all($sql, $params);
-
-$projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info">
-            <span>Admin</span>
-            <div class="user-avatar">A</div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">

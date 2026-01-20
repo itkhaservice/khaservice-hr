@@ -23,6 +23,20 @@ $mandatory_list = "'" . implode("','", $mandatory_docs) . "'";
 $where = "WHERE 1=1";
 $params = [];
 
+// Permission Filter: Only show employees in managed projects
+$allowed_projs = get_allowed_projects();
+if ($allowed_projs !== 'ALL') {
+    if (empty($allowed_projs)) {
+        // Manager with no projects -> Sees no employees
+        $where .= " AND 1=0";
+    } else {
+        $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+        // Employee belongs to one of the managed projects
+        $where .= " AND e.current_project_id IN ($in_placeholder)";
+        $params = array_merge($params, $allowed_projs);
+    }
+}
+
 if ($kw) {
     $where .= " AND (e.fullname LIKE ? OR e.code LIKE ? OR e.phone LIKE ? OR e.identity_card LIKE ?)";
     $params[] = "%$kw%";
@@ -57,12 +71,14 @@ if ($doc_status) {
 $total_sql = "SELECT COUNT(*) as count FROM employees e $where";
 $total_records = db_fetch_row($total_sql, $params)['count'];
 
-// Get Data with Doc Count
+// Get Data with Doc Count and User Account Info
 $sql = "SELECT e.*, d.name as dept_name, p.name as proj_name,
-        (SELECT COUNT(DISTINCT doc_type) FROM documents doc WHERE doc.employee_id = e.id AND doc.is_submitted = 1 AND doc.doc_type IN ($mandatory_list)) as submitted_count
+        (SELECT COUNT(DISTINCT doc_type) FROM documents doc WHERE doc.employee_id = e.id AND doc.is_submitted = 1 AND doc.doc_type IN ($mandatory_list)) as submitted_count,
+        u.username, u.role, u.status as user_status, u.id as user_id
         FROM employees e 
         LEFT JOIN departments d ON e.department_id = d.id 
         LEFT JOIN projects p ON e.current_project_id = p.id 
+        LEFT JOIN users u ON e.id = u.employee_id
         $where 
         ORDER BY e.id DESC 
         LIMIT $offset, $limit";
@@ -78,19 +94,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
-            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
-            <div class="user-avatar">A</div>
-            <div class="user-dropdown">
-                <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
-                <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <div class="action-header">
@@ -109,7 +113,10 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
             </select>
             <select name="proj_id">
                 <option value="">-- Dự án --</option>
-                <?php foreach ($projects as $p): ?>
+                <?php foreach ($projects as $p): 
+                    // Hide projects not managed by user (if not admin)
+                    if ($allowed_projs !== 'ALL' && !in_array($p['id'], $allowed_projs)) continue;
+                ?>
                     <option value="<?php echo $p['id']; ?>" <?php echo $proj_id == $p['id'] ? 'selected' : ''; ?>><?php echo $p['name']; ?></option>
                 <?php endforeach; ?>
             </select>
@@ -138,8 +145,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                             <th>Họ và tên</th>
                             <th>Phòng ban</th>
                             <th>Dự án hiện tại</th>
-                            <th>Chức vụ</th>
-                            <th>SĐT</th>
+                            <th>Tài khoản</th>
                             <th>Hồ sơ</th>
                             <th>Trạng thái</th>
                             <th width="120">Thao tác</th>
@@ -159,8 +165,16 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                     <td><?php echo $e['fullname']; ?></td>
                                     <td><?php echo $e['dept_name']; ?></td>
                                     <td><?php echo $e['proj_name']; ?></td>
-                                    <td><?php echo $e['position']; ?></td>
-                                    <td><?php echo $e['phone']; ?></td>
+                                    <td>
+                                        <?php if ($e['user_id']): ?>
+                                            <span class="badge badge-info" title="<?php echo $e['username']; ?>"><i class="fas fa-user"></i> <?php echo ucfirst($e['role']); ?></span>
+                                            <?php if (!$e['user_status']): ?>
+                                                <span class="badge badge-danger" title="Đã khóa"><i class="fas fa-lock"></i></span>
+                                            <?php endif; ?>
+                                        <?php else: ?>
+                                            <span style="color: #94a3b8; font-size: 0.8rem;">- Chưa có -</span>
+                                        <?php endif; ?>
+                                    </td>
                                     <td>
                                         <?php if ($is_complete): ?>
                                             <span class="badge badge-success"><i class="fas fa-check"></i> Đủ</span>

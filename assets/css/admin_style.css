@@ -116,6 +116,7 @@ ul { list-style: none; padding: 0; margin: 0; }
     margin-left: var(--sidebar-width);
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
     transition: margin-left 0.3s ease;
 }
 
@@ -163,7 +164,17 @@ ul { list-style: none; padding: 0; margin: 0; }
 }
 
 /* Content Wrapper */
-.content-wrapper { padding: 25px; }
+.content-wrapper { padding: 25px; flex: 1; }
+
+/* Main Footer */
+.main-footer {
+    padding: 20px 25px;
+    background: #fff;
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 0.8rem;
+    border-top: 1px solid #e2e8f0;
+}
 
 /* Action Header (Separation) */
 .action-header {
@@ -270,6 +281,34 @@ ul { list-style: none; padding: 0; margin: 0; }
 }
 .form-control:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(36, 162, 92, 0.1); outline: none; }
 textarea.form-control { resize: vertical; min-height: 100px; }
+
+/* Password Toggle Input Group */
+.password-wrapper {
+    position: relative;
+    display: block;
+}
+.password-wrapper .form-control {
+    padding-right: 45px;
+}
+.password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    z-index: 10;
+}
+.password-toggle-btn:hover {
+    color: var(--primary-color);
+}
 
 /* Tabs Styling */
 .tabs {

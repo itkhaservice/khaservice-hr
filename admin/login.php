@@ -49,6 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - Khaservice HR</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; background: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
         .login-card { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
@@ -59,6 +60,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         .btn-login { width: 100%; padding: 12px; background: #24a25c; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: 0.2s; }
         .btn-login:hover { background: #1b7a43; }
         .error-msg { color: #dc2626; background: #fee2e2; padding: 10px; border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; text-align: center; }
+        
+        /* Toggle Styling */
+        .password-wrapper { position: relative; }
+        .password-toggle-btn { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -74,10 +79,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="form-group">
                 <label>Mật khẩu</label>
-                <input type="password" name="password" class="form-control" required>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="login_pass" class="form-control" required>
+                    <button type="button" class="password-toggle-btn" onclick="togglePassword('login_pass', this.querySelector('i'))">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
             <button type="submit" class="btn-login">Đăng nhập</button>
         </form>
     </div>
+
+    <script src="../assets/js/main.js"></script>
 </body>
 </html>

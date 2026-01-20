@@ -1,4 +1,16 @@
 <?php
+// Security: Session Hardening
+// Must be called before session_start()
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set('session.cookie_httponly', 1); // Prevent JS access to session cookie (XSS protection)
+    ini_set('session.use_only_cookies', 1); // Prevent session fixation
+    ini_set('session.cookie_samesite', 'Lax'); // CSRF protection
+    // If using HTTPS in production, uncomment the line below:
+    // ini_set('session.cookie_secure', 1);
+    
+    session_start();
+}
+
 // Database Configuration
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');
@@ -16,7 +28,9 @@ try {
     ];
     $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 } catch (\PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
+    // Security: Do not reveal DB credentials or specific errors to user
+    error_log("Connection failed: " . $e->getMessage()); // Log internally
+    die("Hệ thống đang bảo trì hoặc gặp sự cố kết nối cơ sở dữ liệu. Vui lòng thử lại sau.");
 }
 
 // Global helper function for queries
@@ -27,8 +41,8 @@ function db_query($sql, $params = []) {
         $stmt->execute($params);
         return $stmt;
     } catch (\PDOException $e) {
-        // Log error instead of dying in production
-        error_log("Database Error: " . $e->getMessage());
+        // Log error instead of displaying raw SQL error
+        error_log("Database Query Error: " . $e->getMessage() . " | SQL: " . $sql);
         return false;
     }
 }

@@ -35,6 +35,7 @@ $pending_docs = db_fetch_all("
 
 // Recruitment Warning Logic
 $projects_shortage = [];
+$total_shortage = 0; // Initialize total shortage
 $projects = db_fetch_all("SELECT * FROM projects WHERE status = 'active'");
 
 foreach ($projects as $p) {
@@ -46,6 +47,7 @@ foreach ($projects as $p) {
         
         if ($actual < $req['count_required']) {
             $missing = $req['count_required'] - $actual;
+            $total_shortage += $missing; // Sum up the shortage
             $projects_shortage[] = [
                 'project_name' => $p['name'],
                 'position' => $req['position_name'],
@@ -68,19 +70,7 @@ $recent_logs = db_fetch_all("
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
-            <span><?php echo $_SESSION['user_name'] ?? 'Admin'; ?></span>
-            <div class="user-avatar">A</div>
-            <div class="user-dropdown">
-                <a href="change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
-                <a href="logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
-            </div>
-        </div>
-    </header>
+    <?php include '../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <h1 class="page-title">Tổng quan Hệ thống</h1>
@@ -109,13 +99,13 @@ $recent_logs = db_fetch_all("
             </div>
 
             <!-- Card 3 -->
-            <div class="card" style="border-left: 4px solid #ffc107;">
+            <div class="card" style="border-left: 4px solid #f59e0b;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <div style="font-size: 0.9rem; color: #777;">Đang làm việc</div>
-                        <div style="font-size: 1.8rem; font-weight: bold;"><?php echo $working_today; ?></div>
+                        <div style="font-size: 0.9rem; color: #777;">Nhân sự còn thiếu</div>
+                        <div style="font-size: 1.8rem; font-weight: bold; color: #dc2626;"><?php echo $total_shortage; ?></div>
                     </div>
-                    <i class="fas fa-hard-hat" style="font-size: 2rem; color: #ffc107; opacity: 0.2;"></i>
+                    <i class="fas fa-user-minus" style="font-size: 2rem; color: #f59e0b; opacity: 0.2;"></i>
                 </div>
             </div>
 

@@ -9,6 +9,15 @@ if (!$employee) {
     redirect('index.php');
 }
 
+// Security: Check Permissions
+$allowed_projs = get_allowed_projects();
+if ($allowed_projs !== 'ALL') {
+    $emp_proj_id = $employee['current_project_id'];
+    if (!$emp_proj_id || !in_array($emp_proj_id, $allowed_projs)) {
+        die("Access Denied: You do not manage the project this employee belongs to.");
+    }
+}
+
 // Handle Form Submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 1. Contract
@@ -58,15 +67,7 @@ include '../../../includes/sidebar.php';
 ?>
 
 <div class="main-content">
-    <header class="main-header">
-        <div class="toggle-sidebar" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </div>
-        <div class="user-info">
-            <span>Admin</span>
-            <div class="user-avatar">A</div>
-        </div>
-    </header>
+    <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
         <form action="" method="POST">
