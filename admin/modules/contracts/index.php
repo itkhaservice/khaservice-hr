@@ -1,6 +1,10 @@
 <?php
 require_once '../../../config/db.php';
 require_once '../../../includes/functions.php';
+// Header is included via topbar inside main-content, no need to include header.php separately if topbar handles everything. 
+// However, topbar usually includes the visible top bar, while header.php includes <html> <head> etc.
+// Let's check the structure again. Usually header.php starts the HTML. 
+// Based on previous files, we need header.php for <head>, then sidebar, then main-content with topbar.
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 
@@ -58,16 +62,38 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
     <?php include '../../../includes/topbar.php'; ?>
 
     <div class="content-wrapper">
-        <h1 class="page-title">Quản lý Hợp đồng & Bảo hiểm</h1>
+        <div class="action-header">
+            <h1 class="page-title">Quản lý Hợp đồng & Bảo hiểm</h1>
+        </div>
 
         <!-- Filters -->
-        <form method="GET" class="filter-section">
-            <input type="text" name="kw" value="<?php echo $kw; ?>" placeholder="Tìm nhân viên..." style="width:250px;">
-            <button type="submit" class="btn btn-secondary">Tìm kiếm</button>
+        <form method="GET" class="filter-section" style="justify-content: space-between;">
+            <div style="display: flex; gap: 10px; align-items: center; flex: 1;">
+                <div style="position: relative; flex: 1;">
+                    <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub);"></i>
+                    <input type="text" name="kw" class="form-control" value="<?php echo htmlspecialchars($kw); ?>" placeholder="Tìm tên nhân viên, mã NV..." style="padding-left: 45px; width: 100%;">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">
+                    <i class="fas fa-filter"></i> Lọc dữ liệu
+                </button>
+
+                <?php if ($kw): ?>
+                    <a href="index.php" class="btn btn-secondary" title="Xóa bộ lọc" style="white-space: nowrap;">
+                        <i class="fas fa-times"></i> Xóa lọc
+                    </a>
+                <?php endif; ?>
+            </div>
+
+            <div class="header-actions" style="margin-left: 20px;">
+                <span class="badge badge-info" style="padding: 10px 20px; font-size: 0.9rem; border-radius: 8px;">
+                    <i class="fas fa-users"></i> Tổng số: <strong><?php echo $total_records; ?></strong> nhân viên
+                </span>
+            </div>
         </form>
 
-        <div class="card" style="padding: 0; overflow: hidden;">
-            <div class="table-container" style="border: none; border-radius: 0;">
+        <div class="card">
+            <div class="table-container">
                 <table class="table">
                     <thead>
                         <tr>
@@ -75,14 +101,14 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                             <th>Họ và tên</th>
                             <th>Số Hợp đồng</th>
                             <th>Thời hạn HĐ</th>
-                            <th style="text-align:center;">Trạng thái HĐ</th>
-                            <th style="text-align:center;">BHXH</th>
-                            <th width="120" style="text-align:center;">Thao tác</th>
+                            <th style="text-align:center;">Trạng thái</th>
+                            <th style="text-align:center;">Bảo hiểm</th>
+                            <th width="100" style="text-align:center;">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if (empty($list)): ?>
-                            <tr><td colspan="7" style="text-align:center; padding: 40px; color: #94a3b8;">Không tìm thấy dữ liệu phù hợp</td></tr>
+                            <tr><td colspan="7" style="text-align:center; padding: 40px; color: var(--text-sub); font-style: italic;">Không tìm thấy dữ liệu phù hợp</td></tr>
                         <?php else: ?>
                             <?php foreach ($list as $row): ?>
                                 <tr>
@@ -92,9 +118,9 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                     </td>
                                     <td>
                                         <?php if ($row['contract_number']): ?>
-                                            <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; color: #475569;"><?php echo $row['contract_number']; ?></code>
+                                            <span class="badge badge-secondary" style="font-family: monospace; font-size: 0.85rem;"><?php echo $row['contract_number']; ?></span>
                                         <?php else: ?>
-                                            <span style="color: #cbd5e1;">Chưa cập nhật</span>
+                                            <span style="color: var(--text-sub); opacity: 0.5;">- Chưa có -</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
@@ -109,7 +135,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                                     echo '<small class="text-warning" style="font-weight:600;"><i class="fas fa-exclamation-circle"></i> Sắp hết hạn</small>';
                                                 }
                                             } else {
-                                                echo '<span style="color: #cbd5e1;">--</span>';
+                                                echo '<span style="color: var(--text-sub); opacity: 0.5;">--</span>';
                                             }
                                         ?>
                                     </td>
@@ -117,19 +143,19 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                         <?php if ($row['contract_number']): ?>
                                             <span class="badge badge-success">Đang hiệu lực</span>
                                         <?php else: ?>
-                                            <span class="badge badge-secondary">Chưa có HĐ</span>
+                                            <span class="badge badge-secondary" style="opacity: 0.7;">Chưa ký HĐ</span>
                                         <?php endif; ?>
                                     </td>
                                     <td style="text-align:center;">
                                         <?php if ($row['bhxh_status']): ?>
-                                            <span class="badge badge-info"><i class="fas fa-check"></i> Đã đóng</span>
+                                            <span class="badge badge-info"><i class="fas fa-shield-alt"></i> Đã tham gia</span>
                                         <?php else: ?>
-                                            <span class="badge badge-secondary">Chưa tham gia</span>
+                                            <span class="badge badge-secondary" style="opacity: 0.7;">Chưa tham gia</span>
                                         <?php endif; ?>
                                     </td>
                                     <td style="text-align:center;">
-                                        <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" style="padding: 5px 12px; font-size: 0.75rem;">
-                                            <i class="fas fa-edit"></i> Cập nhật
+                                        <a href="edit.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-primary" title="Cập nhật thông tin">
+                                            <i class="fas fa-edit"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -142,10 +168,10 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
             <!-- List Footer -->
             <div class="list-footer">
                 <div class="display-count">
-                    <span>Hiển thị:</span>
-                    <select onchange="location.href='index.php?<?php echo http_build_query(array_merge($_GET, ['limit' => ''])); ?>' + this.value">
+                    <span style="color: var(--text-sub); margin-right: 10px;">Hiển thị:</span>
+                    <select onchange="location.href='index.php?<?php echo http_build_query(array_merge($_GET, ['limit' => ''])); ?>' + this.value" style="padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--card-bg); color: var(--text-main);">
                         <?php foreach ([10, 20, 50] as $l): ?>
-                            <option value="<?php echo $l; ?>" <?php echo $limit == $l ? 'selected' : ''; ?>><?php echo $l; ?></option>
+                            <option value="<?php echo $l; ?>" <?php echo $limit == $l ? 'selected' : ''; ?>><?php echo $l; ?> dòng</option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -157,10 +183,10 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
     </div>
 
 <style>
-.badge-secondary { background-color: #6c757d; }
-.badge-danger { background-color: #dc3545; }
-.badge-warning { background-color: #ffc107; color: #000; }
-.badge-success { background-color: #28a745; }
+/* CSS Override specifically for this page if needed, otherwise rely on admin_style.css */
+/* Ensuring text colors adapt to dark mode via variables */
+.text-danger { color: var(--danger-text) !important; }
+.text-warning { color: var(--warning-text) !important; }
 </style>
 
 <?php include '../../../includes/footer.php'; ?>

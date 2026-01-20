@@ -389,7 +389,13 @@ function showTab(tabId) {
     $('.tab-content').removeClass('active');
     $(`.tab-item[data-tab="${tabId}"]`).addClass('active');
     $('#' + tabId).addClass('active');
-    window.location.hash = tabId;
+    
+    // Prevent auto-scroll by using pushState instead of location.hash
+    if(history.pushState) {
+        history.pushState(null, null, '#' + tabId);
+    } else {
+        window.location.hash = tabId;
+    }
 }
 
 // Department Logic
