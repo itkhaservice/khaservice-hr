@@ -8,7 +8,7 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="/khaservice-hr/assets/css/admin_style.css?v=1768970181">
+    <link rel="stylesheet" href="/khaservice-hr/assets/css/admin_style.css?v=1768978351">
 </head>
 <body>
 <div class="wrapper">
@@ -87,136 +87,49 @@
         </div>
     </div>
 </header>
-
-    <div class="content-wrapper">
-        <div class="action-header">
+    <div class="content-wrapper" style="overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 65px);">
+        <div class="action-header" style="flex-shrink: 0;">
             <div>
-                <h1 class="page-title">Bảng Chấm Công - 1/2026 <span style="font-size:0.5em; color:#ccc;">(v2.0)</span></h1>
-                                    <span class="badge badge-success"><i class="fas fa-pen"></i> Đang mở</span>
-                            </div>
-            
+                <h1 class="page-title">Bảng Chấm Công - 1/2026 <span style="font-size:0.5em; color:#ccc;">(v4.0 Stable)</span></h1>
+                <span class="badge badge-success"><i class="fas fa-pen"></i> Đang mở</span>
+            </div>
             <div class="header-actions">
-                <!-- Filter Form -->
-                <form method="GET" id="filterForm" style="display: flex; gap: 10px;">
+                <form method="GET" style="display: flex; gap: 10px;">
                     <select name="project_id" class="form-control" style="min-width: 200px;" onchange="this.form.submit()">
-                                                                                    <option value="1" >
-                                    4S RIVERSIDE GARDEN                                </option>
-                                                            <option value="2" >
-                                    CANTAVIL PREMIER                                </option>
-                                                            <option value="3" >
-                                    CITIZEN.TS                                </option>
-                                                            <option value="4" >
-                                    CITRINE APARTMENT                                </option>
-                                                            <option value="5" >
-                                    COPAC SQUARE                                </option>
-                                                            <option value="6" >
-                                    FLORA ANH ĐÀO                                </option>
-                                                            <option value="8" >
-                                    HOÀNG ANH GIA LAI 2                                </option>
-                                                            <option value="9" >
-                                    HOMYLAND 2                                </option>
-                                                            <option value="10" >
-                                    HORIZON                                </option>
-                                                            <option value="11" >
-                                    HƯNG PHÁT                                </option>
-                                                            <option value="12" >
-                                    HƯNG PHÁT SILVER STAR                                </option>
-                                                            <option value="13" selected>
-                                    KHÁNH HỘI 1                                </option>
-                                                            <option value="14" >
-                                    KHÁNH HỘI 2                                </option>
-                                                            <option value="15" >
-                                    KHÁNH HỘI 3                                </option>
-                                                            <option value="16" >
-                                    LAN PHƯƠNG MHBR                                </option>
-                                                            <option value="17" >
-                                    LÔ R7 AN KHÁNH                                </option>
-                                                            <option value="18" >
-                                    NHẤT LAN II                                </option>
-                                                            <option value="19" >
-                                    ORIENT APARTMENT                                </option>
-                                                            <option value="20" >
-                                    PHỐ GIA PHÚC                                </option>
-                                                            <option value="21" >
-                                    PHÚ GIA                                </option>
-                                                            <option value="22" >
-                                    SAI GON METRO PARK                                </option>
-                                                            <option value="23" >
-                                    SAMSORA RIVERSIDE                                </option>
-                                                            <option value="24" >
-                                    SCREC II                                </option>
-                                                            <option value="25" >
-                                    SEN HỒNG A                                </option>
-                                                            <option value="26" >
-                                    SEN HỒNG BC                                </option>
-                                                            <option value="27" >
-                                    SÔNG ĐÀ                                </option>
-                                                            <option value="28" >
-                                    TAM PHÚ                                </option>
-                                                            <option value="29" >
-                                    TDH - PHƯỚC LONG                                </option>
-                                                            <option value="30" >
-                                    THE STAR                                </option>
-                                                            <option value="31" >
-                                    THE USEFUL APARTMENT                                </option>
-                                                            <option value="32" >
-                                    TOPAZ CITY KHỐI B                                </option>
-                                                            <option value="33" >
-                                    TOPAZ ELITE PHOENIX 1                                </option>
-                                                            <option value="34" >
-                                    TOPAZ ELITE PHOENIX 2                                </option>
-                                                            <option value="35" >
-                                    TOPAZ HOME 2 - BLOCK B                                </option>
-                                                            <option value="36" >
-                                    VẠN ĐÔ                                </option>
-                                                            <option value="37" >
-                                    VĂN PHÒNG CÔNG TY                                </option>
-                                                                        </select>
-                    <select name="month" class="form-control" style="width: 100px;" onchange="this.form.submit()">
-                        <option value='1' selected>T1</option><option value='2' >T2</option><option value='3' >T3</option><option value='4' >T4</option><option value='5' >T5</option><option value='6' >T6</option><option value='7' >T7</option><option value='8' >T8</option><option value='9' >T9</option><option value='10' >T10</option><option value='11' >T11</option><option value='12' >T12</option>                    </select>
-                    <select name="year" class="form-control" style="width: 100px;" onchange="this.form.submit()">
-                        <option value='2023' >2023</option><option value='2024' >2024</option><option value='2025' >2025</option><option value='2026' selected>2026</option><option value='2027' >2027</option><option value='2028' >2028</option><option value='2029' >2029</option><option value='2030' >2030</option>                    </select>
+                        <option value='1' >4S RIVERSIDE GARDEN</option><option value='2' >CANTAVIL PREMIER</option><option value='3' >CITIZEN.TS</option><option value='4' >CITRINE APARTMENT</option><option value='5' >COPAC SQUARE</option><option value='6' >FLORA ANH ĐÀO</option><option value='8' >HOÀNG ANH GIA LAI 2</option><option value='9' >HOMYLAND 2</option><option value='10' >HORIZON</option><option value='11' >HƯNG PHÁT</option><option value='12' >HƯNG PHÁT SILVER STAR</option><option value='13' selected>KHÁNH HỘI 1</option><option value='14' >KHÁNH HỘI 2</option><option value='15' >KHÁNH HỘI 3</option><option value='16' >LAN PHƯƠNG MHBR</option><option value='17' >LÔ R7 AN KHÁNH</option><option value='18' >NHẤT LAN II</option><option value='19' >ORIENT APARTMENT</option><option value='20' >PHỐ GIA PHÚC</option><option value='21' >PHÚ GIA</option><option value='22' >SAI GON METRO PARK</option><option value='23' >SAMSORA RIVERSIDE</option><option value='24' >SCREC II</option><option value='25' >SEN HỒNG A</option><option value='26' >SEN HỒNG BC</option><option value='27' >SÔNG ĐÀ</option><option value='28' >TAM PHÚ</option><option value='29' >TDH - PHƯỚC LONG</option><option value='30' >THE STAR</option><option value='31' >THE USEFUL APARTMENT</option><option value='32' >TOPAZ CITY KHỐI B</option><option value='33' >TOPAZ ELITE PHOENIX 1</option><option value='34' >TOPAZ ELITE PHOENIX 2</option><option value='35' >TOPAZ HOME 2 - BLOCK B</option><option value='36' >VẠN ĐÔ</option><option value='37' >VĂN PHÒNG CÔNG TY</option>                    </select>
+                    <select name="month" class="form-control" style="width: 80px;" onchange="this.form.submit()"><option value='1' selected>T1</option><option value='2' >T2</option><option value='3' >T3</option><option value='4' >T4</option><option value='5' >T5</option><option value='6' >T6</option><option value='7' >T7</option><option value='8' >T8</option><option value='9' >T9</option><option value='10' >T10</option><option value='11' >T11</option><option value='12' >T12</option></select>
+                    <select name="year" class="form-control" style="width: 100px;" onchange="this.form.submit()"><option value='2023' >2023</option><option value='2024' >2024</option><option value='2025' >2025</option><option value='2026' selected>2026</option><option value='2027' >2027</option><option value='2028' >2028</option><option value='2029' >2029</option><option value='2030' >2030</option></select>
                 </form>
-
-                                    <button type="button" class="btn btn-primary" onclick="saveAttendance()">
-                        <i class="fas fa-save"></i> Lưu dữ liệu
-                    </button>
-                    <a href="import.php" class="btn btn-secondary"><i class="fas fa-file-import"></i> Import Excel</a>
-                
-                <!-- Lock Button for Super Admin -->
-                                    <form method="POST" style="display:inline;">
-                        <input type="hidden" name="toggle_lock" value="lock">
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn chắc chắn muốn KHÓA bảng công này?')">
-                            <i class="fas fa-lock"></i> 
-                            Khóa sổ                        </button>
-                    </form>
+                                    <button type="button" class="btn btn-primary" onclick="saveAttendance()"><i class="fas fa-save"></i> Lưu</button>
+                    <a href="import.php" class="btn btn-secondary"><i class="fas fa-file-import"></i> Import</a>
                             </div>
         </div>
 
-                    <div class="card" style="padding: 0; overflow: hidden;">
+                    <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); flex: 1; display: flex; flex-direction: column;">
                 <!-- Legend -->
-                <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-main); font-size: 0.85rem;">
+                <div style="padding: 8px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-main); font-size: 0.8rem; flex-shrink: 0;">
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
                         <span><b>Ký hiệu:</b></span>
-                        <span class="legend-item"><span class="symbol-sample" style="color:#24a25c;">X</span>: Đi làm</span>
-                        <span class="legend-item"><span class="symbol-sample" style="color:#3b82f6;">P</span>: Phép</span>
-                        <span class="legend-item"><span class="symbol-sample" style="background:#64748b; color:#fff;">OF</span>: Nghỉ tuần</span>
-                        <span class="legend-item"><span class="symbol-sample" style="color:#ef4444;">L,T</span>: Lễ tết</span>
-                        <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="margin-left: auto; font-weight: 500;">
-                            <i class="fas fa-info-circle"></i> Xem thêm
-                        </a>
+                        <span style="color:#24a25c; font-weight:700;">X</span>: Đi làm &nbsp;
+                        <span style="color:#3b82f6; font-weight:700;">P</span>: Phép &nbsp;
+                        <span style="background:#64748b; color:#fff; font-weight:700; padding:0 3px;">OF</span>: Nghỉ tuần &nbsp;
+                        <span style="color:#ef4444; font-weight:700;">L,T</span>: Lễ tết
+                        <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="margin-left: auto;"><i class="fas fa-info-circle"></i> Thêm</a>
                     </div>
                     <div id="moreLegend" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
-                            <span><span class="symbol-sample" style="color:#24a25c;">1/2</span>: Làm nửa ngày</span>
-                            <span><span class="symbol-sample" style="color:#3b82f6;">1/P</span>: Nửa phép</span>
-                            <span><span class="symbol-sample" style="color:#f59e0b;">Ô</span>: Ốm</span>
-                            <span><span class="symbol-sample" style="color:#94a3b8;">R</span>: Việc riêng</span>
-                            <span><span class="symbol-sample" style="color:#8b5cf6;">CĐ</span>: Chế độ</span>
-                            <span><span class="symbol-sample" style="color:#06b6d4;">ĐH</span>: Đi học/Họp</span>
-                            <span><span class="symbol-sample" style="color:#ec4899;">Ts</span>: Thai sản</span>
-                            <span><span class="symbol-sample" style="color:#10b981;">Nb</span>: Nghỉ bù</span>
-                            <span><span class="symbol-sample" style="color:#f97316;">F1</span>: Làm chủ nhật</span>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; font-size: 0.8rem;">
+                            <span><b>1/2</b>: Làm nửa ngày</span>
+                            <span><b>1/p</b>: Nửa phép, nửa làm</span>
+                            <span><b>Ô</b>: Nghỉ ốm</span>
+                            <span><b>R</b>: Nghỉ việc riêng</span>
+                            <span><b>CĐ</b>: Chế độ (Hiếu, hỉ...)</span>
+                            <span><b>ĐH</b>: Đi học/Họp</span>
+                            <span><b>Ts</b>: Thai sản</span>
+                            <span><b>Nb</b>: Nghỉ bù</span>
+                            <span><b>F</b>: Làm lễ, tết</span>
+                            <span><b>F1</b>: Làm chủ nhật/ngày nghỉ</span>
+                            <span><b>1/F1</b>: Làm nửa ngày CN/nghỉ</span>
+                            <span><b>1/lt</b>: Làm nửa ngày lễ/tết</span>
                         </div>
                         <div style="margin-top: 10px; color: var(--text-sub); font-style: italic;">
                             * <b>Ô dưới:</b> Nhập số giờ làm thêm (tăng ca). Nhấp đúp vào ô ký hiệu để đánh dấu nhanh 'X'.
@@ -224,211 +137,101 @@
                     </div>
                 </div>
 
-                <div class="table-container" style="max-height: 70vh; overflow: auto; position: relative; width: 100%;">
-                    <table class="table table-bordered" style="font-size: 0.85rem; margin-bottom: 0; border-collapse: separate; border-spacing: 0; table-layout: fixed; width: max-content;">
+                <div class="table-container" style="flex: 1; overflow: auto; position: relative; width: 100%;">
+                    <table class="attendance-table table-bordered">
                         <colgroup>
-                            <!-- Employee Col -->
-                            <col style="width: 250px;">
-                            <!-- Days 1-31 -->
-                            <col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;">                            <!-- Summary Cols -->
-                            <col style="width: 40px;"> <!-- P/CĐ -->
-                            <col style="width: 40px;"> <!-- Khác -->
-                            <col style="width: 40px;"> <!-- Lễ -->
-                            <col style="width: 40px;"> <!-- TC -->
-                            <col style="width: 40px;"> <!-- CN -->
-                            <col style="width: 40px;"> <!-- Lễ OT -->
-                            <col style="width: 50px;"> <!-- Công -->
+                            <col style="width: 50px; min-width: 50px;">
+                            <col style="width: 220px; min-width: 220px;">
+                            <col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;"><col style="width: 45px; min-width: 45px;">                            <col style="width: 40px; min-width: 40px;">
+                            <col style="width: 40px; min-width: 40px;">
+                            <col style="width: 40px; min-width: 40px;">
+                            <col style="width: 40px; min-width: 40px;">
+                            <col style="width: 40px; min-width: 40px;">
+                            <col style="width: 40px; min-width: 40px;">
+                            <col style="width: 55px; min-width: 55px;">
                         </colgroup>
                         <thead>
-                            <!-- Row 1: Top Level Groups -->
-                            <tr>
-                                <th rowspan="3" style="position: sticky; left: 0; z-index: 30; min-width: 250px; border-right: 2px solid #cbd5e1; vertical-align: middle; text-align: center;" class="bg-subtle">Nhân viên</th>
-                                <th colspan="31" class="text-center bg-subtle" style="height: 30px; vertical-align: middle;">Ngày trong tháng</th>
-                                
-                                <!-- Group: Ngày nghỉ -->
-                                <th colspan="3" class="bg-subtle sticky-right text-center" style="right: 170px; z-index: 30; border-left: 2px solid #cbd5e1; height: 30px; vertical-align: middle;">Ngày nghỉ</th>
-                                
-                                <!-- Group: Công làm thêm -->
-                                <th colspan="3" class="bg-subtle sticky-right text-center" style="right: 50px; z-index: 30; border-left: 1px solid #e2e8f0; height: 30px; vertical-align: middle;">Công làm thêm</th>
-                                
-                                <!-- Group: Tổng -->
-                                <th rowspan="3" class="bg-subtle sticky-right text-center" style="right: 0; min-width: 50px; z-index: 30; border-left: 2px solid #cbd5e1; vertical-align: middle;">Công</th>
+                            <tr style="height: 30px;">
+                                <th rowspan="3" class="fix-l" style="left: 0; z-index: 20; text-align: center;">STT</th>
+                                <th rowspan="3" class="fix-l" style="left: 50px; z-index: 20; border-right: 2px solid #cbd5e1;">Nhân viên</th>
+                                <th colspan="31" class="text-center">Ngày trong tháng</th>
+                                <th colspan="3" class="fix-r" style="right: 175px; width: 120px; z-index: 20; border-left: 2px solid #cbd5e1;">Ngày nghỉ</th>
+                                <th colspan="3" class="fix-r" style="right: 55px; width: 120px; z-index: 20; border-left: 1px solid #cbd5e1;">Tăng ca</th>
+                                <th rowspan="3" class="fix-r" style="right: 0; width: 55px; min-width: 55px; z-index: 20; border-left: 2px solid #cbd5e1;">Tổng</th>
                             </tr>
-
-                            <!-- Row 2: Specific Columns & Day Numbers -->
-                            <tr>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">1</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">2</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">3</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">4</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">5</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">6</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">7</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">8</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">9</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">10</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">11</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">12</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">13</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">14</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">15</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">16</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">17</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">18</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">19</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">20</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">21</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">22</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">23</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">24</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">25</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">26</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">27</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">28</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">29</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">30</th>
-                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">31</th>
-                                
-                                <!-- Sub-headers: Leave -->
-                                <th rowspan="2" class="bg-subtle sticky-right text-center shadow-left" style="right: 250px; border-left: 2px solid #cbd5e1; font-size: 0.7rem; vertical-align: middle;">P/CĐ</th>
-                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 210px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">VR/Ô/Ts</th>
-                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 170px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">Lễ,Tết</th>
-
-                                <!-- Sub-headers: OT -->
-                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 130px; z-index: 30; border-left: 1px solid #e2e8f0; font-size: 0.7rem; vertical-align: middle;">Giờ TC</th>
-                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 90px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">CN</th>
-                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 50px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">Lễ,Tết</th>
+                            <tr style="height: 25px;">
+                                <th class="text-center" style="min-width: 45px;">1</th><th class="text-center" style="min-width: 45px;">2</th><th class="text-center" style="min-width: 45px;">3</th><th class="text-center" style="min-width: 45px;">4</th><th class="text-center" style="min-width: 45px;">5</th><th class="text-center" style="min-width: 45px;">6</th><th class="text-center" style="min-width: 45px;">7</th><th class="text-center" style="min-width: 45px;">8</th><th class="text-center" style="min-width: 45px;">9</th><th class="text-center" style="min-width: 45px;">10</th><th class="text-center" style="min-width: 45px;">11</th><th class="text-center" style="min-width: 45px;">12</th><th class="text-center" style="min-width: 45px;">13</th><th class="text-center" style="min-width: 45px;">14</th><th class="text-center" style="min-width: 45px;">15</th><th class="text-center" style="min-width: 45px;">16</th><th class="text-center" style="min-width: 45px;">17</th><th class="text-center" style="min-width: 45px;">18</th><th class="text-center" style="min-width: 45px;">19</th><th class="text-center" style="min-width: 45px;">20</th><th class="text-center" style="min-width: 45px;">21</th><th class="text-center" style="min-width: 45px;">22</th><th class="text-center" style="min-width: 45px;">23</th><th class="text-center" style="min-width: 45px;">24</th><th class="text-center" style="min-width: 45px;">25</th><th class="text-center" style="min-width: 45px;">26</th><th class="text-center" style="min-width: 45px;">27</th><th class="text-center" style="min-width: 45px;">28</th><th class="text-center" style="min-width: 45px;">29</th><th class="text-center" style="min-width: 45px;">30</th><th class="text-center" style="min-width: 45px;">31</th>                                <th rowspan="2" class="fix-r" style="right: 255px; width: 40px; font-size: 0.7rem; border-left: 2px solid #cbd5e1;">P/CĐ</th>
+                                <th rowspan="2" class="fix-r" style="right: 215px; width: 40px; font-size: 0.7rem;">Khác</th>
+                                <th rowspan="2" class="fix-r" style="right: 175px; width: 40px; font-size: 0.7rem;">Lễ</th>
+                                <th rowspan="2" class="fix-r" style="right: 135px; width: 40px; font-size: 0.7rem; border-left: 1px solid #cbd5e1;">TC</th>
+                                <th rowspan="2" class="fix-r" style="right: 95px; width: 40px; font-size: 0.7rem;">CN</th>
+                                <th rowspan="2" class="fix-r" style="right: 55px; width: 40px; font-size: 0.7rem;">Lễ</th>
                             </tr>
-
-                            <!-- Row 3: Days of Week -->
-                            <tr>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T5                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T6                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T7                                    </th>
-                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        CN                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T2                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T3                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T4                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T5                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T6                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T7                                    </th>
-                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        CN                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T2                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T3                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T4                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T5                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T6                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T7                                    </th>
-                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        CN                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T2                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T3                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T4                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T5                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T6                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T7                                    </th>
-                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        CN                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T2                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T3                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T4                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T5                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T6                                    </th>
-                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
-                                        T7                                    </th>
-                                                            </tr>
+                            <tr style="height: 25px;">
+                                <th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T5</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T6</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T7</th><th class='text-center is-sunday' style='font-size:0.7rem; font-weight:400;'>CN</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T2</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T3</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T4</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T5</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T6</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T7</th><th class='text-center is-sunday' style='font-size:0.7rem; font-weight:400;'>CN</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T2</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T3</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T4</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T5</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T6</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T7</th><th class='text-center is-sunday' style='font-size:0.7rem; font-weight:400;'>CN</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T2</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T3</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T4</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T5</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T6</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T7</th><th class='text-center is-sunday' style='font-size:0.7rem; font-weight:400;'>CN</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T2</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T3</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T4</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T5</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T6</th><th class='text-center ' style='font-size:0.7rem; font-weight:400;'>T7</th>                            </tr>
                         </thead>
                         <tbody>
                                                             <tr data-emp-id="2">
-                                    <td style="position: sticky; left: 0; background: inherit; z-index: 20; font-weight: 600; border-right: 2px solid #cbd5e1;" class="bg-subtle">
-                                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                                            <span style="color: var(--primary-dark);">Cao Minh Thắng</span>
-                                        </div>
-                                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 400; margin-top: 2px;">
-                                            Ban Công nghệ thông tin                                        </div>
-                                        <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 400;">
-                                            Nhân viên                                        </div>
+                                    <td class="fix-l" style="left: 0; font-weight: 600; background: #fff; text-align: center;">1</td>
+                                    <td class="fix-l" style="left: 50px; border-right: 2px solid #cbd5e1; background: #fff; padding: 4px 8px;">
+                                        <div style="color: var(--primary-dark); font-weight: 700; font-size: 0.85rem;">Cao Minh Thắng</div>
+                                        <div style="font-size: 0.65rem; color: #64748b;">Ban Công nghệ thông tin - Nhân viên</div>
                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="1" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="L" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="1" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="2" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="2" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="3" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="3" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                            <td class="is-sunday">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="4" 
                                                        data-is-sunday="1"
@@ -437,117 +240,124 @@
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="4" 
                                                        data-is-sunday="1"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="5" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="5" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="6" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="6" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="7" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="7" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="8" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="8" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="9" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="9" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="10" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="10" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                            <td class="is-sunday">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="11" 
                                                        data-is-sunday="1"
@@ -556,117 +366,124 @@
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="11" 
                                                        data-is-sunday="1"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="12" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="12" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="13" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="13" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="14" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="14" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="15" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="15" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="16" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="16" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="17" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="17" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                            <td class="is-sunday">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="18" 
                                                        data-is-sunday="1"
@@ -675,117 +492,124 @@
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="18" 
                                                        data-is-sunday="1"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="19" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="19" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="20" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="20" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="21" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="21" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="22" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="22" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="23" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="23" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="24" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="24" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                            <td class="is-sunday">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="25" 
                                                        data-is-sunday="1"
@@ -794,128 +618,130 @@
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="25" 
                                                        data-is-sunday="1"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="26" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="26" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="27" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="27" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="28" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="P" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="28" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="29" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="P" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="29" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="30" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="30" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                            <td class="">
                                                                                             <input type="text" class="att-input symbol" 
                                                        data-day="31" 
                                                        data-is-sunday="0"
-                                                       value="" 
+                                                       value="X" 
                                                        maxlength="4"
                                                        autocomplete="off"
                                                        ondblclick="toggleSymbol(this)"
                                                        onfocus="this.select()">
-                                                <input type="number" class="att-input ot" 
+                                                <input type="text" class="att-input ot" 
                                                        data-day="31" 
                                                        data-is-sunday="0"
                                                        value="" 
-                                                       min="0" step="0.5"
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
                                                        placeholder=""
                                                        onfocus="this.select()">
                                                                                     </td>
-                                                                        
-                                    <!-- Detailed Stats (With Classes for JS) -->
-                                    <td class="bg-subtle sticky-right text-center sum-p-cd" style="right: 250px; font-size: 0.8rem; border-left: 2px solid #cbd5e1;"></td>
-                                    <td class="bg-subtle sticky-right text-center sum-other" style="right: 210px; font-size: 0.8rem;"></td>
-                                    <td class="bg-subtle sticky-right text-center sum-holiday" style="right: 170px; font-size: 0.8rem;"></td>
-                                    
-                                    <td class="bg-subtle sticky-right text-center sum-ot-normal" style="right: 130px; font-size: 0.8rem; color: #dc2626; border-left: 1px solid #e2e8f0;"></td>
-                                    <td class="bg-subtle sticky-right text-center sum-ot-sun" style="right: 90px; font-size: 0.8rem; color: #dc2626;"></td>
-                                    <td class="bg-subtle sticky-right text-center sum-ot-hol" style="right: 50px; font-size: 0.8rem; color: #dc2626;"></td>
-                                    
-                                    <td class="bg-subtle sticky-right text-center sum-total" style="right: 0; font-weight: 700; color: #24a25c; border-left: 2px solid #cbd5e1;">
-                                        0                                    </td>
+                                                                        <td class="fix-r sum-p-cd" style="right: 255px; border-left: 2px solid #cbd5e1; background: #fff;">2</td>
+                                    <td class="fix-r sum-other" style="right: 215px; background: #fff;"></td>
+                                    <td class="fix-r sum-holiday" style="right: 175px; background: #fff;"></td>
+                                    <td class="fix-r sum-ot-normal" style="right: 135px; border-left: 1px solid #cbd5e1; color: #dc2626; background: #fff;"></td>
+                                    <td class="fix-r sum-ot-sun" style="right: 95px; color: #dc2626; background: #fff;"></td>
+                                    <td class="fix-r sum-ot-hol" style="right: 55px; color: #dc2626; background: #fff;"></td>
+                                    <td class="fix-r sum-total" style="right: 0; font-weight:700; color:var(--primary-color); border-left: 2px solid #cbd5e1; background: #fff;">27</td>
                                 </tr>
                                                     </tbody>
                     </table>
@@ -924,240 +750,91 @@
             </div>
 
 <style>
-/* Base Table Styles */
-.table-container {
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background-color: var(--card-bg);
-    overflow: auto;
-    position: relative;
-    width: 100%;
-    height: calc(100vh - 250px); /* Adjust height to fit viewport */
+/* CSS RESET FOR STABILITY */
+.attendance-table { border-collapse: separate; border-spacing: 0; width: max-content; margin: 0; }
+.attendance-table th, .attendance-table td { 
+    border-right: 1px solid #e2e8f0; 
+    border-bottom: 1px solid #e2e8f0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    vertical-align: middle; /* Căn giữa trên dưới */
 }
 
-.table-bordered {
-    border-collapse: separate; 
-    border-spacing: 0;
-    table-layout: fixed;
-    width: max-content; /* Critical: let table expand based on col widths */
-    margin-bottom: 0;
-    border: none;
-}
+/* HEADER STICKY */
+.attendance-table thead th { position: sticky; top: 0; background-color: #f8fafc; z-index: 800; } /* High z-index for top header */
+.attendance-table thead tr:nth-child(2) th { top: 30px; }
+.attendance-table thead tr:nth-child(3) th { top: 55px; }
 
-.table-bordered th, 
-.table-bordered td {
-    border-right: 1px solid var(--border-color);
-    border-bottom: 1px solid var(--border-color);
-    background-color: var(--card-bg);
-    box-sizing: border-box;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+/* LEFT STICKY */
+.fix-l { position: sticky; z-index: 900 !important; background-color: #fff; } /* Body Left > Standard Body (0) */
+.attendance-table thead .fix-l { z-index: 1000 !important; background-color: #f8fafc; } /* Header Left > Header Standard (800) */
 
-/* Header Sticky - Top */
-thead th {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background-color: #f8fafc !important;
-}
-thead tr:nth-child(2) th { top: 30px; z-index: 100; }
-thead tr:nth-child(3) th { top: 55px; z-index: 100; }
+/* RIGHT STICKY */
+.fix-r { position: sticky; z-index: 900 !important; background-color: #fff; text-align: center; } /* Body Right > Standard Body */
+.attendance-table thead .fix-r { z-index: 1000 !important; background-color: #f8fafc; } /* Header Right > Header Standard */
 
-/* Sticky Left - Employee Column */
-.table-bordered th:first-child,
-.table-bordered td:first-child {
-    position: sticky;
-    left: 0;
-    z-index: 110;
-    border-right: 2px solid #cbd5e1 !important;
-    background-color: #f8fafc !important;
-}
-tbody td:first-child { background-color: var(--card-bg) !important; z-index: 90; }
-
-/* Sticky Right - Summary Columns */
-.sticky-right {
-    position: sticky;
-    z-index: 95;
-    background-color: #f8fafc !important;
-}
-thead .sticky-right { z-index: 120; } /* Header sticky right must be above everything */
-
-/* Top-Left Corner (Highest Z-index) */
-thead tr:first-child th:first-child {
-    z-index: 150 !important;
-}
-
-/* Visual Helpers */
+/* UTILS */
+.is-sunday { background-color: #dcfce7 !important; }
 .shadow-left { box-shadow: -3px 0 5px -2px rgba(0,0,0,0.1); }
-.is-sunday { background-color: rgba(254, 226, 226, 0.4) !important; }
 
-/* Inputs */
-.att-input {
-    width: 100%;
-    border: none;
-    text-align: center;
-    background: transparent;
-    padding: 0;
-    margin: 0;
-    font-size: 0.8rem;
-    display: block;
-    cursor: pointer;
+/* Inputs Styles */
+.att-input { 
+    width: 100%; 
+    border: none; 
+    text-align: center; 
+    background: transparent; 
+    display: block; 
+    cursor: pointer; 
+    font-family: 'Inter', sans-serif;
+    outline: none;
 }
-.att-input.symbol {
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--text-main);
-    height: 22px;
+.att-input.symbol { 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    height: 24px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #e2e8f0; /* Tách biệt rõ ràng */
+}
+/* Màu sắc ký hiệu chuẩn */
+.att-input.symbol[value="X"] { color: #166534; } /* Xanh lá đậm */
+.att-input.symbol[value="P"] { color: #1e40af; } /* Xanh dương */
+.att-input.symbol[value="L,T"], .att-input.symbol[value="L"], .att-input.symbol[value="T"] { color: #991b1b; } /* Đỏ đậm */
+.att-input.symbol[value="OF"] { color: #64748b; font-weight: 400; }
+
+.att-input.ot { 
+    font-size: 0.75rem; 
+    color: #c2410c; /* Màu cam đỏ cho tăng ca */
+    font-weight: 600;
+    height: 18px; 
+}
+
+/* Ẩn nút tăng giảm (spinner) trong input number */
+.att-input.ot::-webkit-outer-spin-button,
+.att-input.ot::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 .att-input.ot {
-    font-size: 0.7rem;
-    color: #dc2626;
-    height: 18px;
+    -moz-appearance: textfield;
 }
-.att-input:focus { background-color: #e0f2fe; outline: none; }
-.att-input.changed { background-color: #fffbeb !important; }
 
-/* Dark Mode Overrides */
-body.dark-mode .table-bordered th,
-body.dark-mode thead th {
-    background-color: #1e293b !important;
-    border-color: #334155;
-}
-body.dark-mode .table-bordered td { background-color: #1e293b; border-color: #334155; }
-body.dark-mode td:first-child,
-body.dark-mode .sticky-right {
-    background-color: #1e293b !important;
-}
-body.dark-mode .is-sunday { background-color: rgba(220, 38, 38, 0.1) !important; }
-body.dark-mode .att-input.changed { background-color: #451a03 !important; }
+.att-input:focus { background-color: rgba(0,0,0,0.05); }
+.att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; } /* Vàng nhạt cho ô vừa sửa */
+
+/* DARK MODE */
+body.dark-mode .attendance-table thead th, 
+body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
+body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
+body.dark-mode .is-sunday { background-color: rgba(22, 101, 52, 0.25) !important; }
+
+/* Màu sắc ký hiệu trong Dark Mode */
+body.dark-mode .att-input.symbol { color: #cbd5e1; } /* Mặc định */
+body.dark-mode .att-input.symbol[value="X"] { color: #4ade80; }
+body.dark-mode .att-input.symbol[value="P"] { color: #60a5fa; }
+body.dark-mode .att-input.symbol[value="L,T"], body.dark-mode .att-input.symbol[value="L"], body.dark-mode .att-input.symbol[value="T"] { color: #f87171; }
+body.dark-mode .att-input.ot { color: #fb923c; }
+body.dark-mode .att-input.changed { background-color: #451a03 !important; color: #fff; }
 </style>
-
-<script>
-// Track changes
-let changedData = {}; 
-
-$(document).on('change', '.att-input', function() {
-    $(this).addClass('changed');
-    let cell = $(this).closest('td');
-    let tr = $(this).closest('tr');
-    let empId = tr.data('emp-id');
-    let day = $(this).data('day');
-    
-    let symbolInput = cell.find('.symbol');
-    let otInput = cell.find('.ot');
-    
-    let key = `${empId}_${day}`;
-    changedData[key] = {
-        emp_id: empId,
-        day: day,
-        symbol: symbolInput.val(),
-        ot: otInput.val() || 0
-    };
-    
-    // Recalculate Row Stats
-    calculateRow(tr);
-});
-
-function calculateRow(tr) {
-    let cnt_p_cd = 0;
-    let cnt_other = 0;
-    let cnt_holiday = 0;
-    let ot_normal = 0;
-    let ot_sun = 0;
-    let ot_hol = 0;
-    let total_days = 0;
-
-    tr.find('.att-input.symbol').each(function() {
-        let sym = $(this).val().toUpperCase().trim();
-        let otInput = $(this).siblings('.att-input.ot');
-        let ot = parseFloat(otInput.val()) || 0;
-        let isSun = $(this).data('is-sunday') == '1';
-        let isHol = (sym === 'L' || sym === 'T'); // Simple holiday check from symbol, or F
-
-        // Leave/Work Days
-        if (sym === 'X' || sym === 'L' || sym === 'T') total_days += 1;
-        else if (sym === '1/2') total_days += 0.5;
-        else if (sym === 'P' || sym === 'CĐ' || sym === 'CD') { cnt_p_cd++; total_days += 1; }
-        else if (sym === '1/P') { cnt_p_cd += 0.5; total_days += 1; }
-        else if (['Ô', 'O', 'TS', 'R', 'VR'].includes(sym)) cnt_other++;
-        else if (isHol) cnt_holiday++; // Already counted in first if? L,T is holiday leave.
-
-        // Overtime
-        if (ot > 0) {
-            if (sym === 'F' || isHol) ot_hol += ot;
-            else if (sym === 'F1' || isSun) ot_sun += ot;
-            else ot_normal += ot;
-        }
-    });
-
-    // Update UI
-    tr.find('.sum-p-cd').text(cnt_p_cd || '');
-    tr.find('.sum-other').text(cnt_other || '');
-    tr.find('.sum-holiday').text(cnt_holiday || '');
-    
-    tr.find('.sum-ot-normal').text(ot_normal || '');
-    tr.find('.sum-ot-sun').text(ot_sun || '');
-    tr.find('.sum-ot-hol').text(ot_hol || '');
-    
-    tr.find('.sum-total').text(total_days || '');
-}
-
-function toggleSymbol(input) {
-    let $input = $(input);
-    let current = $input.val().toUpperCase();
-    
-    if (current === '' || current === 'OF') {
-        $input.val('X').trigger('change');
-    } else {
-        $input.val('').trigger('change');
-    }
-    // Remove focus to show result clearly? No, keep focus usually better.
-    // $input.blur(); 
-}
-
-function saveAttendance() {
-    let changes = Object.values(changedData);
-    if (changes.length === 0) {
-        showToast('info', 'Không có thay đổi nào để lưu.');
-        return;
-    }
-
-    // Show loading
-    let $btn = $('button[onclick="saveAttendance()"]');
-    let originalText = $btn.html();
-    $btn.html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...').prop('disabled', true);
-
-    fetch('save.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            month: 1,
-            year: 2026,
-            project_id: 13,
-            changes: changes
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            showToast('success', data.message);
-            $('.att-input.changed').removeClass('changed');
-            changedData = {};
-        } else {
-            showToast('error', data.message);
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        showToast('error', 'Lỗi kết nối server.');
-    })
-    .finally(() => {
-        $btn.html(originalText).prop('disabled', false);
-    });
-}
-</script>
 
     <!-- Footer Content -->
     <footer class="main-footer">
@@ -1177,3 +854,297 @@ function saveAttendance() {
 </body>
 </html>
 
+<script>
+let changedData = {}; 
+
+$(document).ready(function() {
+    // Khởi tạo giá trị gốc cho tất cả các ô để so sánh thay đổi
+    $('.att-input').each(function() {
+        $(this).data('original', $(this).val());
+    });
+});
+
+// 1. Theo dõi thay đổi
+$(document).on('change', '.att-input', function() {
+    let currentVal = $(this).val();
+    let originalVal = $(this).data('original');
+    let tr = $(this).closest('tr');
+    let day = $(this).data('day');
+    let key = `${tr.data('emp-id')}_${day}`;
+
+    if (currentVal !== originalVal) {
+        $(this).addClass('changed');
+        changedData[key] = { 
+            emp_id: tr.data('emp-id'), 
+            day: day, 
+            symbol: tr.find(`.symbol[data-day="${day}"]`).val(), 
+            ot: tr.find(`.ot[data-day="${day}"]`).val() || 0 
+        };
+    } else {
+        $(this).removeClass('changed');
+        delete changedData[key];
+    }
+    calculateRow(tr);
+});
+
+// 2. Xóa nhanh bằng phím Delete
+$(document).on('keydown', '.att-input', function(e) {
+    if (e.keyCode === 46 || e.keyCode === 8) { // Delete hoặc Backspace
+        if ($(this).val() !== '') {
+            $(this).val('').trigger('change');
+        }
+    }
+});
+
+// 3. Tính toán Real-time
+function calculateRow(tr) {
+    let s = {p_cd:0, other:0, holiday:0, ot_norm:0, ot_sun:0, ot_hol:0, total:0};
+    tr.find('.symbol').each(function() {
+        let d = $(this).data('day'); 
+        let sym = $(this).val().toUpperCase().trim();
+        let ot = parseFloat(tr.find(`.ot[data-day="${d}"]`).val()) || 0;
+        let isSun = $(this).data('is-sunday') == '1';
+        
+        // 1. Tính toán ngày nghỉ & công
+        // Tổng công thực tế (Theo công thức Excel: X + 1/2*0.5 + 1/p*0.5 + ĐH)
+        
+        if (['X', 'ĐH', 'DH'].includes(sym)) { s.total += 1; }
+        else if (sym == '1/2') { s.total += 0.5; }
+        else if (['1/P', '1/CĐ', '1/CD'].includes(sym)) { s.total += 0.5; s.p_cd += 0.5; } // 0.5 công + 0.5 phép
+        else if (['F', 'F1'].includes(sym)) { s.total += 1; } // Làm ngày lễ/CN cũng là 1 công
+        else if (['1/F1', '1/LT'].includes(sym)) { s.total += 0.5; }
+
+        // Tính ngày nghỉ (để hiển thị vào cột P/CĐ, Khác, Lễ)
+        if (['P', 'CĐ', 'CD'].includes(sym)) { s.p_cd += 1; } // Nghỉ nguyên ngày -> Ko cộng vào Total
+        else if (['Ô', 'O', 'TS', 'R', 'VR', 'CO', 'NB'].includes(sym)) { s.other += 1; }
+        else if (['L', 'T', 'L,T', 'L, T'].includes(sym)) { s.holiday += 1; }
+
+        // 2. Tính toán Tăng ca (OT)
+        if (ot > 0) {
+            if (['F', 'L', 'T', 'L,T', 'L, T'].includes(sym)) s.ot_hol += ot;
+            else if (['F1'].includes(sym) || isSun) s.ot_sun += ot;
+            else s.ot_norm += ot;
+        }
+    });
+    
+    tr.find('.sum-p-cd').text(s.p_cd || ''); 
+    tr.find('.sum-other').text(s.other || ''); 
+    tr.find('.sum-holiday').text(s.holiday || '');
+    tr.find('.sum-ot-normal').text(s.ot_norm || ''); 
+    tr.find('.sum-ot-sun').text(s.ot_sun || ''); 
+    tr.find('.sum-ot-hol').text(s.ot_hol || '');
+    tr.find('.sum-total').text(s.total || '0');
+}
+
+function toggleSymbol(input) { 
+    let $i = $(input); 
+    let cur = $i.val().toUpperCase(); 
+    $i.val((cur===''||cur=='OF')?'X':'').trigger('change'); 
+}
+
+function saveAttendance() {
+    let payload = [];
+    
+    $('tr[data-emp-id]').each(function() {
+        let tr = $(this);
+        let empId = tr.data('emp-id');
+        
+        tr.find('.att-input.symbol').each(function() {
+            let day = $(this).data('day');
+            let symbolInput = $(this);
+            let otInput = tr.find(`.ot[data-day="${day}"]`);
+            
+            let symVal = symbolInput.val();
+            let otVal = otInput.val();
+            
+            let symOrg = symbolInput.data('original'); // Giá trị lúc load trang
+            let otOrg = otInput.data('original');
+            
+            // Logic quyết định gửi:
+            // 1. Nếu có dữ liệu (sym hoặc ot khác rỗng/0) -> Gửi (để Insert/Update)
+            // 2. Nếu hiện tại rỗng NHƯNG gốc có dữ liệu -> Gửi (để xóa về NULL)
+            // 3. Nếu gốc rỗng và hiện tại rỗng -> Bỏ qua.
+            
+            let hasDataNow = (symVal !== '' || (otVal !== '' && otVal != 0));
+            let hadDataBefore = (symOrg !== '' || (otOrg !== '' && otOrg != 0));
+            
+            // So sánh thay đổi (để chắc chắn không gửi dữ liệu thừa nếu chưa sửa gì)
+            // Tuy nhiên, để "chắc ăn" như bạn muốn, ta có thể gửi hết những ô hasDataNow.
+            // Nhưng tốt nhất là chỉ gửi những ô CÓ SỰ KHÁC BIỆT so với Original.
+            // Vì nếu Original = X, Current = X -> Gửi làm gì?
+            
+            let isChanged = (symVal !== symOrg) || (otVal !== otOrg);
+            
+            if (isChanged) {
+                payload.push({
+                    emp_id: empId,
+                    day: day,
+                    symbol: symVal,
+                    ot: otVal || 0
+                });
+            }
+        });
+    });
+
+    if (payload.length === 0) return Toast.info('Không có thay đổi nào so với dữ liệu gốc.');
+    
+    let $btn = $('button[onclick="saveAttendance()"]'); 
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+    
+    fetch('save.php', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ 
+            month: 1, 
+            year: 2026, 
+            project_id: 13, 
+            changes: payload 
+        })
+    }).then(r => r.json()).then(data => { 
+        if (data.status === 'success') { 
+            Toast.success(data.message); 
+            $('.att-input.changed').removeClass('changed'); 
+            // Cập nhật lại original để lần lưu sau đúng
+            $('.att-input').each(function() { $(this).data('original', $(this).val()); });
+            changedData = {}; // Clear buffer cũ (không dùng nữa nhưng cứ clear)
+        } else {
+            Toast.error(data.message);
+        }
+    }).catch(err => {
+        Toast.error('Lỗi kết nối máy chủ.');
+        console.error(err);
+    }).finally(() => {
+        $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Lưu dữ liệu');
+    });
+}
+
+/* --- 6. Advanced Drag & Drop Logic (Excel-like) --- */
+let isDragging = false;
+let startCell = null;
+let selectionRange = []; // Array of elements
+
+// Ngăn trình duyệt xử lý kéo thả text mặc định
+$(document).on('dragstart', '.att-input', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+$(document).on('mousedown', '.att-input', function(e) {
+    if (e.button !== 0) return;
+
+    isDragging = true;
+    startCell = $(this); // Chính xác là input đang click
+    
+    if ($(this).hasClass('symbol')) dragType = 'symbol';
+    else if ($(this).hasClass('ot')) dragType = 'ot';
+    
+    // Highlight ngay ô đầu tiên
+    $('.att-input.drag-selected').removeClass('drag-selected');
+    $('.att-input.selected-cell').removeClass('selected-cell'); 
+    
+    $(this).addClass('selected-cell'); 
+    $(this).focus(); 
+});
+
+$(document).on('mousemove', 'td', function(e) {
+    if (!isDragging || !startCell) return;
+    
+    if (e.buttons !== 1) {
+        isDragging = false;
+        return;
+    }
+
+    // FIX: Chỉ tìm input cùng loại với loại đang kéo
+    let input = $(this).find('.' + dragType);
+    if (input.length === 0) return;
+
+    // Không cần check currentType nữa vì ta đã find đúng class
+    let startRow = startCell.closest('tr')[0];
+    let currentRow = $(this).closest('tr')[0];
+
+    if (startRow === currentRow) { // Chỉ cần check cùng dòng
+        $('.att-input.drag-selected').removeClass('drag-selected');
+        
+        let startIdx = startCell.parent().index(); 
+        let currentIdx = $(this).index();
+        let minIdx = Math.min(startIdx, currentIdx);
+        let maxIdx = Math.max(startIdx, currentIdx);
+
+        let tr = $(startRow);
+        tr.find('td').slice(minIdx, maxIdx + 1).each(function() {
+            let item = $(this).find('.' + dragType); // Find đúng loại
+            if (item.length) {
+                item.addClass('drag-selected');
+                selectionRange.push(item);
+            }
+        });
+    }
+});
+
+$(document).on('mouseup', function() {
+    if (isDragging && startCell && selectionRange.length > 1) {
+        let valToCopy = startCell.val();
+        
+        if (valToCopy !== '') {
+            let tr = startCell.closest('tr');
+            let affected = false;
+            
+            selectionRange.forEach(function(el) {
+                if (el[0] !== startCell[0]) { 
+                    el.val(valToCopy).trigger('change');
+                    affected = true;
+                }
+            });
+            if (affected) calculateRow(tr);
+        }
+    }
+    isDragging = false;
+    // Không xóa vùng chọn ở đây để cho phép user bấm Delete tiếp theo
+});
+
+// Xử lý phím Delete cho vùng chọn HOẶC ô hiện tại
+$(document).on('keydown', function(e) {
+    if (e.keyCode === 46 || e.keyCode === 8) { // Delete or Backspace
+        let hasSelection = selectionRange.length > 0 && $('.drag-selected').length > 0;
+        
+        if (hasSelection) {
+            e.preventDefault();
+            let tr = selectionRange[0].closest('tr');
+            let affected = false;
+            
+            selectionRange.forEach(function(el) {
+                if (el.val() !== '') {
+                    el.val('').trigger('change');
+                    affected = true;
+                }
+            });
+            
+            if (affected) calculateRow(tr);
+            
+            // Sau khi xóa xong thì bỏ chọn
+            $('.att-input.drag-selected').removeClass('drag-selected');
+            $('.att-input.selected-cell').removeClass('selected-cell');
+            selectionRange = [];
+        } else {
+            // Xóa ô đơn lẻ đang focus (nếu không có vùng chọn)
+            let focused = $(':focus');
+            if (focused.hasClass('att-input') && focused.val() !== '') {
+                e.preventDefault();
+                focused.val('').trigger('change');
+            }
+        }
+    }
+});
+
+// Click ra ngoài thì bỏ chọn
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('.attendance-table').length) {
+        $('.att-input.drag-selected').removeClass('drag-selected');
+        $('.att-input.selected-cell').removeClass('selected-cell');
+        selectionRange = [];
+    }
+});
+
+// CSS cho vùng chọn kéo thả (High Contrast)
+$('head').append('<style>.drag-selected { background-color: #60a5fa !important; color: #fff !important; outline: 2px solid #2563eb !important; z-index: 9999 !important; position: relative; box-shadow: 0 0 5px rgba(37, 99, 235, 0.5); } .selected-cell { outline: 2px solid #2563eb !important; z-index: 9999; position: relative; }</style>');
+</script>

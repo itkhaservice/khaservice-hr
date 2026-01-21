@@ -281,6 +281,12 @@ $(document).ready(function() {
     $('.att-input').each(function() {
         $(this).data('original', $(this).val());
     });
+
+    // TÍNH TOÁN LẠI TOÀN BỘ BẢNG NGAY KHI LOAD
+    // Để đảm bảo các cột tổng (P/CĐ, Tăng ca, Tổng công) hiển thị đúng theo dữ liệu từ DB
+    $('tr[data-emp-id]').each(function() {
+        calculateRow($(this));
+    });
 });
 
 // 1. Theo dõi thay đổi
@@ -362,8 +368,50 @@ function toggleSymbol(input) {
 }
 
 function saveAttendance() {
-    let changes = Object.values(changedData); 
-    if (!changes.length) return Toast.info('Không có thay đổi nào để lưu.');
+    let payload = [];
+    
+    $('tr[data-emp-id]').each(function() {
+        let tr = $(this);
+        let empId = tr.data('emp-id');
+        
+        tr.find('.att-input.symbol').each(function() {
+            let day = $(this).data('day');
+            let symbolInput = $(this);
+            let otInput = tr.find(`.ot[data-day="${day}"]`);
+            
+            let symVal = symbolInput.val();
+            let otVal = otInput.val();
+            
+            let symOrg = symbolInput.data('original'); // Giá trị lúc load trang
+            let otOrg = otInput.data('original');
+            
+            // Logic quyết định gửi:
+            // 1. Nếu có dữ liệu (sym hoặc ot khác rỗng/0) -> Gửi (để Insert/Update)
+            // 2. Nếu hiện tại rỗng NHƯNG gốc có dữ liệu -> Gửi (để xóa về NULL)
+            // 3. Nếu gốc rỗng và hiện tại rỗng -> Bỏ qua.
+            
+            let hasDataNow = (symVal !== '' || (otVal !== '' && otVal != 0));
+            let hadDataBefore = (symOrg !== '' || (otOrg !== '' && otOrg != 0));
+            
+            // So sánh thay đổi (để chắc chắn không gửi dữ liệu thừa nếu chưa sửa gì)
+            // Tuy nhiên, để "chắc ăn" như bạn muốn, ta có thể gửi hết những ô hasDataNow.
+            // Nhưng tốt nhất là chỉ gửi những ô CÓ SỰ KHÁC BIỆT so với Original.
+            // Vì nếu Original = X, Current = X -> Gửi làm gì?
+            
+            let isChanged = (symVal !== symOrg) || (otVal !== otOrg);
+            
+            if (isChanged) {
+                payload.push({
+                    emp_id: empId,
+                    day: day,
+                    symbol: symVal,
+                    ot: otVal || 0
+                });
+            }
+        });
+    });
+
+    if (payload.length === 0) return Toast.info('Không có thay đổi nào so với dữ liệu gốc.');
     
     let $btn = $('button[onclick="saveAttendance()"]'); 
     $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
@@ -375,14 +423,15 @@ function saveAttendance() {
             month: <?php echo $month; ?>, 
             year: <?php echo $year; ?>, 
             project_id: <?php echo $project_id; ?>, 
-            changes: changes 
+            changes: payload 
         })
     }).then(r => r.json()).then(data => { 
         if (data.status === 'success') { 
             Toast.success(data.message); 
             $('.att-input.changed').removeClass('changed'); 
-            $('.att-input').each(function() { $(this).data('original', $(this).val()); }); // Reset mốc so sánh
-            changedData = {}; 
+            // Cập nhật lại original để lần lưu sau đúng
+            $('.att-input').each(function() { $(this).data('original', $(this).val()); });
+            changedData = {}; // Clear buffer cũ (không dùng nữa nhưng cứ clear)
         } else {
             Toast.error(data.message);
         }
