@@ -69,8 +69,24 @@ include '../../../includes/sidebar.php';
                         <span style="color:#ef4444; font-weight:700;">L,T</span>: Lễ tết
                         <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="margin-left: auto;"><i class="fas fa-info-circle"></i> Thêm</a>
                     </div>
-                    <div id="moreLegend" style="display: none; margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--border-color);">
-                        <span><b>1/2</b>: Nửa ngày</span> | <span><b>Ô</b>: Ốm</span> | <span><b>R</b>: Việc riêng</span> | <span><b>CĐ</b>: Chế độ</span> | <span><b>Ts</b>: Thai sản</span>
+                    <div id="moreLegend" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; font-size: 0.8rem;">
+                            <span><b>1/2</b>: Làm nửa ngày</span>
+                            <span><b>1/p</b>: Nửa phép, nửa làm</span>
+                            <span><b>Ô</b>: Nghỉ ốm</span>
+                            <span><b>R</b>: Nghỉ việc riêng</span>
+                            <span><b>CĐ</b>: Chế độ (Hiếu, hỉ...)</span>
+                            <span><b>ĐH</b>: Đi học/Họp</span>
+                            <span><b>Ts</b>: Thai sản</span>
+                            <span><b>Nb</b>: Nghỉ bù</span>
+                            <span><b>F</b>: Làm lễ, tết</span>
+                            <span><b>F1</b>: Làm chủ nhật/ngày nghỉ</span>
+                            <span><b>1/F1</b>: Làm nửa ngày CN/nghỉ</span>
+                            <span><b>1/lt</b>: Làm nửa ngày lễ/tết</span>
+                        </div>
+                        <div style="margin-top: 10px; color: var(--text-sub); font-style: italic;">
+                            * <b>Ô dưới:</b> Nhập số giờ làm thêm (tăng ca). Nhấp đúp vào ô ký hiệu để đánh dấu nhanh 'X'.
+                        </div>
                     </div>
                 </div>
 
