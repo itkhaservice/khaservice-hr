@@ -1,0 +1,150 @@
+HƯỚNG DẪN CỐ ĐỊNH & SCROLL BẢNG CHẤM CÔNG (KHASERVICE HR)
+======================================================
+
+MỤC TIÊU
+-------
+CỐ ĐỊNH (STICKY):
+- Cột Nhân viên (bên trái)
+- Header 3 tầng:
+  + Ngày trong tháng
+  + Ngày (1–31)
+  + Thứ (T2–CN)
+- Cột Ngày nghỉ (P/CĐ, VR/Ô/Ts, Lễ/Tết)
+- Cột Công làm thêm (Giờ TC, CN, Lễ/Tết)
+- Cột Tổng Công
+
+SCROLL:
+- Scroll ngang: các ngày trong tháng
+- Scroll dọc: danh sách nhân viên
+
+XỬ LÝ:
+- Nhập dữ liệu theo ngày → cập nhật realtime các cột cố định bên phải
+
+
+I. CẤU TRÚC HTML CHUẨN
+---------------------
+<div class="table-container">
+  <table class="attendance-table table table-bordered">
+    <thead>
+      <!-- Header 3 tầng -->
+    </thead>
+    <tbody>
+      <!-- Nhân viên -->
+    </tbody>
+  </table>
+</div>
+
+
+II. CSS CỐT LÕI (DÁN VÀO admin_style.css)
+-----------------------------------------
+
+/* CONTAINER SCROLL */
+.table-container {
+  height: calc(100vh - 250px);
+  overflow: auto;            /* Scroll X + Y */
+  position: relative;
+  width: 100%;
+}
+
+/* TABLE */
+.attendance-table {
+  table-layout: fixed;
+  width: 100%;               /* KHÔNG dùng width: max-content */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* CELL CHUNG */
+.attendance-table th,
+.attendance-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+/* STICKY HEADER 3 TẦNG */
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #f8fafc;
+}
+thead tr:nth-child(2) th { top: 30px; }
+thead tr:nth-child(3) th { top: 55px; }
+
+/* STICKY CỘT NHÂN VIÊN (TRÁI) */
+.attendance-table th:first-child,
+.attendance-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 120;
+  background: #f8fafc;
+  border-right: 2px solid #cbd5e1;
+}
+
+/* STICKY CỘT PHẢI (SUMMARY) */
+.sticky-right {
+  position: sticky;
+  z-index: 110;
+  background: #f8fafc;
+}
+
+/* VỊ TRÍ CỐ ĐỊNH BÊN PHẢI */
+.sticky-leave-1 { right: 250px; } /* P/CĐ */
+.sticky-leave-2 { right: 210px; } /* VR/Ô/Ts */
+.sticky-leave-3 { right: 170px; } /* Lễ/Tết */
+
+.sticky-ot-1 { right: 130px; }    /* Giờ TC */
+.sticky-ot-2 { right: 90px; }     /* CN */
+.sticky-ot-3 { right: 50px; }     /* Lễ/Tết */
+
+.sticky-total { right: 0; }       /* Tổng Công */
+
+/* RESPONSIVE MÀN NHỎ */
+@media (max-width: 1440px) {
+  table col[style*="45px"] {
+    width: 38px !important;
+  }
+  .attendance-table {
+    font-size: 0.8rem;
+  }
+}
+
+
+III. HTML GÁN CLASS STICKY PHẢI (VÍ DỤ)
+--------------------------------------
+<td class="sticky-right sticky-leave-1 sum-p-cd"></td>
+<td class="sticky-right sticky-leave-2 sum-other"></td>
+<td class="sticky-right sticky-leave-3 sum-holiday"></td>
+
+<td class="sticky-right sticky-ot-1 sum-ot-normal"></td>
+<td class="sticky-right sticky-ot-2 sum-ot-sun"></td>
+<td class="sticky-right sticky-ot-3 sum-ot-hol"></td>
+
+<td class="sticky-right sticky-total sum-total"></td>
+
+
+IV. XỬ LÝ JS (TÍNH REALTIME – GIỮ NGUYÊN)
+---------------------------------------
+$(document).on('change', '.att-input', function() {
+  let tr = $(this).closest('tr');
+  calculateRow(tr); // cập nhật các cột sticky bên phải
+});
+
+Hàm calculateRow():
+- Duyệt toàn bộ ngày trong hàng
+- Tính:
+  + Nghỉ
+  + OT
+  + CN
+  + Tổng công
+- Ghi kết quả vào các ô .sum-* (sticky)
+
+KẾT LUẬN
+--------
+- KHÔNG ép bảng vừa màn → dùng scroll ngang
+- Sticky trái + header + sticky phải = UX chuẩn HR
+- Công thức chạy realtime, không phụ thuộc scroll
+
+File này dùng để lưu lại làm chuẩn triển khai & bảo trì.

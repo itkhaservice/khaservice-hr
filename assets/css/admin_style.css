@@ -340,6 +340,8 @@ ul { list-style: none; padding: 0; margin: 0; }
     flex-direction: column;
     min-height: 100vh;
     transition: margin-left 0.3s ease;
+    width: calc(100% - var(--sidebar-width)); /* Explicitly restrict width */
+    overflow-x: hidden; /* Prevent horizontal scroll on main content */
 }
 
 .main-content.expanded { margin-left: var(--sidebar-collapsed-width); }
@@ -510,6 +512,99 @@ ul { list-style: none; padding: 0; margin: 0; }
 }
 .form-control:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(36, 162, 92, 0.1); outline: none; }
 textarea.form-control { resize: vertical; min-height: 100px; }
+
+/* ======================================================
+   ATTENDANCE TABLE STYLES (STICKY & SCROLL)
+   ====================================================== */
+
+.table-container.attendance-wrapper {
+    height: calc(100vh - 250px);
+    overflow: auto;
+    position: relative;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.attendance-table {
+    table-layout: fixed;
+    width: max-content; /* Changed to allow horizontal scrolling */
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+}
+
+.attendance-table th,
+.attendance-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    padding: 0;
+}
+
+/* STICKY HEADER 3 Táº¦NG */
+.attendance-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #f8fafc !important;
+}
+.attendance-table thead tr:nth-child(2) th { top: 30px; }
+.attendance-table thead tr:nth-child(3) th { top: 55px; }
+
+/* STICKY Cá»˜T NHÃ‚N VIÃŠN (TRÃI) */
+.attendance-table th:first-child,
+.attendance-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 120;
+    background-color: #f8fafc !important;
+    border-right: 2px solid #cbd5e1 !important;
+}
+.attendance-table tbody td:first-child {
+    background-color: var(--card-bg) !important;
+    z-index: 90;
+}
+
+/* STICKY Cá»˜T PHáº¢I (SUMMARY) */
+.sticky-right {
+    position: sticky;
+    z-index: 110;
+    background-color: #f8fafc !important;
+    text-align: center;
+}
+.attendance-table thead .sticky-right {
+    z-index: 130; /* Cao hÆ¡n header thÆ°á»ng */
+}
+
+/* Vá»Š TRÃ Cá» Äá»ŠNH BÃŠN PHáº¢I */
+.sticky-leave-1 { right: 250px; } /* P/CÄ */
+.sticky-leave-2 { right: 210px; } /* VR/Ã”/Ts */
+.sticky-leave-3 { right: 170px; } /* Lá»…/Táº¿t */
+
+.sticky-ot-1 { right: 130px; }    /* Giá» TC */
+.sticky-ot-2 { right: 90px; }     /* CN */
+.sticky-ot-3 { right: 50px; }     /* Lá»…/Táº¿t */
+
+.sticky-total { right: 0; }       /* Tá»•ng CÃ´ng */
+
+/* DARK MODE ADAPTATION */
+body.dark-mode .attendance-table thead th,
+body.dark-mode .attendance-table th:first-child {
+    background-color: #1e293b !important;
+    color: #94a3b8;
+}
+body.dark-mode .sticky-right {
+    background-color: #1e293b !important;
+}
+body.dark-mode .attendance-table td {
+    border-color: #334155;
+}
 
 /* Password Toggle Input Group */
 .password-wrapper {
@@ -800,3 +895,241 @@ textarea.form-control { resize: vertical; min-height: 100px; }
     .table .btn { width: auto; margin-bottom: 0; } /* Except table buttons */
     .header-actions .btn { width: auto; } /* Except header actions if wrapped */
 }
+/* ======================================================
+   ATTENDANCE TABLE STYLES (STICKY & SCROLL)
+   ====================================================== */
+
+.table-container.attendance-wrapper {
+    height: calc(100vh - 250px);
+    overflow: auto;
+    position: relative;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.attendance-table {
+    table-layout: fixed;
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+}
+
+.attendance-table th,
+.attendance-table td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-sizing: border-box;
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    padding: 0;
+}
+
+/* STICKY HEADER 3 T?NG */
+.attendance-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #f8fafc !important;
+}
+.attendance-table thead tr:nth-child(2) th { top: 30px; }
+.attendance-table thead tr:nth-child(3) th { top: 55px; }
+
+/* STICKY C?T NHÂN VIÊN (TRÁI) */
+.attendance-table th:first-child,
+.attendance-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 120;
+    background-color: #f8fafc !important;
+    border-right: 2px solid #cbd5e1 !important;
+}
+.attendance-table tbody td:first-child {
+    background-color: var(--card-bg) !important;
+    z-index: 90;
+}
+
+/* STICKY C?T PH?I (SUMMARY) */
+.sticky-right {
+    position: sticky;
+    z-index: 110;
+    background-color: #f8fafc !important;
+    text-align: center;
+}
+.attendance-table thead .sticky-right {
+    z-index: 130; 
+}
+
+/* V? TRÍ C? Ð?NH BÊN PH?I */
+.sticky-leave-1 { right: 250px; } /* P/CÐ */
+.sticky-leave-2 { right: 210px; } /* VR/Ô/Ts */
+.sticky-leave-3 { right: 170px; } /* L?/T?t */
+
+.sticky-ot-1 { right: 130px; }    /* Gi? TC */
+.sticky-ot-2 { right: 90px; }     /* CN */
+.sticky-ot-3 { right: 50px; }     /* L?/T?t */
+
+.sticky-total { right: 0; }       /* T?ng Công */
+
+/* DARK MODE ADAPTATION */
+body.dark-mode .attendance-table thead th,
+body.dark-mode .attendance-table th:first-child {
+    background-color: #1e293b !important;
+    color: #94a3b8;
+}
+body.dark-mode .sticky-right {
+    background-color: #1e293b !important;
+}
+body.dark-mode .attendance-table td {
+    border-color: #334155;
+}
+
+
+/* ======================================================
+   SPECIFIC FIXES FOR KHASERVICE ATTENDANCE SPEC
+   ====================================================== */
+
+/* 1. Sticky Left Columns (3 Columns) */
+.sticky-left-1 {
+    position: sticky;
+    left: 0;
+    z-index: 120;
+    background-color: #f8fafc !important;
+    border-right: 1px solid #e2e8f0;
+    width: 50px;
+    min-width: 50px;
+    max-width: 50px;
+    text-align: center;
+}
+.sticky-left-2 {
+    position: sticky;
+    left: 50px;
+    z-index: 120;
+    background-color: #f8fafc !important;
+    border-right: 1px solid #e2e8f0;
+    width: 200px;
+    min-width: 200px;
+    max-width: 200px;
+}
+.sticky-left-3 {
+    position: sticky;
+    left: 250px;
+    z-index: 120;
+    background-color: #f8fafc !important;
+    border-right: 2px solid #cbd5e1 !important; /* Final border */
+    width: 150px;
+    min-width: 150px;
+    max-width: 150px;
+}
+
+thead .sticky-left-1, 
+thead .sticky-left-2, 
+thead .sticky-left-3 {
+    z-index: 130; /* Higher than body sticky */
+}
+
+/* 2. Sunday Color (Light Green) */
+.is-sunday {
+    background-color: #dcfce7 !important; /* Green-100 */
+}
+body.dark-mode .is-sunday {
+    background-color: rgba(22, 101, 52, 0.2) !important;
+}
+
+/* Dark Mode Fixes for Left Sticky */
+body.dark-mode .sticky-left-1,
+body.dark-mode .sticky-left-2,
+body.dark-mode .sticky-left-3 {
+    background-color: #1e293b !important;
+    border-color: #334155;
+}
+
+
+/* ======================================================
+   UPDATE FOR COMBINED EMPLOYEE COLUMN (V3.1)
+   ====================================================== */
+
+.sticky-left-2 {
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    border-right: 2px solid #cbd5e1 !important; /* Border moved to Col 2 */
+}
+
+/* Remove Col 3 styles if present or unused */
+.sticky-left-3 { display: none; } 
+
+
+/* ======================================================
+   RE-ENFORCE STICKY LEFT COLUMNS (V3.2)
+   ====================================================== */
+
+.attendance-table th.sticky-left-1, 
+.attendance-table td.sticky-left-1 {
+    position: sticky !important;
+    left: 0 !important;
+    z-index: 125 !important;
+    background-color: #f8fafc !important;
+}
+
+.attendance-table th.sticky-left-2, 
+.attendance-table td.sticky-left-2 {
+    position: sticky !important;
+    left: 50px !important;
+    z-index: 125 !important;
+    background-color: #f8fafc !important;
+    border-right: 2px solid #cbd5e1 !important;
+}
+
+/* Ensure body cells have correct background in dark mode */
+body.dark-mode .attendance-table td.sticky-left-1,
+body.dark-mode .attendance-table td.sticky-left-2 {
+    background-color: #1e293b !important;
+}
+
+/* Intersection of Sticky Header and Sticky Left */
+.attendance-table thead th.sticky-left-1,
+.attendance-table thead th.sticky-left-2 {
+    z-index: 150 !important; /* Highest priority for corner headers */
+}
+
+
+/* ======================================================
+   RE-ENFORCE STICKY RIGHT COLUMNS (V3.3)
+   ====================================================== */
+
+.attendance-table th.sticky-right, 
+.attendance-table td.sticky-right {
+    position: sticky !important;
+    z-index: 125 !important;
+    background-color: #f8fafc !important;
+}
+
+/* Specific Positions for Right Sticky Columns */
+/* 1. Quy d?nh (Total) - Rightmost */
+.sticky-total { right: 0 !important; width: 50px !important; min-width: 50px !important; }
+
+/* 2. Công làm thêm Group */
+.sticky-ot-3 { right: 50px !important; width: 40px !important; min-width: 40px !important; }  /* L?/T?t OT */
+.sticky-ot-2 { right: 90px !important; width: 40px !important; min-width: 40px !important; }  /* CN OT */
+.sticky-ot-1 { right: 130px !important; width: 40px !important; min-width: 40px !important; } /* TC Normal */
+
+/* 3. Ngày ngh? Group */
+.sticky-leave-3 { right: 170px !important; width: 40px !important; min-width: 40px !important; } /* L?/T?t Leave */
+.sticky-leave-2 { right: 210px !important; width: 40px !important; min-width: 40px !important; } /* VR/Other */
+.sticky-leave-1 { right: 250px !important; width: 40px !important; min-width: 40px !important; } /* P/CÐ */
+
+/* Header Intersections */
+.attendance-table thead th.sticky-right {
+    z-index: 150 !important; /* Header Sticky > Body Sticky */
+}
+
+/* Dark Mode Fix */
+body.dark-mode .attendance-table td.sticky-right {
+    background-color: #1e293b !important;
+}
+

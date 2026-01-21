@@ -1,0 +1,1179 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Nhân sự - Khaservice</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/khaservice-hr/assets/css/admin_style.css?v=1768970181">
+</head>
+<body>
+<div class="wrapper">
+    <!-- Sidebar included via sidebar.php --><nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <span>KHASERVICE HR</span>
+        <!-- Optional Icon for collapsed state -->
+        <i class="fas fa-cube" style="display:none;"></i>
+    </div>
+    <ul class="sidebar-menu">
+        <li>
+            <a href="/khaservice-hr/admin/index.php" class="">
+                <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/projects/index.php" class="">
+                <i class="fas fa-building"></i> <span>Quản lý Dự án</span>
+            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/employees/index.php" class="">
+                <i class="fas fa-user-tie"></i> <span>Quản lý Nhân sự</span>
+            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/employees/pending_docs.php" class="" style="position: relative;">
+                <i class="fas fa-file-signature"></i> <span>Duyệt hồ sơ</span>
+                            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/contracts/index.php" class="">
+                <i class="fas fa-file-contract"></i> <span>Hợp đồng & BH</span>
+            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/attendance/index.php" class="active">
+                <i class="fas fa-clock"></i> <span>Chấm công</span>
+            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/reports/index.php" class="">
+                <i class="fas fa-chart-bar"></i> <span>Báo cáo</span>
+            </a>
+        </li>
+                <li>
+            <a href="/khaservice-hr/admin/modules/employees/file_manager.php" class="">
+                <i class="fas fa-folder-tree"></i> <span>File Server</span>
+            </a>
+        </li>
+                <li>
+            <a href="/khaservice-hr/admin/settings.php" class="">
+                <i class="fas fa-cogs"></i> <span>Cấu hình</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+<div class="main-content">
+    <header class="main-header">
+    <div class="toggle-sidebar" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+    </div>
+    
+    <div style="flex: 1;"></div>
+
+    <div id="theme-toggle" style="margin-right: 20px; cursor: pointer; font-size: 1.2rem; color: var(--text-sub); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.3s;">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <div class="user-info" onclick="this.querySelector('.user-dropdown').classList.toggle('show')">
+        <span>Administrator</span>
+        <div class="user-avatar">A</div>
+        <div class="user-dropdown">
+                        <a href="../../change_password.php"><i class="fas fa-key"></i> Đổi mật khẩu</a>
+            <a href="../../logout.php" style="color: #dc2626;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </div>
+    </div>
+</header>
+
+    <div class="content-wrapper">
+        <div class="action-header">
+            <div>
+                <h1 class="page-title">Bảng Chấm Công - 1/2026 <span style="font-size:0.5em; color:#ccc;">(v2.0)</span></h1>
+                                    <span class="badge badge-success"><i class="fas fa-pen"></i> Đang mở</span>
+                            </div>
+            
+            <div class="header-actions">
+                <!-- Filter Form -->
+                <form method="GET" id="filterForm" style="display: flex; gap: 10px;">
+                    <select name="project_id" class="form-control" style="min-width: 200px;" onchange="this.form.submit()">
+                                                                                    <option value="1" >
+                                    4S RIVERSIDE GARDEN                                </option>
+                                                            <option value="2" >
+                                    CANTAVIL PREMIER                                </option>
+                                                            <option value="3" >
+                                    CITIZEN.TS                                </option>
+                                                            <option value="4" >
+                                    CITRINE APARTMENT                                </option>
+                                                            <option value="5" >
+                                    COPAC SQUARE                                </option>
+                                                            <option value="6" >
+                                    FLORA ANH ĐÀO                                </option>
+                                                            <option value="8" >
+                                    HOÀNG ANH GIA LAI 2                                </option>
+                                                            <option value="9" >
+                                    HOMYLAND 2                                </option>
+                                                            <option value="10" >
+                                    HORIZON                                </option>
+                                                            <option value="11" >
+                                    HƯNG PHÁT                                </option>
+                                                            <option value="12" >
+                                    HƯNG PHÁT SILVER STAR                                </option>
+                                                            <option value="13" selected>
+                                    KHÁNH HỘI 1                                </option>
+                                                            <option value="14" >
+                                    KHÁNH HỘI 2                                </option>
+                                                            <option value="15" >
+                                    KHÁNH HỘI 3                                </option>
+                                                            <option value="16" >
+                                    LAN PHƯƠNG MHBR                                </option>
+                                                            <option value="17" >
+                                    LÔ R7 AN KHÁNH                                </option>
+                                                            <option value="18" >
+                                    NHẤT LAN II                                </option>
+                                                            <option value="19" >
+                                    ORIENT APARTMENT                                </option>
+                                                            <option value="20" >
+                                    PHỐ GIA PHÚC                                </option>
+                                                            <option value="21" >
+                                    PHÚ GIA                                </option>
+                                                            <option value="22" >
+                                    SAI GON METRO PARK                                </option>
+                                                            <option value="23" >
+                                    SAMSORA RIVERSIDE                                </option>
+                                                            <option value="24" >
+                                    SCREC II                                </option>
+                                                            <option value="25" >
+                                    SEN HỒNG A                                </option>
+                                                            <option value="26" >
+                                    SEN HỒNG BC                                </option>
+                                                            <option value="27" >
+                                    SÔNG ĐÀ                                </option>
+                                                            <option value="28" >
+                                    TAM PHÚ                                </option>
+                                                            <option value="29" >
+                                    TDH - PHƯỚC LONG                                </option>
+                                                            <option value="30" >
+                                    THE STAR                                </option>
+                                                            <option value="31" >
+                                    THE USEFUL APARTMENT                                </option>
+                                                            <option value="32" >
+                                    TOPAZ CITY KHỐI B                                </option>
+                                                            <option value="33" >
+                                    TOPAZ ELITE PHOENIX 1                                </option>
+                                                            <option value="34" >
+                                    TOPAZ ELITE PHOENIX 2                                </option>
+                                                            <option value="35" >
+                                    TOPAZ HOME 2 - BLOCK B                                </option>
+                                                            <option value="36" >
+                                    VẠN ĐÔ                                </option>
+                                                            <option value="37" >
+                                    VĂN PHÒNG CÔNG TY                                </option>
+                                                                        </select>
+                    <select name="month" class="form-control" style="width: 100px;" onchange="this.form.submit()">
+                        <option value='1' selected>T1</option><option value='2' >T2</option><option value='3' >T3</option><option value='4' >T4</option><option value='5' >T5</option><option value='6' >T6</option><option value='7' >T7</option><option value='8' >T8</option><option value='9' >T9</option><option value='10' >T10</option><option value='11' >T11</option><option value='12' >T12</option>                    </select>
+                    <select name="year" class="form-control" style="width: 100px;" onchange="this.form.submit()">
+                        <option value='2023' >2023</option><option value='2024' >2024</option><option value='2025' >2025</option><option value='2026' selected>2026</option><option value='2027' >2027</option><option value='2028' >2028</option><option value='2029' >2029</option><option value='2030' >2030</option>                    </select>
+                </form>
+
+                                    <button type="button" class="btn btn-primary" onclick="saveAttendance()">
+                        <i class="fas fa-save"></i> Lưu dữ liệu
+                    </button>
+                    <a href="import.php" class="btn btn-secondary"><i class="fas fa-file-import"></i> Import Excel</a>
+                
+                <!-- Lock Button for Super Admin -->
+                                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="toggle_lock" value="lock">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn chắc chắn muốn KHÓA bảng công này?')">
+                            <i class="fas fa-lock"></i> 
+                            Khóa sổ                        </button>
+                    </form>
+                            </div>
+        </div>
+
+                    <div class="card" style="padding: 0; overflow: hidden;">
+                <!-- Legend -->
+                <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-main); font-size: 0.85rem;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                        <span><b>Ký hiệu:</b></span>
+                        <span class="legend-item"><span class="symbol-sample" style="color:#24a25c;">X</span>: Đi làm</span>
+                        <span class="legend-item"><span class="symbol-sample" style="color:#3b82f6;">P</span>: Phép</span>
+                        <span class="legend-item"><span class="symbol-sample" style="background:#64748b; color:#fff;">OF</span>: Nghỉ tuần</span>
+                        <span class="legend-item"><span class="symbol-sample" style="color:#ef4444;">L,T</span>: Lễ tết</span>
+                        <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="margin-left: auto; font-weight: 500;">
+                            <i class="fas fa-info-circle"></i> Xem thêm
+                        </a>
+                    </div>
+                    <div id="moreLegend" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                            <span><span class="symbol-sample" style="color:#24a25c;">1/2</span>: Làm nửa ngày</span>
+                            <span><span class="symbol-sample" style="color:#3b82f6;">1/P</span>: Nửa phép</span>
+                            <span><span class="symbol-sample" style="color:#f59e0b;">Ô</span>: Ốm</span>
+                            <span><span class="symbol-sample" style="color:#94a3b8;">R</span>: Việc riêng</span>
+                            <span><span class="symbol-sample" style="color:#8b5cf6;">CĐ</span>: Chế độ</span>
+                            <span><span class="symbol-sample" style="color:#06b6d4;">ĐH</span>: Đi học/Họp</span>
+                            <span><span class="symbol-sample" style="color:#ec4899;">Ts</span>: Thai sản</span>
+                            <span><span class="symbol-sample" style="color:#10b981;">Nb</span>: Nghỉ bù</span>
+                            <span><span class="symbol-sample" style="color:#f97316;">F1</span>: Làm chủ nhật</span>
+                        </div>
+                        <div style="margin-top: 10px; color: var(--text-sub); font-style: italic;">
+                            * <b>Ô dưới:</b> Nhập số giờ làm thêm (tăng ca). Nhấp đúp vào ô ký hiệu để đánh dấu nhanh 'X'.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container" style="max-height: 70vh; overflow: auto; position: relative; width: 100%;">
+                    <table class="table table-bordered" style="font-size: 0.85rem; margin-bottom: 0; border-collapse: separate; border-spacing: 0; table-layout: fixed; width: max-content;">
+                        <colgroup>
+                            <!-- Employee Col -->
+                            <col style="width: 250px;">
+                            <!-- Days 1-31 -->
+                            <col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;"><col style="width: 45px;">                            <!-- Summary Cols -->
+                            <col style="width: 40px;"> <!-- P/CĐ -->
+                            <col style="width: 40px;"> <!-- Khác -->
+                            <col style="width: 40px;"> <!-- Lễ -->
+                            <col style="width: 40px;"> <!-- TC -->
+                            <col style="width: 40px;"> <!-- CN -->
+                            <col style="width: 40px;"> <!-- Lễ OT -->
+                            <col style="width: 50px;"> <!-- Công -->
+                        </colgroup>
+                        <thead>
+                            <!-- Row 1: Top Level Groups -->
+                            <tr>
+                                <th rowspan="3" style="position: sticky; left: 0; z-index: 30; min-width: 250px; border-right: 2px solid #cbd5e1; vertical-align: middle; text-align: center;" class="bg-subtle">Nhân viên</th>
+                                <th colspan="31" class="text-center bg-subtle" style="height: 30px; vertical-align: middle;">Ngày trong tháng</th>
+                                
+                                <!-- Group: Ngày nghỉ -->
+                                <th colspan="3" class="bg-subtle sticky-right text-center" style="right: 170px; z-index: 30; border-left: 2px solid #cbd5e1; height: 30px; vertical-align: middle;">Ngày nghỉ</th>
+                                
+                                <!-- Group: Công làm thêm -->
+                                <th colspan="3" class="bg-subtle sticky-right text-center" style="right: 50px; z-index: 30; border-left: 1px solid #e2e8f0; height: 30px; vertical-align: middle;">Công làm thêm</th>
+                                
+                                <!-- Group: Tổng -->
+                                <th rowspan="3" class="bg-subtle sticky-right text-center" style="right: 0; min-width: 50px; z-index: 30; border-left: 2px solid #cbd5e1; vertical-align: middle;">Công</th>
+                            </tr>
+
+                            <!-- Row 2: Specific Columns & Day Numbers -->
+                            <tr>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">1</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">2</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">3</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">4</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">5</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">6</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">7</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">8</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">9</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">10</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">11</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">12</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">13</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">14</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">15</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">16</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">17</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">18</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">19</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">20</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">21</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">22</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">23</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">24</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">25</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">26</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">27</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">28</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">29</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">30</th>
+                                                                    <th class="text-center bg-subtle" style="min-width: 45px; height: 25px; vertical-align: middle;">31</th>
+                                
+                                <!-- Sub-headers: Leave -->
+                                <th rowspan="2" class="bg-subtle sticky-right text-center shadow-left" style="right: 250px; border-left: 2px solid #cbd5e1; font-size: 0.7rem; vertical-align: middle;">P/CĐ</th>
+                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 210px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">VR/Ô/Ts</th>
+                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 170px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">Lễ,Tết</th>
+
+                                <!-- Sub-headers: OT -->
+                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 130px; z-index: 30; border-left: 1px solid #e2e8f0; font-size: 0.7rem; vertical-align: middle;">Giờ TC</th>
+                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 90px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">CN</th>
+                                <th rowspan="2" class="bg-subtle sticky-right text-center" style="right: 50px; z-index: 30; font-size: 0.7rem; vertical-align: middle;">Lễ,Tết</th>
+                            </tr>
+
+                            <!-- Row 3: Days of Week -->
+                            <tr>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T5                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T6                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T7                                    </th>
+                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        CN                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T2                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T3                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T4                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T5                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T6                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T7                                    </th>
+                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        CN                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T2                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T3                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T4                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T5                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T6                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T7                                    </th>
+                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        CN                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T2                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T3                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T4                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T5                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T6                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T7                                    </th>
+                                                                    <th class="text-center is-sunday" style="background: #fee2e2;; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        CN                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T2                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T3                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T4                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T5                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T6                                    </th>
+                                                                    <th class="text-center " style="; min-width: 45px; height: 25px; vertical-align: middle; font-weight: 400; font-size: 0.7rem; color: #64748b;">
+                                        T7                                    </th>
+                                                            </tr>
+                        </thead>
+                        <tbody>
+                                                            <tr data-emp-id="2">
+                                    <td style="position: sticky; left: 0; background: inherit; z-index: 20; font-weight: 600; border-right: 2px solid #cbd5e1;" class="bg-subtle">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <span style="color: var(--primary-dark);">Cao Minh Thắng</span>
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #64748b; font-weight: 400; margin-top: 2px;">
+                                            Ban Công nghệ thông tin                                        </div>
+                                        <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 400;">
+                                            Nhân viên                                        </div>
+                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="1" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="1" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="2" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="2" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="3" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="3" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="4" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="4" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="5" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="5" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="6" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="6" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="7" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="7" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="8" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="8" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="9" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="9" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="10" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="10" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="11" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="11" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="12" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="12" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="13" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="13" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="14" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="14" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="15" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="15" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="16" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="16" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="17" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="17" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="18" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="18" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="19" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="19" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="20" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="20" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="21" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="21" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="22" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="22" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="23" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="23" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="24" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="24" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; background: #fef2f2;" class="is-sunday">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="25" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="25" 
+                                                       data-is-sunday="1"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="26" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="26" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="27" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="27" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="28" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="28" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="29" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="29" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="30" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="30" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                            <td style="padding: 0; vertical-align: middle; " class="">
+                                                                                            <input type="text" class="att-input symbol" 
+                                                       data-day="31" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="number" class="att-input ot" 
+                                                       data-day="31" 
+                                                       data-is-sunday="0"
+                                                       value="" 
+                                                       min="0" step="0.5"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
+                                                                                    </td>
+                                                                        
+                                    <!-- Detailed Stats (With Classes for JS) -->
+                                    <td class="bg-subtle sticky-right text-center sum-p-cd" style="right: 250px; font-size: 0.8rem; border-left: 2px solid #cbd5e1;"></td>
+                                    <td class="bg-subtle sticky-right text-center sum-other" style="right: 210px; font-size: 0.8rem;"></td>
+                                    <td class="bg-subtle sticky-right text-center sum-holiday" style="right: 170px; font-size: 0.8rem;"></td>
+                                    
+                                    <td class="bg-subtle sticky-right text-center sum-ot-normal" style="right: 130px; font-size: 0.8rem; color: #dc2626; border-left: 1px solid #e2e8f0;"></td>
+                                    <td class="bg-subtle sticky-right text-center sum-ot-sun" style="right: 90px; font-size: 0.8rem; color: #dc2626;"></td>
+                                    <td class="bg-subtle sticky-right text-center sum-ot-hol" style="right: 50px; font-size: 0.8rem; color: #dc2626;"></td>
+                                    
+                                    <td class="bg-subtle sticky-right text-center sum-total" style="right: 0; font-weight: 700; color: #24a25c; border-left: 2px solid #cbd5e1;">
+                                        0                                    </td>
+                                </tr>
+                                                    </tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+
+<style>
+/* Base Table Styles */
+.table-container {
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--card-bg);
+    overflow: auto;
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 250px); /* Adjust height to fit viewport */
+}
+
+.table-bordered {
+    border-collapse: separate; 
+    border-spacing: 0;
+    table-layout: fixed;
+    width: max-content; /* Critical: let table expand based on col widths */
+    margin-bottom: 0;
+    border: none;
+}
+
+.table-bordered th, 
+.table-bordered td {
+    border-right: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    background-color: var(--card-bg);
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Header Sticky - Top */
+thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background-color: #f8fafc !important;
+}
+thead tr:nth-child(2) th { top: 30px; z-index: 100; }
+thead tr:nth-child(3) th { top: 55px; z-index: 100; }
+
+/* Sticky Left - Employee Column */
+.table-bordered th:first-child,
+.table-bordered td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 110;
+    border-right: 2px solid #cbd5e1 !important;
+    background-color: #f8fafc !important;
+}
+tbody td:first-child { background-color: var(--card-bg) !important; z-index: 90; }
+
+/* Sticky Right - Summary Columns */
+.sticky-right {
+    position: sticky;
+    z-index: 95;
+    background-color: #f8fafc !important;
+}
+thead .sticky-right { z-index: 120; } /* Header sticky right must be above everything */
+
+/* Top-Left Corner (Highest Z-index) */
+thead tr:first-child th:first-child {
+    z-index: 150 !important;
+}
+
+/* Visual Helpers */
+.shadow-left { box-shadow: -3px 0 5px -2px rgba(0,0,0,0.1); }
+.is-sunday { background-color: rgba(254, 226, 226, 0.4) !important; }
+
+/* Inputs */
+.att-input {
+    width: 100%;
+    border: none;
+    text-align: center;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 0.8rem;
+    display: block;
+    cursor: pointer;
+}
+.att-input.symbol {
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-main);
+    height: 22px;
+}
+.att-input.ot {
+    font-size: 0.7rem;
+    color: #dc2626;
+    height: 18px;
+}
+.att-input:focus { background-color: #e0f2fe; outline: none; }
+.att-input.changed { background-color: #fffbeb !important; }
+
+/* Dark Mode Overrides */
+body.dark-mode .table-bordered th,
+body.dark-mode thead th {
+    background-color: #1e293b !important;
+    border-color: #334155;
+}
+body.dark-mode .table-bordered td { background-color: #1e293b; border-color: #334155; }
+body.dark-mode td:first-child,
+body.dark-mode .sticky-right {
+    background-color: #1e293b !important;
+}
+body.dark-mode .is-sunday { background-color: rgba(220, 38, 38, 0.1) !important; }
+body.dark-mode .att-input.changed { background-color: #451a03 !important; }
+</style>
+
+<script>
+// Track changes
+let changedData = {}; 
+
+$(document).on('change', '.att-input', function() {
+    $(this).addClass('changed');
+    let cell = $(this).closest('td');
+    let tr = $(this).closest('tr');
+    let empId = tr.data('emp-id');
+    let day = $(this).data('day');
+    
+    let symbolInput = cell.find('.symbol');
+    let otInput = cell.find('.ot');
+    
+    let key = `${empId}_${day}`;
+    changedData[key] = {
+        emp_id: empId,
+        day: day,
+        symbol: symbolInput.val(),
+        ot: otInput.val() || 0
+    };
+    
+    // Recalculate Row Stats
+    calculateRow(tr);
+});
+
+function calculateRow(tr) {
+    let cnt_p_cd = 0;
+    let cnt_other = 0;
+    let cnt_holiday = 0;
+    let ot_normal = 0;
+    let ot_sun = 0;
+    let ot_hol = 0;
+    let total_days = 0;
+
+    tr.find('.att-input.symbol').each(function() {
+        let sym = $(this).val().toUpperCase().trim();
+        let otInput = $(this).siblings('.att-input.ot');
+        let ot = parseFloat(otInput.val()) || 0;
+        let isSun = $(this).data('is-sunday') == '1';
+        let isHol = (sym === 'L' || sym === 'T'); // Simple holiday check from symbol, or F
+
+        // Leave/Work Days
+        if (sym === 'X' || sym === 'L' || sym === 'T') total_days += 1;
+        else if (sym === '1/2') total_days += 0.5;
+        else if (sym === 'P' || sym === 'CĐ' || sym === 'CD') { cnt_p_cd++; total_days += 1; }
+        else if (sym === '1/P') { cnt_p_cd += 0.5; total_days += 1; }
+        else if (['Ô', 'O', 'TS', 'R', 'VR'].includes(sym)) cnt_other++;
+        else if (isHol) cnt_holiday++; // Already counted in first if? L,T is holiday leave.
+
+        // Overtime
+        if (ot > 0) {
+            if (sym === 'F' || isHol) ot_hol += ot;
+            else if (sym === 'F1' || isSun) ot_sun += ot;
+            else ot_normal += ot;
+        }
+    });
+
+    // Update UI
+    tr.find('.sum-p-cd').text(cnt_p_cd || '');
+    tr.find('.sum-other').text(cnt_other || '');
+    tr.find('.sum-holiday').text(cnt_holiday || '');
+    
+    tr.find('.sum-ot-normal').text(ot_normal || '');
+    tr.find('.sum-ot-sun').text(ot_sun || '');
+    tr.find('.sum-ot-hol').text(ot_hol || '');
+    
+    tr.find('.sum-total').text(total_days || '');
+}
+
+function toggleSymbol(input) {
+    let $input = $(input);
+    let current = $input.val().toUpperCase();
+    
+    if (current === '' || current === 'OF') {
+        $input.val('X').trigger('change');
+    } else {
+        $input.val('').trigger('change');
+    }
+    // Remove focus to show result clearly? No, keep focus usually better.
+    // $input.blur(); 
+}
+
+function saveAttendance() {
+    let changes = Object.values(changedData);
+    if (changes.length === 0) {
+        showToast('info', 'Không có thay đổi nào để lưu.');
+        return;
+    }
+
+    // Show loading
+    let $btn = $('button[onclick="saveAttendance()"]');
+    let originalText = $btn.html();
+    $btn.html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...').prop('disabled', true);
+
+    fetch('save.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            month: 1,
+            year: 2026,
+            project_id: 13,
+            changes: changes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            showToast('success', data.message);
+            $('.att-input.changed').removeClass('changed');
+            changedData = {};
+        } else {
+            showToast('error', data.message);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('error', 'Lỗi kết nối server.');
+    })
+    .finally(() => {
+        $btn.html(originalText).prop('disabled', false);
+    });
+}
+</script>
+
+    <!-- Footer Content -->
+    <footer class="main-footer">
+        &copy; 2026 Khaservice HR Management System. All rights reserved.
+    </footer>
+    </div> <!-- End Main Content -->
+</div> <!-- End Wrapper -->
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/khaservice-hr/assets/js/main.js"></script>
+<script>
+    $(document).ready(function() {
+        // Show Toast from Session
+            });
+</script>
+</body>
+</html>
+
