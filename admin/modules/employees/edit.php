@@ -47,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_employee'])) {
     $position_name = $pos_info ? $pos_info['name'] : '';
 
     $current_project_id = (int)$_POST['current_project_id'];
-    $start_date = clean_input($_POST['start_date']);
     $status = clean_input($_POST['status']);
     
     $avatar = $employee['avatar'];
@@ -72,16 +71,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_employee'])) {
     $sql = "UPDATE employees SET 
                 code = ?, fullname = ?, avatar = ?, gender = ?, dob = ?, phone = ?, email = ?, 
                 identity_card = ?, department_id = ?, position_id = ?, position = ?, 
-                current_project_id = ?, start_date = ?, status = ? 
+                current_project_id = ?, status = ? 
             WHERE id = ?";
     
-    $params = [$code, $fullname, $avatar, $gender, $dob, $phone, $email, $identity_card, $department_id, $position_id, $position_name, $current_project_id, $start_date, $status, $id];
+    $params = [$code, $fullname, $avatar, $gender, $dob, $phone, $email, $identity_card, $department_id, $position_id, $position_name, $current_project_id, $status, $id];
     
-    if (db_query($sql, $params)) {
-        set_toast('success', 'Cập nhật thông tin nhân viên thành công!');
-        redirect("edit.php?id=$id");
-    } else {
-        set_toast('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+    try {
+        if (db_query($sql, $params)) {
+            set_toast('success', 'Cập nhật thông tin nhân viên thành công!');
+            redirect("edit.php?id=$id");
+        } else {
+            set_toast('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+        }
+    } catch (PDOException $e) {
+        set_toast('error', 'Lỗi cơ sở dữ liệu: ' . $e->getMessage());
     }
 }
 
