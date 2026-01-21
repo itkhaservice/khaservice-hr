@@ -94,7 +94,7 @@ include '../../../includes/sidebar.php';
         <?php if ($project_id == 0 || empty($employees)): ?>
             <div class="alert alert-info">Vui lòng chọn dự án có nhân viên để chấm công.</div>
         <?php else: ?>
-            <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); flex: 1; display: flex; flex-direction: column; margin-bottom: 0;">
+            <div id="attendance-card" class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); flex: 1; display: flex; flex-direction: column; margin-bottom: 0;">
                 <!-- Legend -->
                 <div style="padding: 8px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-main); font-size: 0.8rem; flex-shrink: 0;">
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
@@ -103,8 +103,19 @@ include '../../../includes/sidebar.php';
                         <span class="legend-item"><span class="symbol-sample" style="color:#1e40af;">P</span>: Phép</span>
                         <span class="legend-item"><span class="symbol-sample" style="background:#64748b; color:#fff;">OF</span>: Nghỉ tuần</span>
                         <span class="legend-item"><span class="symbol-sample" style="color:#991b1b;">L,T</span>: Lễ tết</span>
-                        <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="margin-left: auto; font-weight: 500;"><i class="fas fa-info-circle"></i> Thêm</a>
+                        
+                        <div style="margin-left: auto; display: flex; gap: 10px; align-items: center;">
+                            <a href="javascript:void(0)" class="btn-fullscreen" onclick="toggleFullScreen()" title="Toàn màn hình">
+                                <i class="fas fa-expand"></i> Toàn màn hình
+                            </a>
+                            <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="font-weight: 500;">
+                                <i class="fas fa-info-circle"></i> Thêm
+                            </a>
+                        </div>
                     </div>
+                    
+                    <!-- Lớp phủ thông báo Esc -->
+                    <div id="fullscreen-hint">Nhấn <b>Esc</b> để thoát chế độ toàn màn hình</div>
                     <div id="moreLegend" style="display: none; margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--border-color);">
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; font-size: 0.8rem;">
                             <span><b>1/2</b>: Làm nửa ngày</span>
@@ -126,7 +137,7 @@ include '../../../includes/sidebar.php';
                     </div>
                 </div>
 
-                <div class="table-container" style="flex: 1; overflow: auto; position: relative; width: 100%;">
+                <div class="table-container" style="flex: 1; overflow: auto; position: relative; width: 100%; height: 100%;">
                     <table class="attendance-table table-bordered">
                         <colgroup>
                             <col style="width: 50px; min-width: 50px;">
@@ -260,6 +271,72 @@ include '../../../includes/sidebar.php';
     font-weight: 600;
 }
 
+.att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; }
+
+/* Fullscreen Styles */
+.btn-fullscreen {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--primary-color);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+.btn-fullscreen:hover { background: rgba(36, 162, 92, 0.1); }
+
+.card.is-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 9999 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff !important;
+}
+
+#attendance-card:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    background: #fff !important;
+    margin: 0 !important;
+}
+
+.card.is-fullscreen .table-container,
+#attendance-card:fullscreen .table-container {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    overflow: auto !important;
+    display: block !important;
+}
+
+.card.is-fullscreen .attendance-table,
+#attendance-card:fullscreen .attendance-table {
+    min-height: 100% !important;
+}
+
+#fullscreen-hint {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    z-index: 10000;
+    font-size: 0.9rem;
+    display: none;
+    pointer-events: none;
+}
+
 /* DARK MODE */
 body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
 body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
@@ -274,6 +351,35 @@ body.dark-mode .att-input.changed { background-color: #451a03 !important; color:
 <?php include '../../../includes/footer.php'; ?>
 
 <script>
+function toggleFullScreen() {
+    const card = document.getElementById('attendance-card');
+    if (!document.fullscreenElement) {
+        if (card.requestFullscreen) {
+            card.requestFullscreen();
+        } else if (card.webkitRequestFullscreen) {
+            card.webkitRequestFullscreen();
+        } else if (card.msRequestFullscreen) {
+            card.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+document.addEventListener('fullscreenchange', function() {
+    const card = document.getElementById('attendance-card');
+    const hint = document.getElementById('fullscreen-hint');
+    if (document.fullscreenElement) {
+        $(card).addClass('is-fullscreen');
+        $(hint).fadeIn().delay(3000).fadeOut();
+    } else {
+        $(card).removeClass('is-fullscreen');
+        $(hint).hide();
+    }
+});
+
 let changedData = {}; 
 $(document).ready(function() {
     $('.att-input').each(function() { $(this).data('original', $(this).val()); });
