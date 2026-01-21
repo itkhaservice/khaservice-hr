@@ -45,7 +45,8 @@ $total_records = db_fetch_row($total_sql, $params)['count'];
 
 // Get Data
 $sql = "SELECT p.*, 
-        (SELECT COUNT(*) FROM employees e WHERE e.current_project_id = p.id AND e.status = 'working') as headcount_actual
+        (SELECT COUNT(*) FROM employees e WHERE e.current_project_id = p.id AND e.status = 'working') as headcount_actual,
+        (SELECT COALESCE(SUM(count_required), 0) FROM project_positions pp WHERE pp.project_id = p.id) as headcount_detail_sum
         FROM projects p 
         $where 
         ORDER BY p.stt ASC, p.id ASC 
@@ -106,7 +107,8 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                 foreach ($projects as $p): 
                                     $stt++; // Increment STT
                                     $actual = $p['headcount_actual'];
-                                    $required = $p['headcount_required'];
+                                    // Prioritize detailed sum if available, otherwise use manual total
+                                    $required = $p['headcount_detail_sum'] > 0 ? $p['headcount_detail_sum'] : $p['headcount_required'];
                                     
                                     // Status Logic
                                     $hc_status = '';

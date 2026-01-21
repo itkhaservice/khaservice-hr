@@ -72,6 +72,19 @@ body.dark-mode .modal-box { background-color: #1e293b; color: #f1f5f9; }
 body.dark-mode .tab-item { color: #94a3b8; }
 body.dark-mode .tab-item.active { color: #4dc581; border-bottom-color: #4dc581; }
 
+/* Sub-Card for Inner Sections */
+.sub-card {
+    background-color: #f8fafc;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid var(--border-color);
+}
+body.dark-mode .sub-card {
+    background-color: rgba(255,255,255,0.03);
+    border-color: #334155;
+}
+
 /* Reset & Base */
 * { box-sizing: border-box; }
 body {
@@ -428,12 +441,19 @@ ul { list-style: none; padding: 0; margin: 0; }
     padding: 25px;
     margin-bottom: 25px;
 }
-.table-container { overflow-x: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+.table-container { 
+    overflow-x: auto; 
+    overflow-y: auto;
+    max-height: 65vh;
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+}
 .table { width: 100%; border-collapse: collapse; background: #fff; }
 .table th {
     background-color: #f8fafc; color: var(--text-sub);
     font-weight: 600; text-transform: uppercase; font-size: 0.75rem;
     padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border-color);
+    position: sticky; top: 0; z-index: 5; /* Sticky Header */
 }
 .table td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
 .table tr:hover { background-color: #f8fafc; }

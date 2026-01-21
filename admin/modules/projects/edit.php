@@ -72,6 +72,7 @@ $positions_req = db_fetch_all("
 ", [$id]);
 
 $all_pos_names = db_fetch_all("SELECT DISTINCT name FROM positions ORDER BY name ASC");
+$all_positions_map = db_fetch_all("SELECT department_id, name FROM positions");
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
 
 include '../../../includes/header.php';
@@ -142,7 +143,7 @@ include '../../../includes/sidebar.php';
 
                 <!-- Tab: Định biên nhân sự -->
                 <div id="staffing" class="tab-content">
-                    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color);">
+                    <div class="sub-card">
                         <h4 style="margin-bottom: 15px; color: var(--primary-dark);">Thêm định biên theo Phòng ban</h4>
                         <div style="display: grid; grid-template-columns: 1fr 1fr 100px auto; gap: 15px; align-items: end;">
                             <div class="form-group" style="margin-bottom:0;">
@@ -171,15 +172,15 @@ include '../../../includes/sidebar.php';
                         </div>
                     </div>
 
-                    <div class="table-container">
+                    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Phòng ban</th>
-                                    <th>Vị trí / Chức danh</th>
-                                    <th style="text-align:center;">Định biên</th>
-                                    <th style="text-align:center;">Thực tế</th>
-                                    <th width="100" style="text-align:center;">Thao tác</th>
+                                    <th style="position: sticky; top: 0; z-index: 10;">Phòng ban</th>
+                                    <th style="position: sticky; top: 0; z-index: 10;">Vị trí / Chức danh</th>
+                                    <th style="position: sticky; top: 0; z-index: 10; text-align:center;">Định biên</th>
+                                    <th style="position: sticky; top: 0; z-index: 10; text-align:center;">Thực tế</th>
+                                    <th width="100" style="position: sticky; top: 0; z-index: 10; text-align:center;">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -217,7 +218,7 @@ include '../../../includes/sidebar.php';
                 <!-- Tab: Cấu hình ca -->
                 <div id="shifts" class="tab-content">
                     <!-- Shift management logic keeps existing -->
-                    <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin-bottom: 25px; border: 1px solid var(--border-color);">
+                    <div class="sub-card">
                         <h4 style="margin-bottom: 15px; color: var(--primary-dark);">Thêm ca làm việc mới</h4>
                         <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
                             <div class="form-group" style="margin-bottom:0;">
@@ -311,6 +312,40 @@ $(document).ready(function() {
         $('#' + tabId).addClass('active');
         window.location.hash = tabId;
     }
+
+    // Dynamic Position Filter
+    const positionsMap = <?php echo json_encode($all_positions_map); ?>;
+    const $deptSelect = $('select[name="req_dept_id"]');
+    const $posDatalist = $('#pos_list');
+
+    $deptSelect.on('change', function() {
+        const selectedDeptId = $(this).val();
+        $posDatalist.empty(); // Clear existing options
+
+        let filteredPositions = [];
+
+        if (selectedDeptId) {
+            // Filter positions by selected department
+            filteredPositions = positionsMap.filter(p => p.department_id == selectedDeptId).map(p => p.name);
+        } else {
+            // If no department selected, show all unique positions (optional, or show none)
+            // Showing all for now to mimic original behavior
+            filteredPositions = [...new Set(positionsMap.map(p => p.name))];
+        }
+
+        // Deduplicate
+        const uniquePositions = [...new Set(filteredPositions)].sort();
+
+        // Populate datalist
+        uniquePositions.forEach(name => {
+            $posDatalist.append(`<option value="${name}">`);
+        });
+        
+        // Clear the input if it doesn't match the new list? 
+        // No, keep user input, they might be typing a new one.
+        // But maybe clear it if they change department to encourage picking a valid one?
+        // User didn't ask to clear input, just "Only show Positions...".
+    });
 });
 
 function confirmDeleteShift(sid) {
