@@ -20,7 +20,8 @@ $employees = ($project_id > 0) ? db_fetch_all("SELECT e.id, e.fullname, e.code, 
 $att_data = [];
 $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 if ($project_id > 0 && !empty($employees)) {
-    $start_date = "$year-$month-01"; $end_date = "$year-$month-$days_in_month";
+    $start_date = sprintf("%04d-%02d-01", $year, $month);
+    $end_date = sprintf("%04d-%02d-%02d", $year, $month, $days_in_month);
     $emp_ids = array_column($employees, 'id');
     if (!empty($emp_ids)) {
         $raw_att = db_fetch_all("SELECT employee_id, DAY(date) as day, timekeeper_symbol, overtime_hours FROM attendance WHERE date BETWEEN ? AND ? AND employee_id IN (".implode(',',$emp_ids).")", [$start_date, $end_date]);
@@ -35,22 +36,40 @@ include '../../../includes/sidebar.php';
 <div class="main-content">
     <?php include '../../../includes/topbar.php'; ?>
     <div class="content-wrapper" style="overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 65px);">
-        <div class="action-header" style="flex-shrink: 0;">
+        <div class="action-header" style="flex-shrink: 0; margin-bottom: 10px;">
             <div>
-                <h1 class="page-title">Bảng Chấm Công - <?php echo "$month/$year"; ?> <span style="font-size:0.5em; color:#ccc;">(v4.0 Stable)</span></h1>
+                <h1 class="page-title">Bảng Chấm Công - <?php echo "$month/$year"; ?> <span style="font-size:0.5em; color:#ccc;">(v5.1 Fixed)</span></h1>
                 <span class="badge <?php echo $is_locked?'badge-danger':'badge-success'; ?>"><i class="fas <?php echo $is_locked?'fa-lock':'fa-pen'; ?>"></i> <?php echo $is_locked?'Đã Khóa':'Đang mở'; ?></span>
             </div>
-            <div class="header-actions">
-                <form method="GET" style="display: flex; gap: 10px;">
-                    <select name="project_id" class="form-control" style="min-width: 200px;" onchange="this.form.submit()">
+        </div>
+
+        <!-- Toolbar (Dưới tiêu đề, Trên bảng dữ liệu) -->
+        <div class="attendance-toolbar" style="background: var(--card-bg); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; box-shadow: var(--shadow-sm);">
+            <div class="toolbar-left">
+                <form method="GET" style="display: flex; gap: 10px; align-items: center;">
+                    <label style="margin:0; font-weight:600; color:var(--text-sub); font-size: 0.85rem;">Dự án:</label>
+                    <select name="project_id" class="form-control" style="min-width: 200px; height: 36px;" onchange="this.form.submit()">
                         <?php foreach($project_options as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
                     </select>
-                    <select name="month" class="form-control" style="width: 80px;" onchange="this.form.submit()"><?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">T$i</option>"; ?></select>
-                    <select name="year" class="form-control" style="width: 100px;" onchange="this.form.submit()"><?php for($y=2023;$y<=2030;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?></select>
+                    <select name="month" class="form-control" style="width: 75px; height: 36px;" onchange="this.form.submit()"><?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">T$i</option>"; ?></select>
+                    <select name="year" class="form-control" style="width: 90px; height: 36px;" onchange="this.form.submit()"><?php for($y=2023;$y<=2030;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?></select>
                 </form>
+            </div>
+            <div class="toolbar-right" style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" style="height: 36px;"><i class="fas fa-file-excel"></i> Xuất Excel</button>
+                <a href="import.php" class="btn btn-secondary btn-sm" style="height: 36px; display:inline-flex; align-items:center;"><i class="fas fa-file-import"></i> Import</a>
+                
+                <?php if ($allowed_projs === 'ALL' && $project_id > 0): ?>
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="toggle_lock" value="<?php echo $is_locked ? 'unlock' : 'lock'; ?>">
+                        <button type="submit" class="btn <?php echo $is_locked ? 'btn-warning' : 'btn-danger'; ?> btn-sm" style="height: 36px;" onclick="return confirm('Bạn chắc chắn muốn <?php echo $is_locked ? 'MỞ' : 'KHÓA'; ?> bảng công?')">
+                            <i class="fas <?php echo $is_locked ? 'fa-lock-open' : 'fa-lock'; ?>"></i> <?php echo $is_locked ? 'Mở khóa' : 'Khóa sổ'; ?>
+                        </button>
+                    </form>
+                <?php endif; ?>
+
                 <?php if (!$is_locked): ?>
-                    <button type="button" class="btn btn-primary" onclick="saveAttendance()"><i class="fas fa-save"></i> Lưu</button>
-                    <a href="import.php" class="btn btn-secondary"><i class="fas fa-file-import"></i> Import</a>
+                    <button type="button" class="btn btn-primary btn-sm" style="min-width: 100px; height: 36px;" onclick="saveAttendance()"><i class="fas fa-save"></i> LƯU DỮ LIỆU</button>
                 <?php endif; ?>
             </div>
         </div>
@@ -58,24 +77,24 @@ include '../../../includes/sidebar.php';
         <?php if ($project_id == 0 || empty($employees)): ?>
             <div class="alert alert-info">Vui lòng chọn dự án có nhân viên để chấm công.</div>
         <?php else: ?>
-            <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); flex: 1; display: flex; flex-direction: column;">
+            <div class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); flex: 1; display: flex; flex-direction: column; margin-bottom: 0;">
                 <!-- Legend -->
                 <div style="padding: 8px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-main); font-size: 0.8rem; flex-shrink: 0;">
                     <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
                         <span><b>Ký hiệu:</b></span>
-                        <span style="color:#24a25c; font-weight:700;">X</span>: Đi làm &nbsp;
-                        <span style="color:#3b82f6; font-weight:700;">P</span>: Phép &nbsp;
-                        <span style="background:#64748b; color:#fff; font-weight:700; padding:0 3px;">OF</span>: Nghỉ tuần &nbsp;
-                        <span style="color:#ef4444; font-weight:700;">L,T</span>: Lễ tết
-                        <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="margin-left: auto;"><i class="fas fa-info-circle"></i> Thêm</a>
+                        <span class="legend-item"><span class="symbol-sample" style="color:#166534;">X</span>: Đi làm</span>
+                        <span class="legend-item"><span class="symbol-sample" style="color:#1e40af;">P</span>: Phép</span>
+                        <span class="legend-item"><span class="symbol-sample" style="background:#64748b; color:#fff;">OF</span>: Nghỉ tuần</span>
+                        <span class="legend-item"><span class="symbol-sample" style="color:#991b1b;">L,T</span>: Lễ tết</span>
+                        <a href="javascript:void(0)" onclick="$('#moreLegend').slideToggle();" style="margin-left: auto; font-weight: 500;"><i class="fas fa-info-circle"></i> Thêm</a>
                     </div>
-                    <div id="moreLegend" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-color);">
+                    <div id="moreLegend" style="display: none; margin-top: 5px; padding-top: 5px; border-top: 1px dashed var(--border-color);">
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; font-size: 0.8rem;">
                             <span><b>1/2</b>: Làm nửa ngày</span>
                             <span><b>1/p</b>: Nửa phép, nửa làm</span>
                             <span><b>Ô</b>: Nghỉ ốm</span>
                             <span><b>R</b>: Nghỉ việc riêng</span>
-                            <span><b>CĐ</b>: Chế độ (Hiếu, hỉ...)</span>
+                            <span><b>CĐ</b>: Chế độ</span>
                             <span><b>ĐH</b>: Đi học/Họp</span>
                             <span><b>Ts</b>: Thai sản</span>
                             <span><b>Nb</b>: Nghỉ bù</span>
@@ -115,7 +134,7 @@ include '../../../includes/sidebar.php';
                             </tr>
                             <tr style="height: 25px;">
                                 <?php for($d=1; $d<=$days_in_month; $d++): ?><th class="text-center" style="min-width: 45px;"><?php echo $d; ?></th><?php endfor; ?>
-                                <th rowspan="2" class="fix-r" style="right: 255px; width: 40px; font-size: 0.7rem; border-left: 2px solid #cbd5e1;">P/CĐ</th>
+                                <th rowspan="2" class="fix-r shadow-left" style="right: 255px; width: 40px; font-size: 0.7rem; border-left: 2px solid #cbd5e1;">P/CĐ</th>
                                 <th rowspan="2" class="fix-r" style="right: 215px; width: 40px; font-size: 0.7rem;">Khác</th>
                                 <th rowspan="2" class="fix-r" style="right: 175px; width: 40px; font-size: 0.7rem;">Lễ</th>
                                 <th rowspan="2" class="fix-r" style="right: 135px; width: 40px; font-size: 0.7rem; border-left: 1px solid #cbd5e1;">TC</th>
@@ -125,7 +144,7 @@ include '../../../includes/sidebar.php';
                             <tr style="height: 25px;">
                                 <?php for($d=1; $d<=$days_in_month; $d++): 
                                     $ts = strtotime("$year-$month-$d"); $dow = date('N', $ts);
-                                    echo "<th class='text-center ".($dow==7?'is-sunday':'')."' style='font-size:0.7rem; font-weight:400;'>" . ['','T2','T3','T4','T5','T6','T7','CN'][$dow] . "</th>";
+                                    echo "<th class='text-center ".($dow==7?'is-sunday':'')."' style='font-size:0.7rem; font-weight:400; height:25px; vertical-align: middle;'>" . ['','T2','T3','T4','T5','T6','T7','CN'][$dow] . "</th>";
                                 endfor; ?>
                             </tr>
                         </thead>
@@ -140,31 +159,26 @@ include '../../../includes/sidebar.php';
                                     <?php for($d=1; $d<=$days_in_month; $d++): 
                                         $cell = $att_data[$emp['id']][$d] ?? ['symbol'=>'','ot'=>0]; $sym = strtoupper($cell['symbol']); $ot = (float)$cell['ot'];
                                         $is_sun = (date('N', strtotime("$year-$month-$d")) == 7);
-                                        if (in_array($sym, ['X','L','T','L,T'])) $s['total'] += 1; elseif ($sym == '1/2') $s['total'] += 0.5;
-                                        elseif ($sym == 'P' || $sym == 'CĐ') { $s['p_cd']++; $s['total'] += 1; } elseif ($sym == '1/P') { $s['p_cd'] += 0.5; $s['total'] += 1; }
-                                        elseif (in_array($sym, ['Ô', 'TS', 'R', 'VR'])) $s['other']++;
-                                        if ($ot > 0) { if ($sym == 'F' || $sym == 'L,T') $s['ot_hol'] += $ot; elseif ($sym == 'F1' || $is_sun) $s['ot_sun'] += $ot; else $s['ot_norm'] += $ot; }
+                                        
+                                        if (in_array($sym, ['X','ĐH','DH'])) { $s['total'] += 1; }
+                                        elseif (in_array($sym, ['1/2', '1/P', '1/CĐ', '1/CD'])) { $s['total'] += 0.5; }
+                                        if (in_array($sym, ['P','CĐ','CD'])) { $s['p_cd'] += 1; }
+                                        elseif (in_array($sym, ['1/P','1/CĐ','1/CD'])) { $s['p_cd'] += 0.5; }
+                                        elseif (in_array($sym, ['Ô','O','TS','R','VR','CO','NB'])) { $s['other'] += 1; }
+                                        elseif (in_array($sym, ['L','T','L,T','L, T'])) { $s['holiday'] += 1; }
+
+                                        if ($ot > 0) {
+                                            if (in_array($sym, ['F','L','T','L,T','L, T'])) $s['ot_hol'] += $ot;
+                                            elseif (in_array($sym, ['F1']) || $is_sun) $s['ot_sun'] += $ot;
+                                            else $s['ot_norm'] += $ot;
+                                        }
                                     ?>
                                         <td class="<?php echo $is_sun?'is-sunday':''; ?>">
                                             <?php if($is_locked): ?>
                                                 <div class="text-center"><b><?php echo $sym; ?></b><br><small><?php echo $ot?:''; ?></small></div>
                                             <?php else: ?>
-                                                <input type="text" class="att-input symbol" 
-                                                       data-day="<?php echo $d; ?>" 
-                                                       data-is-sunday="<?php echo $is_sun ? '1' : '0'; ?>"
-                                                       value="<?php echo $sym; ?>" 
-                                                       maxlength="4"
-                                                       autocomplete="off"
-                                                       ondblclick="toggleSymbol(this)"
-                                                       onfocus="this.select()">
-                                                <input type="text" class="att-input ot" 
-                                                       data-day="<?php echo $d; ?>" 
-                                                       data-is-sunday="<?php echo $is_sun ? '1' : '0'; ?>"
-                                                       value="<?php echo $ot > 0 ? $ot : ''; ?>" 
-                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
-                                                       autocomplete="off"
-                                                       placeholder=""
-                                                       onfocus="this.select()">
+                                                <input type="text" class="att-input symbol" data-day="<?php echo $d; ?>" data-is-sunday="<?php echo $is_sun?'1':'0'; ?>" value="<?php echo $sym; ?>" maxlength="4" autocomplete="off" oninput="this.value = this.value.toUpperCase();" ondblclick="toggleSymbol(this)" onfocus="this.select()">
+                                                <input type="text" class="att-input ot" data-day="<?php echo $d; ?>" value="<?php echo $ot?:''; ?>" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" autocomplete="off" onfocus="this.select()">
                                             <?php endif; ?>
                                         </td>
                                     <?php endfor; ?>
@@ -187,84 +201,28 @@ include '../../../includes/sidebar.php';
 <style>
 /* CSS RESET FOR STABILITY */
 .attendance-table { border-collapse: separate; border-spacing: 0; width: max-content; margin: 0; }
-.attendance-table th, .attendance-table td { 
-    border-right: 1px solid #e2e8f0; 
-    border-bottom: 1px solid #e2e8f0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    vertical-align: middle; /* Căn giữa trên dưới */
-}
-
-/* HEADER STICKY */
-.attendance-table thead th { position: sticky; top: 0; background-color: #f8fafc; z-index: 800; } /* High z-index for top header */
+.attendance-table th, .attendance-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 0; box-sizing: border-box; vertical-align: middle; }
+.attendance-table thead th { position: sticky; top: 0; background-color: #f8fafc; z-index: 800; }
 .attendance-table thead tr:nth-child(2) th { top: 30px; }
 .attendance-table thead tr:nth-child(3) th { top: 55px; }
-
-/* LEFT STICKY */
-.fix-l { position: sticky; z-index: 900 !important; background-color: #fff; } /* Body Left > Standard Body (0) */
-.attendance-table thead .fix-l { z-index: 1000 !important; background-color: #f8fafc; } /* Header Left > Header Standard (800) */
-
-/* RIGHT STICKY */
-.fix-r { position: sticky; z-index: 900 !important; background-color: #fff; text-align: center; } /* Body Right > Standard Body */
-.attendance-table thead .fix-r { z-index: 1000 !important; background-color: #f8fafc; } /* Header Right > Header Standard */
-
-/* UTILS */
+.fix-l { position: sticky; z-index: 900 !important; background-color: #fff; }
+.attendance-table thead .fix-l { z-index: 1000 !important; background-color: #f8fafc; }
+.fix-r { position: sticky; z-index: 900 !important; background-color: #fff; text-align: center; }
+.attendance-table thead .fix-r { z-index: 1000 !important; background-color: #f8fafc; }
 .is-sunday { background-color: #dcfce7 !important; }
 .shadow-left { box-shadow: -3px 0 5px -2px rgba(0,0,0,0.1); }
-
-/* Inputs Styles */
-.att-input { 
-    width: 100%; 
-    border: none; 
-    text-align: center; 
-    background: transparent; 
-    display: block; 
-    cursor: pointer; 
-    font-family: 'Inter', sans-serif;
-    outline: none;
-}
-.att-input.symbol { 
-    font-weight: 800; 
-    text-transform: uppercase; 
-    height: 24px;
-    font-size: 0.9rem;
-    border-bottom: 1px solid #e2e8f0; /* Tách biệt rõ ràng */
-}
-/* Màu sắc ký hiệu chuẩn */
-.att-input.symbol[value="X"] { color: #166534; } /* Xanh lá đậm */
-.att-input.symbol[value="P"] { color: #1e40af; } /* Xanh dương */
-.att-input.symbol[value="L,T"], .att-input.symbol[value="L"], .att-input.symbol[value="T"] { color: #991b1b; } /* Đỏ đậm */
+.att-input { width: 100%; border: none; text-align: center; background: transparent; display: block; cursor: pointer; font-family: 'Inter', sans-serif; outline: none; }
+.att-input.symbol { font-weight: 800; text-transform: uppercase; height: 24px; font-size: 0.9rem; border-bottom: 1px solid #e2e8f0; }
+.att-input.symbol[value="X"] { color: #166534; } .att-input.symbol[value="P"] { color: #1e40af; }
+.att-input.symbol[value="L,T"], .att-input.symbol[value="L"], .att-input.symbol[value="T"] { color: #991b1b; }
 .att-input.symbol[value="OF"] { color: #64748b; font-weight: 400; }
-
-.att-input.ot { 
-    font-size: 0.75rem; 
-    color: #c2410c; /* Màu cam đỏ cho tăng ca */
-    font-weight: 600;
-    height: 18px; 
-}
-
-/* Ẩn nút tăng giảm (spinner) trong input number */
-.att-input.ot::-webkit-outer-spin-button,
-.att-input.ot::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-.att-input.ot {
-    -moz-appearance: textfield;
-}
-
+.att-input.ot { font-size: 0.75rem; color: #c2410c; font-weight: 600; height: 18px; }
 .att-input:focus { background-color: rgba(0,0,0,0.05); }
-.att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; } /* Vàng nhạt cho ô vừa sửa */
-
-/* DARK MODE */
-body.dark-mode .attendance-table thead th, 
-body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
+.att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; }
+body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
 body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
 body.dark-mode .is-sunday { background-color: rgba(22, 101, 52, 0.25) !important; }
-
-/* Màu sắc ký hiệu trong Dark Mode */
-body.dark-mode .att-input.symbol { color: #cbd5e1; } /* Mặc định */
-body.dark-mode .att-input.symbol[value="X"] { color: #4ade80; }
+body.dark-mode .att-input.symbol { color: #cbd5e1; } body.dark-mode .att-input.symbol[value="X"] { color: #4ade80; }
 body.dark-mode .att-input.symbol[value="P"] { color: #60a5fa; }
 body.dark-mode .att-input.symbol[value="L,T"], body.dark-mode .att-input.symbol[value="L"], body.dark-mode .att-input.symbol[value="T"] { color: #f87171; }
 body.dark-mode .att-input.ot { color: #fb923c; }
@@ -275,301 +233,112 @@ body.dark-mode .att-input.changed { background-color: #451a03 !important; color:
 
 <script>
 let changedData = {}; 
-
 $(document).ready(function() {
-    // Khởi tạo giá trị gốc cho tất cả các ô để so sánh thay đổi
-    $('.att-input').each(function() {
-        $(this).data('original', $(this).val());
-    });
-
-    // TÍNH TOÁN LẠI TOÀN BỘ BẢNG NGAY KHI LOAD
-    // Để đảm bảo các cột tổng (P/CĐ, Tăng ca, Tổng công) hiển thị đúng theo dữ liệu từ DB
-    $('tr[data-emp-id]').each(function() {
-        calculateRow($(this));
-    });
+    $('.att-input').each(function() { $(this).data('original', $(this).val()); });
+    $('tr[data-emp-id]').each(function() { calculateRow($(this)); });
 });
-
-// 1. Theo dõi thay đổi
 $(document).on('change', '.att-input', function() {
-    let currentVal = $(this).val();
-    let originalVal = $(this).data('original');
-    let tr = $(this).closest('tr');
-    let day = $(this).data('day');
+    let currentVal = $(this).val(); let originalVal = $(this).data('original');
+    let tr = $(this).closest('tr'); let day = $(this).data('day');
     let key = `${tr.data('emp-id')}_${day}`;
-
-    if (currentVal !== originalVal) {
-        $(this).addClass('changed');
-        changedData[key] = { 
-            emp_id: tr.data('emp-id'), 
-            day: day, 
-            symbol: tr.find(`.symbol[data-day="${day}"]`).val(), 
-            ot: tr.find(`.ot[data-day="${day}"]`).val() || 0 
-        };
-    } else {
-        $(this).removeClass('changed');
-        delete changedData[key];
-    }
+    if (currentVal !== originalVal) { $(this).addClass('changed'); } else { $(this).removeClass('changed'); }
     calculateRow(tr);
 });
-
-// 2. Xóa nhanh bằng phím Delete
 $(document).on('keydown', '.att-input', function(e) {
-    if (e.keyCode === 46 || e.keyCode === 8) { // Delete hoặc Backspace
-        if ($(this).val() !== '') {
-            $(this).val('').trigger('change');
-        }
-    }
+    if (e.keyCode === 46 || e.keyCode === 8) { if ($(this).val() !== '') { $(this).val('').trigger('change'); } }
 });
-
-// 3. Tính toán Real-time
 function calculateRow(tr) {
     let s = {p_cd:0, other:0, holiday:0, ot_norm:0, ot_sun:0, ot_hol:0, total:0};
     tr.find('.symbol').each(function() {
-        let d = $(this).data('day'); 
-        let sym = $(this).val().toUpperCase().trim();
+        let d = $(this).data('day'); let sym = $(this).val().toUpperCase().trim();
         let ot = parseFloat(tr.find(`.ot[data-day="${d}"]`).val()) || 0;
         let isSun = $(this).data('is-sunday') == '1';
-        
-        // 1. Tính toán ngày nghỉ & công
-        // Tổng công thực tế (Theo công thức Excel: X + 1/2*0.5 + 1/p*0.5 + ĐH)
-        
         if (['X', 'ĐH', 'DH'].includes(sym)) { s.total += 1; }
-        else if (sym == '1/2') { s.total += 0.5; }
-        else if (['1/P', '1/CĐ', '1/CD'].includes(sym)) { s.total += 0.5; s.p_cd += 0.5; } // 0.5 công + 0.5 phép
-        else if (['F', 'F1'].includes(sym)) { s.total += 1; } // Làm ngày lễ/CN cũng là 1 công
-        else if (['1/F1', '1/LT'].includes(sym)) { s.total += 0.5; }
-
-        // Tính ngày nghỉ (để hiển thị vào cột P/CĐ, Khác, Lễ)
-        if (['P', 'CĐ', 'CD'].includes(sym)) { s.p_cd += 1; } // Nghỉ nguyên ngày -> Ko cộng vào Total
+        else if (['1/2', '1/P', '1/CĐ', '1/CD'].includes(sym)) { s.total += 0.5; }
+        if (['P', 'CĐ', 'CD'].includes(sym)) { s.p_cd += 1; }
+        else if (['1/P', '1/CĐ', '1/CD'].includes(sym)) { s.p_cd += 0.5; }
         else if (['Ô', 'O', 'TS', 'R', 'VR', 'CO', 'NB'].includes(sym)) { s.other += 1; }
         else if (['L', 'T', 'L,T', 'L, T'].includes(sym)) { s.holiday += 1; }
-
-        // 2. Tính toán Tăng ca (OT)
         if (ot > 0) {
             if (['F', 'L', 'T', 'L,T', 'L, T'].includes(sym)) s.ot_hol += ot;
             else if (['F1'].includes(sym) || isSun) s.ot_sun += ot;
             else s.ot_norm += ot;
         }
     });
-    
-    tr.find('.sum-p-cd').text(s.p_cd || ''); 
-    tr.find('.sum-other').text(s.other || ''); 
-    tr.find('.sum-holiday').text(s.holiday || '');
-    tr.find('.sum-ot-normal').text(s.ot_norm || ''); 
-    tr.find('.sum-ot-sun').text(s.ot_sun || ''); 
-    tr.find('.sum-ot-hol').text(s.ot_hol || '');
+    tr.find('.sum-p-cd').text(s.p_cd || ''); tr.find('.sum-other').text(s.other || ''); tr.find('.sum-holiday').text(s.holiday || '');
+    tr.find('.sum-ot-normal').text(s.ot_norm || ''); tr.find('.sum-ot-sun').text(s.ot_sun || ''); tr.find('.sum-ot-hol').text(s.ot_hol || '');
     tr.find('.sum-total').text(s.total || '0');
 }
-
-function toggleSymbol(input) { 
-    let $i = $(input); 
-    let cur = $i.val().toUpperCase(); 
-    $i.val((cur===''||cur=='OF')?'X':'').trigger('change'); 
-}
-
+function toggleSymbol(input) { let $i = $(input); let cur = $i.val().toUpperCase(); $i.val((cur===''||cur=='OF')?'X':'').trigger('change'); }
 function saveAttendance() {
     let payload = [];
-    
     $('tr[data-emp-id]').each(function() {
-        let tr = $(this);
-        let empId = tr.data('emp-id');
-        
+        let tr = $(this); let empId = tr.data('emp-id');
         tr.find('.att-input.symbol').each(function() {
             let day = $(this).data('day');
-            let symbolInput = $(this);
-            let otInput = tr.find(`.ot[data-day="${day}"]`);
-            
-            let symVal = symbolInput.val();
-            let otVal = otInput.val();
-            
-            let symOrg = symbolInput.data('original'); // Giá trị lúc load trang
-            let otOrg = otInput.data('original');
-            
-            // Logic quyết định gửi:
-            // 1. Nếu có dữ liệu (sym hoặc ot khác rỗng/0) -> Gửi (để Insert/Update)
-            // 2. Nếu hiện tại rỗng NHƯNG gốc có dữ liệu -> Gửi (để xóa về NULL)
-            // 3. Nếu gốc rỗng và hiện tại rỗng -> Bỏ qua.
-            
-            let hasDataNow = (symVal !== '' || (otVal !== '' && otVal != 0));
-            let hadDataBefore = (symOrg !== '' || (otOrg !== '' && otOrg != 0));
-            
-            // So sánh thay đổi (để chắc chắn không gửi dữ liệu thừa nếu chưa sửa gì)
-            // Tuy nhiên, để "chắc ăn" như bạn muốn, ta có thể gửi hết những ô hasDataNow.
-            // Nhưng tốt nhất là chỉ gửi những ô CÓ SỰ KHÁC BIỆT so với Original.
-            // Vì nếu Original = X, Current = X -> Gửi làm gì?
-            
-            let isChanged = (symVal !== symOrg) || (otVal !== otOrg);
-            
-            if (isChanged) {
-                payload.push({
-                    emp_id: empId,
-                    day: day,
-                    symbol: symVal,
-                    ot: otVal || 0
-                });
-            }
+            let symbolInput = $(this); let otInput = tr.find(`.ot[data-day="${day}"]`);
+            let symVal = symbolInput.val(); let otVal = otInput.val();
+            let symOrg = symbolInput.data('original'); let otOrg = otInput.data('original');
+            if (symVal !== symOrg || otVal !== otOrg) { payload.push({ emp_id: empId, day: day, symbol: symVal, ot: otVal || 0 }); }
         });
     });
-
-    if (payload.length === 0) return Toast.info('Không có thay đổi nào so với dữ liệu gốc.');
-    
-    let $btn = $('button[onclick="saveAttendance()"]'); 
-    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
-    
-    fetch('save.php', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ 
-            month: <?php echo $month; ?>, 
-            year: <?php echo $year; ?>, 
-            project_id: <?php echo $project_id; ?>, 
-            changes: payload 
-        })
+    if (payload.length === 0) return Toast.info('Không có thay đổi nào để lưu.');
+    let $btn = $('button[onclick="saveAttendance()"]'); $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+    fetch('save.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month: <?php echo $month; ?>, year: <?php echo $year; ?>, project_id: <?php echo $project_id; ?>, changes: payload })
     }).then(r => r.json()).then(data => { 
-        if (data.status === 'success') { 
-            Toast.success(data.message); 
-            $('.att-input.changed').removeClass('changed'); 
-            // Cập nhật lại original để lần lưu sau đúng
-            $('.att-input').each(function() { $(this).data('original', $(this).val()); });
-            changedData = {}; // Clear buffer cũ (không dùng nữa nhưng cứ clear)
-        } else {
-            Toast.error(data.message);
-        }
-    }).catch(err => {
-        Toast.error('Lỗi kết nối máy chủ.');
-        console.error(err);
-    }).finally(() => {
-        $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Lưu dữ liệu');
-    });
+        if (data.status === 'success') { Toast.success(data.message); $('.att-input.changed').removeClass('changed'); $('.att-input').each(function() { $(this).data('original', $(this).val()); }); } else { Toast.error(data.message); }
+    }).catch(err => { Toast.error('Lỗi kết nối máy chủ.'); console.error(err); }).finally(() => { $btn.prop('disabled', false).html('<i class="fas fa-save"></i> LƯU DỮ LIỆU'); });
 }
-
-/* --- 6. Advanced Drag & Drop Logic (Excel-like) --- */
-let isDragging = false;
-let startCell = null;
-let selectionRange = []; // Array of elements
-
-// Ngăn trình duyệt xử lý kéo thả text mặc định
-$(document).on('dragstart', '.att-input', function(e) {
-    e.preventDefault();
-    return false;
-});
-
+let isDragging = false; let startCell = null; let selectionRange = [];
+$(document).on('dragstart', '.att-input', function(e) { e.preventDefault(); return false; });
 $(document).on('mousedown', '.att-input', function(e) {
     if (e.button !== 0) return;
-
-    isDragging = true;
-    startCell = $(this); // Chính xác là input đang click
-    
-    if ($(this).hasClass('symbol')) dragType = 'symbol';
-    else if ($(this).hasClass('ot')) dragType = 'ot';
-    
-    // Highlight ngay ô đầu tiên
-    $('.att-input.drag-selected').removeClass('drag-selected');
-    $('.att-input.selected-cell').removeClass('selected-cell'); 
-    
-    $(this).addClass('selected-cell'); 
-    $(this).focus(); 
+    isDragging = true; startCell = $(this); selectionRange = [$(this)];
+    if ($(this).hasClass('symbol')) dragType = 'symbol'; else if ($(this).hasClass('ot')) dragType = 'ot';
+    $('.att-input.drag-selected').removeClass('drag-selected'); $('.att-input.selected-cell').removeClass('selected-cell'); 
+    $(this).addClass('selected-cell'); $(this).focus();
 });
-
 $(document).on('mousemove', 'td', function(e) {
     if (!isDragging || !startCell) return;
-    
-    if (e.buttons !== 1) {
-        isDragging = false;
-        return;
-    }
-
-    // FIX: Chỉ tìm input cùng loại với loại đang kéo
+    if (e.buttons !== 1) { isDragging = false; return; }
     let input = $(this).find('.' + dragType);
     if (input.length === 0) return;
-
-    // Không cần check currentType nữa vì ta đã find đúng class
-    let startRow = startCell.closest('tr')[0];
-    let currentRow = $(this).closest('tr')[0];
-
-    if (startRow === currentRow) { // Chỉ cần check cùng dòng
+    let startRow = startCell.closest('tr')[0]; let currentRow = $(this).closest('tr')[0];
+    if (startRow === currentRow) {
         $('.att-input.drag-selected').removeClass('drag-selected');
-        
-        let startIdx = startCell.parent().index(); 
-        let currentIdx = $(this).index();
-        let minIdx = Math.min(startIdx, currentIdx);
-        let maxIdx = Math.max(startIdx, currentIdx);
-
+        let startIdx = startCell.parent().index(); let currentIdx = $(this).index();
+        let minIdx = Math.min(startIdx, currentIdx); let maxIdx = Math.max(startIdx, currentIdx);
         let tr = $(startRow);
         tr.find('td').slice(minIdx, maxIdx + 1).each(function() {
-            let item = $(this).find('.' + dragType); // Find đúng loại
-            if (item.length) {
-                item.addClass('drag-selected');
-                selectionRange.push(item);
-            }
+            let item = $(this).find('.' + dragType);
+            if (item.length) { item.addClass('drag-selected'); selectionRange.push(item); }
         });
     }
 });
-
 $(document).on('mouseup', function() {
     if (isDragging && startCell && selectionRange.length > 1) {
         let valToCopy = startCell.val();
-        
         if (valToCopy !== '') {
-            let tr = startCell.closest('tr');
-            let affected = false;
-            
-            selectionRange.forEach(function(el) {
-                if (el[0] !== startCell[0]) { 
-                    el.val(valToCopy).trigger('change');
-                    affected = true;
-                }
-            });
+            let tr = startCell.closest('tr'); let affected = false;
+            selectionRange.forEach(function(el) { if (el[0] !== startCell[0]) { el.val(valToCopy).trigger('change'); affected = true; } });
             if (affected) calculateRow(tr);
         }
     }
     isDragging = false;
-    // Không xóa vùng chọn ở đây để cho phép user bấm Delete tiếp theo
 });
-
-// Xử lý phím Delete cho vùng chọn HOẶC ô hiện tại
 $(document).on('keydown', function(e) {
-    if (e.keyCode === 46 || e.keyCode === 8) { // Delete or Backspace
-        let hasSelection = selectionRange.length > 0 && $('.drag-selected').length > 0;
-        
-        if (hasSelection) {
-            e.preventDefault();
-            let tr = selectionRange[0].closest('tr');
-            let affected = false;
-            
-            selectionRange.forEach(function(el) {
-                if (el.val() !== '') {
-                    el.val('').trigger('change');
-                    affected = true;
-                }
-            });
-            
-            if (affected) calculateRow(tr);
-            
-            // Sau khi xóa xong thì bỏ chọn
-            $('.att-input.drag-selected').removeClass('drag-selected');
-            $('.att-input.selected-cell').removeClass('selected-cell');
-            selectionRange = [];
-        } else {
-            // Xóa ô đơn lẻ đang focus (nếu không có vùng chọn)
-            let focused = $(':focus');
-            if (focused.hasClass('att-input') && focused.val() !== '') {
-                e.preventDefault();
-                focused.val('').trigger('change');
-            }
-        }
+    if ((e.keyCode === 46 || e.keyCode === 8) && selectionRange.length > 0) {
+        e.preventDefault();
+        let tr = selectionRange[0].closest('tr'); let affected = false;
+        selectionRange.forEach(function(el) { if (el.val() !== '') { el.val('').trigger('change'); affected = true; } });
+        if (affected) calculateRow(tr);
+        $('.att-input.drag-selected').removeClass('drag-selected'); $('.att-input.selected-cell').removeClass('selected-cell'); selectionRange = [];
     }
 });
-
-// Click ra ngoài thì bỏ chọn
 $(document).on('click', function(e) {
     if (!$(e.target).closest('.attendance-table').length) {
-        $('.att-input.drag-selected').removeClass('drag-selected');
-        $('.att-input.selected-cell').removeClass('selected-cell');
-        selectionRange = [];
+        $('.att-input.drag-selected').removeClass('drag-selected'); $('.att-input.selected-cell').removeClass('selected-cell'); selectionRange = [];
     }
 });
-
-// CSS cho vùng chọn kéo thả (High Contrast)
 $('head').append('<style>.drag-selected { background-color: #60a5fa !important; color: #fff !important; outline: 2px solid #2563eb !important; z-index: 9999 !important; position: relative; box-shadow: 0 0 5px rgba(37, 99, 235, 0.5); } .selected-cell { outline: 2px solid #2563eb !important; z-index: 9999; position: relative; }</style>');
 </script>
