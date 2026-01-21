@@ -1133,3 +1133,14 @@ body.dark-mode .attendance-table td.sticky-right {
     background-color: #1e293b !important;
 }
 
+
+/* Toast Dark Mode */
+body.dark-mode .toast {
+    background-color: #1e293b;
+    color: #f1f5f9;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+body.dark-mode .toast-message {
+    color: #94a3b8;
+}
+

@@ -287,12 +287,13 @@ $(document).ready(function() {
 $(document).on('change', '.att-input', function() {
     let currentVal = $(this).val();
     let originalVal = $(this).data('original');
-    
+    let tr = $(this).closest('tr');
+    let day = $(this).data('day');
+    let key = `${tr.data('emp-id')}_${day}`;
+
     if (currentVal !== originalVal) {
         $(this).addClass('changed');
-        let tr = $(this).closest('tr');
-        let day = $(this).data('day');
-        changedData[`${tr.data('emp-id')}_${day}`] = { 
+        changedData[key] = { 
             emp_id: tr.data('emp-id'), 
             day: day, 
             symbol: tr.find(`.symbol[data-day="${day}"]`).val(), 
@@ -300,8 +301,9 @@ $(document).on('change', '.att-input', function() {
         };
     } else {
         $(this).removeClass('changed');
+        delete changedData[key];
     }
-    calculateRow($(this).closest('tr'));
+    calculateRow(tr);
 });
 
 // 2. Xóa nhanh bằng phím Delete
@@ -322,17 +324,23 @@ function calculateRow(tr) {
         let ot = parseFloat(tr.find(`.ot[data-day="${d}"]`).val()) || 0;
         let isSun = $(this).data('is-sunday') == '1';
         
-        if (['X'].includes(sym)) { s.total += 1; }
+        // 1. Tính toán ngày nghỉ & công
+        // Tổng công thực tế (Theo công thức Excel: X + 1/2*0.5 + 1/p*0.5 + ĐH)
+        
+        if (['X', 'ĐH', 'DH'].includes(sym)) { s.total += 1; }
         else if (sym == '1/2') { s.total += 0.5; }
-        else if (['P', 'CĐ', 'CD'].includes(sym)) { s.p_cd += 1; s.total += 1; }
-        else if (['1/P', '1/CĐ'].includes(sym)) { s.p_cd += 0.5; s.total += 1; }
-        else if (['Ô', 'O', 'TS', 'R', 'VR'].includes(sym)) { s.other += 1; }
-        else if (['L', 'T', 'L,T'].includes(sym)) { s.holiday += 1; s.total += 1; }
-        else if (sym == '1/LT') { s.holiday += 0.5; s.total += 1; }
-        else if (['F', 'F1'].includes(sym)) { s.total += 1; }
+        else if (['1/P', '1/CĐ', '1/CD'].includes(sym)) { s.total += 0.5; s.p_cd += 0.5; } // 0.5 công + 0.5 phép
+        else if (['F', 'F1'].includes(sym)) { s.total += 1; } // Làm ngày lễ/CN cũng là 1 công
+        else if (['1/F1', '1/LT'].includes(sym)) { s.total += 0.5; }
 
+        // Tính ngày nghỉ (để hiển thị vào cột P/CĐ, Khác, Lễ)
+        if (['P', 'CĐ', 'CD'].includes(sym)) { s.p_cd += 1; } // Nghỉ nguyên ngày -> Ko cộng vào Total
+        else if (['Ô', 'O', 'TS', 'R', 'VR', 'CO', 'NB'].includes(sym)) { s.other += 1; }
+        else if (['L', 'T', 'L,T', 'L, T'].includes(sym)) { s.holiday += 1; }
+
+        // 2. Tính toán Tăng ca (OT)
         if (ot > 0) {
-            if (['F', 'L', 'T', 'L,T'].includes(sym)) s.ot_hol += ot;
+            if (['F', 'L', 'T', 'L,T', 'L, T'].includes(sym)) s.ot_hol += ot;
             else if (['F1'].includes(sym) || isSun) s.ot_sun += ot;
             else s.ot_norm += ot;
         }
@@ -355,21 +363,35 @@ function toggleSymbol(input) {
 
 function saveAttendance() {
     let changes = Object.values(changedData); 
-    if (!changes.length) return showToast('info', 'Không có thay đổi.');
+    if (!changes.length) return Toast.info('Không có thay đổi nào để lưu.');
+    
     let $btn = $('button[onclick="saveAttendance()"]'); 
-    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
+    
     fetch('save.php', { 
         method: 'POST', 
         headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ month: <?php echo $month; ?>, year: <?php echo $year; ?>, project_id: <?php echo $project_id; ?>, changes: changes })
+        body: JSON.stringify({ 
+            month: <?php echo $month; ?>, 
+            year: <?php echo $year; ?>, 
+            project_id: <?php echo $project_id; ?>, 
+            changes: changes 
+        })
     }).then(r => r.json()).then(data => { 
         if (data.status === 'success') { 
-            showToast('success', data.message); 
+            Toast.success(data.message); 
             $('.att-input.changed').removeClass('changed'); 
             $('.att-input').each(function() { $(this).data('original', $(this).val()); }); // Reset mốc so sánh
             changedData = {}; 
-        } else showToast('error', data.message);
-    }).finally(() => $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Lưu dữ liệu'));
+        } else {
+            Toast.error(data.message);
+        }
+    }).catch(err => {
+        Toast.error('Lỗi kết nối máy chủ.');
+        console.error(err);
+    }).finally(() => {
+        $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Lưu dữ liệu');
+    });
 }
 
 /* --- 6. Advanced Drag & Drop Logic (Excel-like) --- */

@@ -57,22 +57,16 @@ foreach ($changes as $c) {
     
     if ($existing) {
         // Update
-        // If both symbol and ot are empty/zero, maybe delete? 
-        // No, keep record but empty values to preserve history/audit if needed, 
-        // or just update to NULL/0.
-        
         if ($symbol === '' && $ot == 0) {
-             // Optional: db_query("DELETE FROM attendance WHERE id = ?", [$existing['id']]);
-             // Better: Update to null
              db_query("UPDATE attendance SET timekeeper_symbol = NULL, overtime_hours = 0, is_manual_import = 0 WHERE id = ?", [$existing['id']]);
         } else {
-             db_query("UPDATE attendance SET timekeeper_symbol = ?, overtime_hours = ?, is_manual_import = 0 WHERE id = ?", [$symbol, $ot, $existing['id']]);
+             db_query("UPDATE attendance SET project_id = ?, timekeeper_symbol = ?, overtime_hours = ?, is_manual_import = 0 WHERE id = ?", [$project_id, $symbol, $ot, $existing['id']]);
         }
     } else {
         // Insert only if there is data
         if ($symbol !== '' || $ot > 0) {
-            db_query("INSERT INTO attendance (employee_id, date, timekeeper_symbol, overtime_hours, is_manual_import) VALUES (?, ?, ?, ?, 0)", 
-                     [$emp_id, $date, $symbol, $ot]);
+            db_query("INSERT INTO attendance (employee_id, project_id, date, timekeeper_symbol, overtime_hours, is_manual_import) VALUES (?, ?, ?, ?, ?, 0)", 
+                     [$emp_id, $project_id, $date, $symbol, $ot]);
         }
     }
     $success_count++;
