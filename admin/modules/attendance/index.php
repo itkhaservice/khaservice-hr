@@ -149,8 +149,22 @@ include '../../../includes/sidebar.php';
                                             <?php if($is_locked): ?>
                                                 <div class="text-center"><b><?php echo $sym; ?></b><br><small><?php echo $ot?:''; ?></small></div>
                                             <?php else: ?>
-                                                <input type="text" class="att-input symbol" data-day="<?php echo $d; ?>" data-is-sunday="<?php echo $is_sun?'1':'0'; ?>" value="<?php echo $sym; ?>" maxlength="4" ondblclick="toggleSymbol(this)" onfocus="this.select()">
-                                                <input type="number" class="att-input ot" data-day="<?php echo $d; ?>" value="<?php echo $ot?:''; ?>" min="0" step="0.5" onfocus="this.select()">
+                                                <input type="text" class="att-input symbol" 
+                                                       data-day="<?php echo $d; ?>" 
+                                                       data-is-sunday="<?php echo $is_sun ? '1' : '0'; ?>"
+                                                       value="<?php echo $sym; ?>" 
+                                                       maxlength="4"
+                                                       autocomplete="off"
+                                                       ondblclick="toggleSymbol(this)"
+                                                       onfocus="this.select()">
+                                                <input type="text" class="att-input ot" 
+                                                       data-day="<?php echo $d; ?>" 
+                                                       data-is-sunday="<?php echo $is_sun ? '1' : '0'; ?>"
+                                                       value="<?php echo $ot > 0 ? $ot : ''; ?>" 
+                                                       oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
+                                                       autocomplete="off"
+                                                       placeholder=""
+                                                       onfocus="this.select()">
                                             <?php endif; ?>
                                         </td>
                                     <?php endfor; ?>
@@ -169,7 +183,6 @@ include '../../../includes/sidebar.php';
             </div>
         <?php endif; ?>
     </div>
-</div>
 
 <style>
 /* CSS RESET FOR STABILITY */
@@ -197,48 +210,295 @@ include '../../../includes/sidebar.php';
 
 /* UTILS */
 .is-sunday { background-color: #dcfce7 !important; }
-.att-input { width: 100%; border: none; text-align: center; background: transparent; display: block; cursor: pointer; }
-.att-input.symbol { font-weight: 700; text-transform: uppercase; color: var(--text-main); height: 24px; }
-.att-input.ot { font-size: 0.7rem; color: #dc2626; height: 18px; }
-.att-input:focus { background-color: #e0f2fe; outline: none; }
-.att-input.changed { background-color: #fffbeb !important; }
+.shadow-left { box-shadow: -3px 0 5px -2px rgba(0,0,0,0.1); }
+
+/* Inputs Styles */
+.att-input { 
+    width: 100%; 
+    border: none; 
+    text-align: center; 
+    background: transparent; 
+    display: block; 
+    cursor: pointer; 
+    font-family: 'Inter', sans-serif;
+    outline: none;
+}
+.att-input.symbol { 
+    font-weight: 800; 
+    text-transform: uppercase; 
+    height: 24px;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #e2e8f0; /* Tách biệt rõ ràng */
+}
+/* Màu sắc ký hiệu chuẩn */
+.att-input.symbol[value="X"] { color: #166534; } /* Xanh lá đậm */
+.att-input.symbol[value="P"] { color: #1e40af; } /* Xanh dương */
+.att-input.symbol[value="L,T"], .att-input.symbol[value="L"], .att-input.symbol[value="T"] { color: #991b1b; } /* Đỏ đậm */
+.att-input.symbol[value="OF"] { color: #64748b; font-weight: 400; }
+
+.att-input.ot { 
+    font-size: 0.75rem; 
+    color: #c2410c; /* Màu cam đỏ cho tăng ca */
+    font-weight: 600;
+    height: 18px; 
+}
+
+/* Ẩn nút tăng giảm (spinner) trong input number */
+.att-input.ot::-webkit-outer-spin-button,
+.att-input.ot::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.att-input.ot {
+    -moz-appearance: textfield;
+}
+
+.att-input:focus { background-color: rgba(0,0,0,0.05); }
+.att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; } /* Vàng nhạt cho ô vừa sửa */
 
 /* DARK MODE */
 body.dark-mode .attendance-table thead th, 
-body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }
+body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
 body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
-body.dark-mode .is-sunday { background-color: rgba(22, 101, 52, 0.2) !important; }
+body.dark-mode .is-sunday { background-color: rgba(22, 101, 52, 0.25) !important; }
+
+/* Màu sắc ký hiệu trong Dark Mode */
+body.dark-mode .att-input.symbol { color: #cbd5e1; } /* Mặc định */
+body.dark-mode .att-input.symbol[value="X"] { color: #4ade80; }
+body.dark-mode .att-input.symbol[value="P"] { color: #60a5fa; }
+body.dark-mode .att-input.symbol[value="L,T"], body.dark-mode .att-input.symbol[value="L"], body.dark-mode .att-input.symbol[value="T"] { color: #f87171; }
+body.dark-mode .att-input.ot { color: #fb923c; }
+body.dark-mode .att-input.changed { background-color: #451a03 !important; color: #fff; }
 </style>
+
+<?php include '../../../includes/footer.php'; ?>
 
 <script>
 let changedData = {}; 
-$(document).on('change', '.att-input', function() {
-    $(this).addClass('changed');
-    let tr = $(this).closest('tr'); let day = $(this).data('day');
-    changedData[`${tr.data('emp-id')}_${day}`] = { emp_id: tr.data('emp-id'), day: day, symbol: tr.find(`.symbol[data-day="${day}"]`).val(), ot: tr.find(`.ot[data-day="${day}"]`).val() || 0 };
-    calculateRow(tr);
+
+$(document).ready(function() {
+    // Khởi tạo giá trị gốc cho tất cả các ô để so sánh thay đổi
+    $('.att-input').each(function() {
+        $(this).data('original', $(this).val());
+    });
 });
+
+// 1. Theo dõi thay đổi
+$(document).on('change', '.att-input', function() {
+    let currentVal = $(this).val();
+    let originalVal = $(this).data('original');
+    
+    if (currentVal !== originalVal) {
+        $(this).addClass('changed');
+        let tr = $(this).closest('tr');
+        let day = $(this).data('day');
+        changedData[`${tr.data('emp-id')}_${day}`] = { 
+            emp_id: tr.data('emp-id'), 
+            day: day, 
+            symbol: tr.find(`.symbol[data-day="${day}"]`).val(), 
+            ot: tr.find(`.ot[data-day="${day}"]`).val() || 0 
+        };
+    } else {
+        $(this).removeClass('changed');
+    }
+    calculateRow($(this).closest('tr'));
+});
+
+// 2. Xóa nhanh bằng phím Delete
+$(document).on('keydown', '.att-input', function(e) {
+    if (e.keyCode === 46 || e.keyCode === 8) { // Delete hoặc Backspace
+        if ($(this).val() !== '') {
+            $(this).val('').trigger('change');
+        }
+    }
+});
+
+// 3. Tính toán Real-time
 function calculateRow(tr) {
     let s = {p_cd:0, other:0, holiday:0, ot_norm:0, ot_sun:0, ot_hol:0, total:0};
     tr.find('.symbol').each(function() {
-        let d = $(this).data('day'); let sym = $(this).val().toUpperCase().trim();
+        let d = $(this).data('day'); 
+        let sym = $(this).val().toUpperCase().trim();
         let ot = parseFloat(tr.find(`.ot[data-day="${d}"]`).val()) || 0;
         let isSun = $(this).data('is-sunday') == '1';
-        if (['X','L','T','L,T'].includes(sym)) s.total += 1; else if (sym == '1/2') s.total += 0.5;
-        else if (sym == 'P' || sym == 'CĐ') { s.p_cd++; s.total += 1; } else if (sym == '1/P') { s.p_cd += 0.5; s.total += 1; }
-        else if (['Ô', 'TS', 'R', 'VR'].includes(sym)) s.other++;
-        if (ot > 0) { if (sym == 'F' || sym == 'L,T') s.ot_hol += ot; elseif (sym == 'F1' || isSun) s.ot_sun += ot; else s.ot_norm += ot; }
+        
+        if (['X'].includes(sym)) { s.total += 1; }
+        else if (sym == '1/2') { s.total += 0.5; }
+        else if (['P', 'CĐ', 'CD'].includes(sym)) { s.p_cd += 1; s.total += 1; }
+        else if (['1/P', '1/CĐ'].includes(sym)) { s.p_cd += 0.5; s.total += 1; }
+        else if (['Ô', 'O', 'TS', 'R', 'VR'].includes(sym)) { s.other += 1; }
+        else if (['L', 'T', 'L,T'].includes(sym)) { s.holiday += 1; s.total += 1; }
+        else if (sym == '1/LT') { s.holiday += 0.5; s.total += 1; }
+        else if (['F', 'F1'].includes(sym)) { s.total += 1; }
+
+        if (ot > 0) {
+            if (['F', 'L', 'T', 'L,T'].includes(sym)) s.ot_hol += ot;
+            else if (['F1'].includes(sym) || isSun) s.ot_sun += ot;
+            else s.ot_norm += ot;
+        }
     });
-    tr.find('.sum-p-cd').text(s.p_cd || ''); tr.find('.sum-other').text(s.other || ''); tr.find('.sum-holiday').text(s.holiday || '');
-    tr.find('.sum-ot-normal').text(s.ot_norm || ''); tr.find('.sum-ot-sun').text(s.ot_sun || ''); tr.find('.sum-ot-hol').text(s.ot_hol || '');
+    
+    tr.find('.sum-p-cd').text(s.p_cd || ''); 
+    tr.find('.sum-other').text(s.other || ''); 
+    tr.find('.sum-holiday').text(s.holiday || '');
+    tr.find('.sum-ot-normal').text(s.ot_norm || ''); 
+    tr.find('.sum-ot-sun').text(s.ot_sun || ''); 
+    tr.find('.sum-ot-hol').text(s.ot_hol || '');
     tr.find('.sum-total').text(s.total || '0');
 }
-function toggleSymbol(input) { let $i = $(input); let cur = $i.val().toUpperCase(); $i.val((cur===''||cur=='OF')?'X':'').trigger('change'); }
+
+function toggleSymbol(input) { 
+    let $i = $(input); 
+    let cur = $i.val().toUpperCase(); 
+    $i.val((cur===''||cur=='OF')?'X':'').trigger('change'); 
+}
+
 function saveAttendance() {
-    let changes = Object.values(changedData); if (!changes.length) return showToast('info', 'Không có thay đổi.');
-    let $btn = $('button[onclick="saveAttendance()"]'); $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-    fetch('save.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month: <?php echo $month; ?>, year: <?php echo $year; ?>, project_id: <?php echo $project_id; ?>, changes: changes })
-    }).then(r => r.json()).then(data => { if (data.status === 'success') { showToast('success', data.message); $('.att-input.changed').removeClass('changed'); changedData = {}; } else showToast('error', data.message);
+    let changes = Object.values(changedData); 
+    if (!changes.length) return showToast('info', 'Không có thay đổi.');
+    let $btn = $('button[onclick="saveAttendance()"]'); 
+    $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+    fetch('save.php', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ month: <?php echo $month; ?>, year: <?php echo $year; ?>, project_id: <?php echo $project_id; ?>, changes: changes })
+    }).then(r => r.json()).then(data => { 
+        if (data.status === 'success') { 
+            showToast('success', data.message); 
+            $('.att-input.changed').removeClass('changed'); 
+            $('.att-input').each(function() { $(this).data('original', $(this).val()); }); // Reset mốc so sánh
+            changedData = {}; 
+        } else showToast('error', data.message);
     }).finally(() => $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Lưu dữ liệu'));
 }
+
+/* --- 6. Advanced Drag & Drop Logic (Excel-like) --- */
+let isDragging = false;
+let startCell = null;
+let selectionRange = []; // Array of elements
+
+// Ngăn trình duyệt xử lý kéo thả text mặc định
+$(document).on('dragstart', '.att-input', function(e) {
+    e.preventDefault();
+    return false;
+});
+
+$(document).on('mousedown', '.att-input', function(e) {
+    if (e.button !== 0) return;
+
+    isDragging = true;
+    startCell = $(this); // Chính xác là input đang click
+    
+    if ($(this).hasClass('symbol')) dragType = 'symbol';
+    else if ($(this).hasClass('ot')) dragType = 'ot';
+    
+    // Highlight ngay ô đầu tiên
+    $('.att-input.drag-selected').removeClass('drag-selected');
+    $('.att-input.selected-cell').removeClass('selected-cell'); 
+    
+    $(this).addClass('selected-cell'); 
+    $(this).focus(); 
+});
+
+$(document).on('mousemove', 'td', function(e) {
+    if (!isDragging || !startCell) return;
+    
+    if (e.buttons !== 1) {
+        isDragging = false;
+        return;
+    }
+
+    // FIX: Chỉ tìm input cùng loại với loại đang kéo
+    let input = $(this).find('.' + dragType);
+    if (input.length === 0) return;
+
+    // Không cần check currentType nữa vì ta đã find đúng class
+    let startRow = startCell.closest('tr')[0];
+    let currentRow = $(this).closest('tr')[0];
+
+    if (startRow === currentRow) { // Chỉ cần check cùng dòng
+        $('.att-input.drag-selected').removeClass('drag-selected');
+        
+        let startIdx = startCell.parent().index(); 
+        let currentIdx = $(this).index();
+        let minIdx = Math.min(startIdx, currentIdx);
+        let maxIdx = Math.max(startIdx, currentIdx);
+
+        let tr = $(startRow);
+        tr.find('td').slice(minIdx, maxIdx + 1).each(function() {
+            let item = $(this).find('.' + dragType); // Find đúng loại
+            if (item.length) {
+                item.addClass('drag-selected');
+                selectionRange.push(item);
+            }
+        });
+    }
+});
+
+$(document).on('mouseup', function() {
+    if (isDragging && startCell && selectionRange.length > 1) {
+        let valToCopy = startCell.val();
+        
+        if (valToCopy !== '') {
+            let tr = startCell.closest('tr');
+            let affected = false;
+            
+            selectionRange.forEach(function(el) {
+                if (el[0] !== startCell[0]) { 
+                    el.val(valToCopy).trigger('change');
+                    affected = true;
+                }
+            });
+            if (affected) calculateRow(tr);
+        }
+    }
+    isDragging = false;
+    // Không xóa vùng chọn ở đây để cho phép user bấm Delete tiếp theo
+});
+
+// Xử lý phím Delete cho vùng chọn HOẶC ô hiện tại
+$(document).on('keydown', function(e) {
+    if (e.keyCode === 46 || e.keyCode === 8) { // Delete or Backspace
+        let hasSelection = selectionRange.length > 0 && $('.drag-selected').length > 0;
+        
+        if (hasSelection) {
+            e.preventDefault();
+            let tr = selectionRange[0].closest('tr');
+            let affected = false;
+            
+            selectionRange.forEach(function(el) {
+                if (el.val() !== '') {
+                    el.val('').trigger('change');
+                    affected = true;
+                }
+            });
+            
+            if (affected) calculateRow(tr);
+            
+            // Sau khi xóa xong thì bỏ chọn
+            $('.att-input.drag-selected').removeClass('drag-selected');
+            $('.att-input.selected-cell').removeClass('selected-cell');
+            selectionRange = [];
+        } else {
+            // Xóa ô đơn lẻ đang focus (nếu không có vùng chọn)
+            let focused = $(':focus');
+            if (focused.hasClass('att-input') && focused.val() !== '') {
+                e.preventDefault();
+                focused.val('').trigger('change');
+            }
+        }
+    }
+});
+
+// Click ra ngoài thì bỏ chọn
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('.attendance-table').length) {
+        $('.att-input.drag-selected').removeClass('drag-selected');
+        $('.att-input.selected-cell').removeClass('selected-cell');
+        selectionRange = [];
+    }
+});
+
+// CSS cho vùng chọn kéo thả (High Contrast)
+$('head').append('<style>.drag-selected { background-color: #60a5fa !important; color: #fff !important; outline: 2px solid #2563eb !important; z-index: 9999 !important; position: relative; box-shadow: 0 0 5px rgba(37, 99, 235, 0.5); } .selected-cell { outline: 2px solid #2563eb !important; z-index: 9999; position: relative; }</style>');
 </script>
