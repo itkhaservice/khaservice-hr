@@ -179,8 +179,8 @@ include '../../../includes/sidebar.php';
                         <tbody>
                             <?php $stt = 0; foreach($employees as $emp): $stt++; $s = ['p_cd'=>0, 'other'=>0, 'holiday'=>0, 'ot_norm'=>0, 'ot_sun'=>0, 'ot_hol'=>0, 'total'=>0]; ?>
                                 <tr data-emp-id="<?php echo $emp['id']; ?>">
-                                    <td class="fix-l" style="left: 0; font-weight: 600; background: #fff; text-align: center;"><?php echo $stt; ?></td>
-                                    <td class="fix-l" style="left: 50px; border-right: 2px solid #cbd5e1; background: #fff; padding: 4px 8px;">
+                                    <td class="fix-l" style="left: 0; font-weight: 600; text-align: center;"><?php echo $stt; ?></td>
+                                    <td class="fix-l" style="left: 50px; border-right: 2px solid #cbd5e1; padding: 4px 8px;">
                                         <div style="color: var(--primary-dark); font-weight: 700; font-size: 0.85rem;"><?php echo $emp['fullname']; ?></div>
                                         <div style="font-size: 0.65rem; color: #64748b;"><?php echo $emp['dept_name'] ?? '-'; ?> - <?php echo $emp['position']; ?></div>
                                     </td>
@@ -213,13 +213,13 @@ include '../../../includes/sidebar.php';
                                             <?php endif; ?>
                                         </td>
                                     <?php endfor; ?>
-                                    <td class="fix-r sum-p-cd" style="right: 255px; border-left: 2px solid #cbd5e1; background: #fff;"><?php echo $s['p_cd'] ?: ''; ?></td>
-                                    <td class="fix-r sum-other" style="right: 215px; background: #fff;"><?php echo $s['other'] ?: ''; ?></td>
-                                    <td class="fix-r sum-holiday" style="right: 175px; background: #fff;"><?php echo $s['holiday'] ?: ''; ?></td>
-                                    <td class="fix-r sum-ot-normal" style="right: 135px; border-left: 1px solid #cbd5e1; color: #dc2626; background: #fff;"><?php echo $s['ot_norm'] ?: ''; ?></td>
-                                    <td class="fix-r sum-ot-sun" style="right: 95px; color: #dc2626; background: #fff;"><?php echo $s['ot_sun'] ?: ''; ?></td>
-                                    <td class="fix-r sum-ot-hol" style="right: 55px; color: #dc2626; background: #fff;"><?php echo $s['ot_hol'] ?: ''; ?></td>
-                                    <td class="fix-r sum-total" style="right: 0; font-weight:700; color:var(--primary-color); border-left: 2px solid #cbd5e1; background: #fff;"><?php echo $s['total']; ?></td>
+                                    <td class="fix-r sum-p-cd" style="right: 255px; border-left: 2px solid #cbd5e1;"><?php echo $s['p_cd'] ?: ''; ?></td>
+                                    <td class="fix-r sum-other" style="right: 215px;"><?php echo $s['other'] ?: ''; ?></td>
+                                    <td class="fix-r sum-holiday" style="right: 175px;"><?php echo $s['holiday'] ?: ''; ?></td>
+                                    <td class="fix-r sum-ot-normal" style="right: 135px; border-left: 1px solid #cbd5e1; color: #dc2626;"><?php echo $s['ot_norm'] ?: ''; ?></td>
+                                    <td class="fix-r sum-ot-sun" style="right: 95px; color: #dc2626;"><?php echo $s['ot_sun'] ?: ''; ?></td>
+                                    <td class="fix-r sum-ot-hol" style="right: 55px; color: #dc2626;"><?php echo $s['ot_hol'] ?: ''; ?></td>
+                                    <td class="fix-r sum-total" style="right: 0; font-weight:700; color:var(--primary-color); border-left: 2px solid #cbd5e1;"><?php echo $s['total']; ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -241,6 +241,8 @@ include '../../../includes/sidebar.php';
 .fix-r { position: sticky; z-index: 900 !important; background-color: #fff; text-align: center; }
 .attendance-table thead .fix-r { z-index: 1000 !important; background-color: #f8fafc; }
 .is-sunday { background-color: #dcfce7 !important; }
+.attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: #cefadd !important; }
+
 .shadow-left { box-shadow: -3px 0 5px -2px rgba(0,0,0,0.1); }
 .att-input { width: 100%; border: none; text-align: center; background: transparent; display: block; cursor: pointer; font-family: 'Inter', sans-serif; outline: none; }
 .att-input.symbol { font-weight: 800; text-transform: uppercase; height: 24px; font-size: 0.9rem; border-bottom: 1px solid #e2e8f0; }
@@ -337,15 +339,32 @@ include '../../../includes/sidebar.php';
     pointer-events: none;
 }
 
+.attendance-table tbody tr:nth-child(even) td { background-color: #f1f5f9 !important; }
+.attendance-table tbody tr:nth-child(even) .fix-l, 
+.attendance-table tbody tr:nth-child(even) .fix-r { background-color: #f1f5f9 !important; }
+.attendance-table tbody tr:hover td { background-color: #e2e8f0 !important; }
+.attendance-table tbody tr:hover .fix-l, 
+.attendance-table tbody tr:hover .fix-r { background-color: #e2e8f0 !important; }
+
 /* DARK MODE */
 body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
-body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
 body.dark-mode .is-sunday { background-color: rgba(22, 101, 52, 0.25) !important; }
+body.dark-mode .attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: rgba(22, 101, 52, 0.35) !important; }
+body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
 body.dark-mode .att-input.symbol { color: #cbd5e1; } body.dark-mode .att-input.symbol[value="X"] { color: #4ade80; }
 body.dark-mode .att-input.symbol[value="P"] { color: #60a5fa; }
 body.dark-mode .att-input.symbol[value="L,T"], body.dark-mode .att-input.symbol[value="L"], body.dark-mode .att-input.symbol[value="T"] { color: #f87171; }
 body.dark-mode .att-input.ot { color: #fb923c; }
-body.dark-mode .att-input.changed { background-color: #451a03 !important; color: #fff; }
+body.dark-mode .attendance-table tbody tr:nth-child(even) td,
+body.dark-mode .attendance-table tbody tr:nth-child(even) .fix-l,
+body.dark-mode .attendance-table tbody tr:nth-child(even) .fix-r { background-color: #1e293b !important; }
+body.dark-mode .attendance-table tbody tr:nth-child(odd) td,
+body.dark-mode .attendance-table tbody tr:nth-child(odd) .fix-l,
+body.dark-mode .attendance-table tbody tr:nth-child(odd) .fix-r { background-color: #0f172a !important; }
+body.dark-mode .attendance-table tbody tr:hover td,
+body.dark-mode .attendance-table tbody tr:hover .fix-l,
+body.dark-mode .attendance-table tbody tr:hover .fix-r { background-color: #334155 !important; }
+
 </style>
 
 <?php include '../../../includes/footer.php'; ?>
