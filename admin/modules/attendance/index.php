@@ -29,6 +29,18 @@ if ($project_id > 0 && !empty($employees)) {
     }
 }
 
+// Xử lý Khóa/Mở khóa bảng công (Chỉ dành cho Admin có quyền ALL)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['toggle_lock']) && $allowed_projs === 'ALL') {
+    $lock_action = $_POST['toggle_lock'] == 'lock' ? 1 : 0;
+    db_query("INSERT INTO attendance_locks (project_id, month, year, is_locked, locked_by, locked_at) 
+              VALUES (?, ?, ?, ?, ?, NOW()) 
+              ON DUPLICATE KEY UPDATE is_locked = ?, locked_by = ?, locked_at = NOW()", 
+              [$project_id, $month, $year, $lock_action, $_SESSION['user_id'], $lock_action, $_SESSION['user_id']]);
+    
+    set_toast('success', ($lock_action ? 'Đã khóa' : 'Đã mở khóa') . ' bảng chấm công thành công!');
+    redirect("index.php?month=$month&year=$year&project_id=$project_id");
+}
+
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 ?>
@@ -60,9 +72,9 @@ include '../../../includes/sidebar.php';
                 <a href="import.php" class="btn btn-secondary btn-sm" style="height: 36px; display:inline-flex; align-items:center;"><i class="fas fa-file-import"></i> Import</a>
                 
                 <?php if ($allowed_projs === 'ALL' && $project_id > 0): ?>
-                    <form method="POST" style="display:inline;">
+                    <form method="POST" id="lockForm" style="display:inline;">
                         <input type="hidden" name="toggle_lock" value="<?php echo $is_locked ? 'unlock' : 'lock'; ?>">
-                        <button type="submit" class="btn <?php echo $is_locked ? 'btn-warning' : 'btn-danger'; ?> btn-sm" style="height: 36px;" onclick="return confirm('Bạn chắc chắn muốn <?php echo $is_locked ? 'MỞ' : 'KHÓA'; ?> bảng công?')">
+                        <button type="button" class="btn <?php echo $is_locked ? 'btn-warning' : 'btn-danger'; ?> btn-sm" style="height: 36px;" onclick="confirmLock()">
                             <i class="fas <?php echo $is_locked ? 'fa-lock-open' : 'fa-lock'; ?>"></i> <?php echo $is_locked ? 'Mở khóa' : 'Khóa sổ'; ?>
                         </button>
                     </form>
@@ -175,7 +187,10 @@ include '../../../includes/sidebar.php';
                                     ?>
                                         <td class="<?php echo $is_sun?'is-sunday':''; ?>">
                                             <?php if($is_locked): ?>
-                                                <div class="text-center"><b><?php echo $sym; ?></b><br><small><?php echo $ot?:''; ?></small></div>
+                                                <div class="locked-cell-view">
+                                                    <div class="sym symbol" data-day="<?php echo $d; ?>" data-is-sunday="<?php echo $is_sun ? '1' : '0'; ?>"><?php echo $sym; ?></div>
+                                                    <div class="ot" data-day="<?php echo $d; ?>"><?php echo $ot > 0 ? $ot : ''; ?></div>
+                                                </div>
                                             <?php else: ?>
                                                 <input type="text" class="att-input symbol" data-day="<?php echo $d; ?>" data-is-sunday="<?php echo $is_sun?'1':'0'; ?>" value="<?php echo $sym; ?>" maxlength="4" autocomplete="off" oninput="this.value = this.value.toUpperCase();" ondblclick="toggleSymbol(this)" onfocus="this.select()">
                                                 <input type="text" class="att-input ot" data-day="<?php echo $d; ?>" value="<?php echo $ot?:''; ?>" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" autocomplete="off" onfocus="this.select()">
@@ -219,6 +234,28 @@ include '../../../includes/sidebar.php';
 .att-input.ot { font-size: 0.75rem; color: #c2410c; font-weight: 600; height: 18px; }
 .att-input:focus { background-color: rgba(0,0,0,0.05); }
 .att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; }
+
+/* Locked View Styles */
+.locked-cell-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 42px;
+}
+.locked-cell-view .sym {
+    font-weight: 800;
+    font-size: 0.9rem;
+    line-height: 1.2;
+}
+.locked-cell-view .ot {
+    font-size: 0.7rem;
+    color: #c2410c;
+    font-weight: 600;
+}
+
+/* DARK MODE */
 body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
 body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
 body.dark-mode .is-sunday { background-color: rgba(22, 101, 52, 0.25) !important; }
@@ -250,8 +287,13 @@ $(document).on('keydown', '.att-input', function(e) {
 function calculateRow(tr) {
     let s = {p_cd:0, other:0, holiday:0, ot_norm:0, ot_sun:0, ot_hol:0, total:0};
     tr.find('.symbol').each(function() {
-        let d = $(this).data('day'); let sym = $(this).val().toUpperCase().trim();
-        let ot = parseFloat(tr.find(`.ot[data-day="${d}"]`).val()) || 0;
+        let d = $(this).data('day'); 
+        // Lấy giá trị: nếu là input dùng val(), nếu là div dùng text()
+        let sym = ($(this).is('input') ? $(this).val() : $(this).text()).toUpperCase().trim();
+        
+        let otElem = tr.find(`.ot[data-day="${d}"]`);
+        let ot = parseFloat(otElem.is('input') ? otElem.val() : otElem.text()) || 0;
+        
         let isSun = $(this).data('is-sunday') == '1';
         if (['X', 'ĐH', 'DH'].includes(sym)) { s.total += 1; }
         else if (['1/2', '1/P', '1/CĐ', '1/CD'].includes(sym)) { s.total += 0.5; }
@@ -270,6 +312,15 @@ function calculateRow(tr) {
     tr.find('.sum-total').text(s.total || '0');
 }
 function toggleSymbol(input) { let $i = $(input); let cur = $i.val().toUpperCase(); $i.val((cur===''||cur=='OF')?'X':'').trigger('change'); }
+
+function confirmLock() {
+    let action = $('input[name="toggle_lock"]').val();
+    let msg = action === 'lock' ? 'Bạn có chắc chắn muốn KHÓA bảng chấm công này? Sau khi khóa, các dự án sẽ không thể chỉnh sửa dữ liệu.' : 'Bạn có chắc chắn muốn MỞ KHÓA bảng chấm công này?';
+    Modal.confirm(msg, () => {
+        $('#lockForm').submit();
+    });
+}
+
 function saveAttendance() {
     let payload = [];
     $('tr[data-emp-id]').each(function() {
