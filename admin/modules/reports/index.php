@@ -22,14 +22,20 @@ if ($allowed_projs !== 'ALL') {
 }
 $projects = db_fetch_all("SELECT id, name, headcount_required FROM projects WHERE $where_proj_list ORDER BY name ASC", $params_proj_list);
 
-// 1. Overview Statistics Logic
-$where_clause = "e.status = 'working'";
-$params = [];
+// Initialize empty data
+$total_emps = 0;
 $proj_info = null;
+$matrix_display = [];
+$final_missing_report = [];
 
-// Apply Permission Filter to Data Queries
-if ($allowed_projs !== 'ALL') {
-    if ($filter_project) {
+// Only calculate if a project is selected
+if ($filter_project > 0) {
+    // 1. Overview Statistics Logic
+    $where_clause = "e.status = 'working'";
+    $params = [];
+    
+    // Apply Permission Filter to Data Queries
+    if ($allowed_projs !== 'ALL') {
         if (in_array($filter_project, $allowed_projs)) {
             $where_clause .= " AND e.current_project_id = ?";
             $params[] = $filter_project;
@@ -38,106 +44,101 @@ if ($allowed_projs !== 'ALL') {
             $where_clause .= " AND 1=0";
         }
     } else {
-        if (!empty($allowed_projs)) {
-            $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
-            $where_clause .= " AND e.current_project_id IN ($in_placeholder)";
-            $params = array_merge($params, $allowed_projs);
-        } else {
-            $where_clause .= " AND 1=0";
-        }
-    }
-} else {
-    if ($filter_project) {
         $where_clause .= " AND e.current_project_id = ?";
         $params[] = $filter_project;
         $proj_info = db_fetch_row("SELECT * FROM projects WHERE id = ?", [$filter_project]);
     }
-}
 
-// Total Employees in Scope
-$total_emps = db_fetch_row("SELECT COUNT(*) as count FROM employees e WHERE $where_clause", $params)['count'];
+    // Total Employees in Scope
+    $total_emps = db_fetch_row("SELECT COUNT(*) as count FROM employees e WHERE $where_clause", $params)['count'];
 
-// Recalculate Required Headcount
-if ($proj_info) {
-    $sum_req = db_fetch_row("SELECT SUM(count_required) as total FROM project_positions WHERE project_id = ?", [$proj_info['id']]);
-    if ($sum_req && $sum_req['total'] > 0) $proj_info['headcount_required'] = $sum_req['total'];
-}
-
-// 2. Department & Position Matrix
-$sql_matrix = "
-    SELECT d.id as dept_id, d.name as dept_name, e.position, COUNT(e.id) as emp_count
-    FROM employees e
-    LEFT JOIN departments d ON e.department_id = d.id
-    WHERE $where_clause
-    GROUP BY d.id, d.name, e.position
-    ORDER BY d.name ASC, e.position ASC
-";
-$raw_matrix = db_fetch_all($sql_matrix, $params);
-
-$required_data = []; 
-if ($proj_info) {
-    $req_rows = db_fetch_all("SELECT department_id, position_name, count_required FROM project_positions WHERE project_id = ?", [$proj_info['id']]);
-    foreach ($req_rows as $r) {
-        $required_data[$r['department_id']][$r['position_name']] = $r['count_required'];
+    // Recalculate Required Headcount
+    if ($proj_info) {
+        $sum_req = db_fetch_row("SELECT SUM(count_required) as total FROM project_positions WHERE project_id = ?", [$proj_info['id']]);
+        if ($sum_req && $sum_req['total'] > 0) $proj_info['headcount_required'] = $sum_req['total'];
     }
-}
 
-$matrix_display = [];
-$has_shortage = false;
+    // 2. Department & Position Matrix
+    $sql_matrix = "
+        SELECT d.id as dept_id, d.name as dept_name, e.position, COUNT(e.id) as emp_count
+        FROM employees e
+        LEFT JOIN departments d ON e.department_id = d.id
+        WHERE $where_clause
+        GROUP BY d.id, d.name, e.position
+        ORDER BY d.name ASC, e.position ASC
+    ";
+    $raw_matrix = db_fetch_all($sql_matrix, $params);
 
-foreach ($raw_matrix as $row) {
-    $d_id = $row['dept_id'] ?? 0;
-    $d_name = $row['dept_name'] ?? 'Chưa phân loại';
-    $pos = $row['position'] ?? 'Chưa có chức vụ';
-    if (!isset($matrix_display[$d_name])) $matrix_display[$d_name] = [];
-    $req = $required_data[$d_id][$pos] ?? 0;
-    $act = $row['emp_count'];
-    if ($req > 0 && $act < $req) $has_shortage = true;
-    $matrix_display[$d_name][$pos] = ['actual' => $act, 'required' => $req];
-}
+    $required_data = []; 
+    if ($proj_info) {
+        $req_rows = db_fetch_all("SELECT department_id, position_name, count_required FROM project_positions WHERE project_id = ?", [$proj_info['id']]);
+        foreach ($req_rows as $r) {
+            $required_data[$r['department_id']][$r['position_name']] = $r['count_required'];
+        }
+    }
 
-if ($proj_info) {
-    $all_depts = db_fetch_all("SELECT id, name FROM departments");
-    $dept_names_map = []; foreach($all_depts as $ad) $dept_names_map[$ad['id']] = $ad['name'];
-    foreach ($required_data as $d_id => $positions) {
-        $d_name = $dept_names_map[$d_id] ?? 'Chưa phân loại';
-        foreach ($positions as $pos_name => $count_req) {
-            if (!isset($matrix_display[$d_name][$pos_name])) {
-                $has_shortage = true;
-                $matrix_display[$d_name][$pos_name] = ['actual' => 0, 'required' => $count_req];
+    $has_shortage = false;
+
+    foreach ($raw_matrix as $row) {
+        $d_id = $row['dept_id'] ?? 0;
+        $d_name = $row['dept_name'] ?? 'Chưa phân loại';
+        $pos = $row['position'] ?? 'Chưa có chức vụ';
+        if (!isset($matrix_display[$d_name])) $matrix_display[$d_name] = [];
+        $req = $required_data[$d_id][$pos] ?? 0;
+        $act = $row['emp_count'];
+        if ($req > 0 && $act < $req) $has_shortage = true;
+        $matrix_display[$d_name][$pos] = ['actual' => $act, 'required' => $req];
+    }
+
+    if ($proj_info) {
+        $all_depts = db_fetch_all("SELECT id, name FROM departments");
+        $dept_names_map = []; foreach($all_depts as $ad) $dept_names_map[$ad['id']] = $ad['name'];
+        foreach ($required_data as $d_id => $positions) {
+            $d_name = $dept_names_map[$d_id] ?? 'Chưa phân loại';
+            foreach ($positions as $pos_name => $count_req) {
+                if (!isset($matrix_display[$d_name][$pos_name])) {
+                    $has_shortage = true;
+                    $matrix_display[$d_name][$pos_name] = ['actual' => 0, 'required' => $count_req];
+                }
             }
         }
     }
-}
 
-// 3. Missing Documents Report (FIXED Logic)
-$required_docs_db = db_fetch_all("SELECT code, name FROM document_settings WHERE is_required = 1");
-$mandatory_docs = []; $doc_names = [];
-foreach ($required_docs_db as $rd) {
-    $mandatory_docs[] = $rd['code'];
-    $doc_names[$rd['code']] = $rd['name'];
-}
+    // 3. Missing Documents Report (FIXED Logic)
+    $required_docs_db = db_fetch_all("SELECT code, name FROM document_settings WHERE is_required = 1");
+    $mandatory_docs = []; $doc_names = [];
+    foreach ($required_docs_db as $rd) {
+        $mandatory_docs[] = $rd['code'];
+        $doc_names[$rd['code']] = $rd['name'];
+    }
 
-$missing_sql = "
-    SELECT e.id, e.code, e.fullname, p.name as proj_name,
-    (SELECT GROUP_CONCAT(doc_type) FROM documents d WHERE d.employee_id = e.id AND d.is_submitted = 1) as submitted_types
-    FROM employees e
-    LEFT JOIN projects p ON e.current_project_id = p.id
-    WHERE $where_clause
-";
-$missing_docs_list = db_fetch_all($missing_sql, $params);
+    $missing_sql = "
+        SELECT e.id, e.code, e.fullname, p.name as proj_name,
+        (SELECT GROUP_CONCAT(doc_type) FROM documents d WHERE d.employee_id = e.id AND d.is_submitted = 1) as submitted_types
+        FROM employees e
+        LEFT JOIN projects p ON e.current_project_id = p.id
+        WHERE $where_clause
+    ";
+    $missing_docs_list = db_fetch_all($missing_sql, $params);
 
-$final_missing_report = [];
-foreach ($missing_docs_list as $row) {
-    $submitted_str = $row['submitted_types'] ?? '';
-    $submitted = !empty($submitted_str) ? explode(',', $submitted_str) : [];
-    $submitted = array_map('trim', $submitted);
-    $missing = array_diff($mandatory_docs, $submitted);
-    
-    if (!empty($missing)) {
-        $row['missing_count'] = count($missing);
-        $row['missing_labels'] = implode(', ', $missing);
-        $final_missing_report[] = $row;
+    foreach ($missing_docs_list as $row) {
+        $submitted_str = $row['submitted_types'] ?? '';
+        $submitted = !empty($submitted_str) ? explode(',', $submitted_str) : [];
+        $submitted = array_map('trim', $submitted);
+        $missing = array_diff($mandatory_docs, $submitted);
+        
+        if (!empty($missing)) {
+            $row['missing_count'] = count($missing);
+            $row['missing_labels'] = implode(', ', $missing);
+            $final_missing_report[] = $row;
+        }
+    }
+} else {
+    // For UI display when no project selected - define empty doc_names to avoid errors if referenced
+    $required_docs_db = db_fetch_all("SELECT code, name FROM document_settings WHERE is_required = 1");
+    $doc_names = [];
+    foreach ($required_docs_db as $rd) {
+        $doc_names[$rd['code']] = $rd['name'];
     }
 }
 ?>
@@ -154,7 +155,7 @@ foreach ($missing_docs_list as $row) {
             <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
                 <label style="font-weight: 600; white-space: nowrap;">Dự án:</label>
                 <select name="project_id" onchange="this.form.submit()" style="flex: 1; max-width: 400px;">
-                    <option value="0">-- Toàn bộ Công ty --</option>
+                    <option value="0">-- CHỌN DỰ ÁN --</option>
                     <?php foreach($projects as $p): ?>
                         <option value="<?php echo $p['id']; ?>" <?php echo $filter_project == $p['id'] ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($p['name']); ?>
@@ -163,14 +164,23 @@ foreach ($missing_docs_list as $row) {
                 </select>
             </div>
             <div style="display: flex; gap: 10px;">
+                <?php if($filter_project > 0): ?>
                 <a href="export.php?project_id=<?php echo $filter_project; ?>&type=structure" class="btn btn-success" style="background: #107c41; color: white; border: none;">
                     <i class="fas fa-file-excel"></i> Xuất Excel
                 </a>
-                <?php if($filter_project): ?>
-                    <a href="index.php" class="btn btn-secondary">Xem Toàn bộ</a>
                 <?php endif; ?>
             </div>
         </form>
+
+        <?php if ($filter_project == 0): ?>
+            <div class="card">
+                <div style="text-align: center; padding: 50px; color: #94a3b8; border: 2px dashed #e2e8f0;">
+                    <i class="fas fa-chart-pie" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <h3>Vui lòng chọn Dự án</h3>
+                    <p>Chọn một dự án để xem báo cáo nhân sự chi tiết.</p>
+                </div>
+            </div>
+        <?php else: ?>
 
         <!-- Project Overview -->
         <?php if ($proj_info): 
@@ -246,5 +256,6 @@ foreach ($missing_docs_list as $row) {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 <?php include '../../../includes/footer.php'; ?>

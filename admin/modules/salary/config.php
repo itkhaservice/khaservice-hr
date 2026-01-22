@@ -26,10 +26,11 @@ if ($project_id > 0) {
                p.union_fee, p.bonus_amount
         FROM employees e
         LEFT JOIN departments d ON e.department_id = d.id
+        LEFT JOIN positions pos ON e.position_id = pos.id
         LEFT JOIN employee_salaries s ON e.id = s.employee_id
         LEFT JOIN payroll p ON e.id = p.employee_id AND p.month = ? AND p.year = ?
         $where
-        ORDER BY d.id ASC, e.fullname ASC
+        ORDER BY d.stt ASC, pos.stt ASC, e.fullname ASC
     ", $params);
 }
 
@@ -85,9 +86,14 @@ include '../../../includes/sidebar.php';
                 <h3>Vui lòng chọn Dự án</h3>
             </div>
         <?php else: ?>
-            <div class="card">
-                <div class="table-container">
-                    <table class="table" style="font-size: 0.8rem;">
+            <div id="salary-config-card" class="card" style="padding: 0; position: relative;">
+                <div style="padding: 10px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: flex-end; background: #f8fafc;">
+                    <a href="javascript:void(0)" onclick="toggleCardFullScreen()" style="font-size: 0.8rem; font-weight: 600; color: var(--primary-color);">
+                        <i class="fas fa-expand"></i> Phóng to bảng
+                    </a>
+                </div>
+                <div class="table-container" style="max-height: calc(100vh - 350px);">
+                    <table class="table" style="font-size: 0.85rem;">
                         <thead>
                             <tr>
                                 <th rowspan="2">Nhân viên</th>
@@ -141,10 +147,47 @@ include '../../../includes/sidebar.php';
 .input-money { text-align: right; font-weight: 600; padding: 5px 10px; height: 36px; min-width: 95px; border-radius: 6px; }
 .header-fixed { background: #f0fdf4 !important; color: #166534; }
 .header-variable { background: #fffbeb !important; color: #92400e; }
-.text-sub { color: #94a3b8; font-size: 0.75rem; }
+.table tbody tr:hover { background-color: #f1f5f9; }
+
+/* Fullscreen Styles for Card */
+#salary-config-card:fullscreen {
+    width: 100vw !important;
+    height: 100vh !important;
+    padding: 20px !important;
+    background: #fff !important;
+    display: flex;
+    flex-direction: column;
+}
+#salary-config-card:fullscreen .table-container {
+    flex: 1 !important;
+    max-height: none !important;
+    height: auto !important;
+}
+body.dark-mode #salary-config-card:fullscreen { background: #1e293b !important; }
 </style>
 
 <script>
+function toggleCardFullScreen() {
+    const card = document.getElementById('salary-config-card');
+    if (!document.fullscreenElement) {
+        if (card.requestFullscreen) card.requestFullscreen();
+        else if (card.webkitRequestFullscreen) card.webkitRequestFullscreen();
+        else if (card.msRequestFullscreen) card.msRequestFullscreen();
+    } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+    }
+}
+
+// Update icon on fullscreen change
+document.addEventListener('fullscreenchange', function() {
+    const btn = document.querySelector('a[onclick="toggleCardFullScreen()"]');
+    if (document.fullscreenElement) {
+        btn.innerHTML = '<i class="fas fa-compress"></i> Thu nhỏ bảng';
+    } else {
+        btn.innerHTML = '<i class="fas fa-expand"></i> Phóng to bảng';
+    }
+});
+
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('input-money')) {
         let value = e.target.value.replace(/[^0-9]/g, '');

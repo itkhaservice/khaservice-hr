@@ -18,17 +18,21 @@ if ($project_id) {
     $params[] = $project_id;
 }
 
-// Fetch all employees with their leave balances
-$sql = "SELECT e.id, e.code, e.fullname, d.name as dept_name, p.name as proj_name,
-               lb.total_days, lb.carried_over, lb.used_days
-        FROM employees e
-        LEFT JOIN departments d ON e.department_id = d.id
-        LEFT JOIN projects p ON e.current_project_id = p.id
-        LEFT JOIN employee_leave_balances lb ON e.id = lb.employee_id AND lb.year = ?
-        $where
-        ORDER BY d.id ASC, e.fullname ASC";
+$report_data = [];
+if ($project_id > 0) {
+    // Fetch all employees with their leave balances
+    $sql = "SELECT e.id, e.code, e.fullname, d.name as dept_name, p.name as proj_name,
+                   lb.total_days, lb.carried_over, lb.used_days
+            FROM employees e
+            LEFT JOIN departments d ON e.department_id = d.id
+            LEFT JOIN projects p ON e.current_project_id = p.id
+            LEFT JOIN positions pos ON e.position_id = pos.id
+            LEFT JOIN employee_leave_balances lb ON e.id = lb.employee_id AND lb.year = ?
+            $where
+            ORDER BY d.stt ASC, pos.stt ASC, e.fullname ASC";
 
-$report_data = db_fetch_all($sql, $params);
+    $report_data = db_fetch_all($sql, $params);
+}
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
 $projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
 
@@ -63,7 +67,7 @@ include '../../../includes/sidebar.php';
             <div style="flex: 2; min-width: 200px;">
                 <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px;">Dự án</label>
                 <select name="project_id" class="form-control" onchange="this.form.submit()">
-                    <option value="">-- Tất cả dự án --</option>
+                    <option value="0">-- CHỌN DỰ ÁN --</option>
                     <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
                 </select>
             </div>
@@ -73,6 +77,13 @@ include '../../../includes/sidebar.php';
         </form>
 
         <div class="card">
+            <?php if ($project_id == 0): ?>
+                <div style="text-align: center; padding: 50px; color: #94a3b8; border: 2px dashed #e2e8f0;">
+                    <i class="fas fa-calendar-alt" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <h3>Vui lòng chọn Dự án</h3>
+                    <p>Chọn một dự án để xem báo cáo tổng hợp phép năm của nhân viên.</p>
+                </div>
+            <?php else: ?>
             <div class="table-container">
                 <table class="table">
                     <thead>
@@ -121,6 +132,7 @@ include '../../../includes/sidebar.php';
                     </tbody>
                 </table>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 

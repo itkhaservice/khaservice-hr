@@ -11,7 +11,8 @@ $project_options = ($allowed_projs === 'ALL')
     ? db_fetch_all("SELECT id, name FROM projects WHERE status = 'active' ORDER BY name ASC")
     : (!empty($allowed_projs) ? db_fetch_all("SELECT id, name FROM projects WHERE id IN (".implode(',',$allowed_projs).") AND status = 'active' ORDER BY name ASC") : []);
 
-if ($project_id == 0 && !empty($project_options)) $project_id = $project_options[0]['id'];
+// BỎ AUTO-PICK DỰ ÁN ĐẦU TIÊN
+// if ($project_id == 0 && !empty($project_options)) $project_id = $project_options[0]['id'];
 
 $is_locked = db_fetch_row("SELECT is_locked FROM attendance_locks WHERE month = ? AND year = ? AND (project_id = 0 OR project_id = ?) AND is_locked = 1", [$month, $year, $project_id]) ? true : false;
 
@@ -92,8 +93,14 @@ include '../../../includes/sidebar.php';
             </div>
         </div>
 
-        <?php if ($project_id == 0 || empty($employees)): ?>
-            <div class="alert alert-info">Vui lòng chọn dự án có nhân viên để chấm công.</div>
+        <?php if ($project_id == 0): ?>
+            <div class="card" style="text-align: center; padding: 50px; color: #94a3b8; border: 2px dashed #e2e8f0;">
+                <i class="fas fa-city" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                <h3>Vui lòng chọn Dự án</h3>
+                <p>Hãy chọn dự án từ danh sách bên trên để thực hiện chấm công.</p>
+            </div>
+        <?php elseif (empty($employees)): ?>
+            <div class="alert alert-info">Dự án này chưa có nhân viên để chấm công.</div>
         <?php else: ?>
             <div id="attendance-card" class="card" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color); flex: 1; display: flex; flex-direction: column; margin-bottom: 0;">
                 <!-- Legend -->

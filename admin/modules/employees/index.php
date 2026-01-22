@@ -68,22 +68,30 @@ if ($doc_status) {
 }
 
 // Get Total
-$total_sql = "SELECT COUNT(*) as count FROM employees e $where";
-$total_records = db_fetch_row($total_sql, $params)['count'];
+$total_records = 0;
+$employees = [];
 
-// Get Data with Doc Count and User Account Info
-$sql = "SELECT e.*, d.name as dept_name, p.name as proj_name, pos.name as pos_name,
-        (SELECT COUNT(DISTINCT doc_type) FROM documents doc WHERE doc.employee_id = e.id AND doc.is_submitted = 1 AND doc.doc_type IN ($mandatory_list)) as submitted_count,
-        u.username, u.role, u.status as user_status, u.id as user_id
-        FROM employees e 
-        LEFT JOIN departments d ON e.department_id = d.id 
-        LEFT JOIN projects p ON e.current_project_id = p.id 
-        LEFT JOIN positions pos ON e.position_id = pos.id
-        LEFT JOIN users u ON e.id = u.employee_id
-        $where 
-        ORDER BY e.id DESC 
-        LIMIT $offset, $limit";
-$employees = db_fetch_all($sql, $params);
+// Only load data if Project is selected OR User is searching/filtering
+// User request: "pages with Project filter... must request to select project first" to avoid heavy load.
+// We allow loading if KW is present to support specific search.
+if ($proj_id > 0 || $kw != '') {
+    $total_sql = "SELECT COUNT(*) as count FROM employees e $where";
+    $total_records = db_fetch_row($total_sql, $params)['count'];
+
+    // Get Data with Doc Count and User Account Info
+    $sql = "SELECT e.*, d.name as dept_name, p.name as proj_name, pos.name as pos_name,
+            (SELECT COUNT(DISTINCT doc_type) FROM documents doc WHERE doc.employee_id = e.id AND doc.is_submitted = 1 AND doc.doc_type IN ($mandatory_list)) as submitted_count,
+            u.username, u.role, u.status as user_status, u.id as user_id
+            FROM employees e 
+            LEFT JOIN departments d ON e.department_id = d.id 
+            LEFT JOIN projects p ON e.current_project_id = p.id 
+            LEFT JOIN positions pos ON e.position_id = pos.id
+            LEFT JOIN users u ON e.id = u.employee_id
+            $where 
+            ORDER BY d.stt ASC, pos.stt ASC, e.fullname ASC 
+            LIMIT $offset, $limit";
+    $employees = db_fetch_all($sql, $params);
+}
 
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
 $projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
@@ -157,7 +165,14 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                     </thead>
                     <tbody>
                         <?php if (empty($employees)): ?>
-                            <tr><td colspan="8" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>
+                            <?php if ($proj_id == 0 && $kw == ''): ?>
+                                <tr><td colspan="8" style="text-align:center; padding: 50px; color: #94a3b8;">
+                                    <i class="fas fa-filter" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i><br>
+                                    Vui lòng chọn <b>Dự án</b> hoặc nhập từ khóa tìm kiếm.
+                                </td></tr>
+                            <?php else: ?>
+                                <tr><td colspan="8" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>
+                            <?php endif; ?>
                         <?php else: ?>
                             <?php 
                                 $total_req = count($mandatory_docs);

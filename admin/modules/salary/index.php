@@ -18,11 +18,17 @@ if (isset($_POST['calculate_payroll'])) {
     $g_settings = []; foreach ($settings_raw as $s) $g_settings[$s['setting_key']] = $s['setting_value'];
 
     // 2. Lấy danh sách nhân viên
+    if ($project_id <= 0) {
+        set_toast('error', 'Vui lòng chọn dự án để tính lương.');
+        header("Location: index.php?month=$month&year=$year");
+        exit;
+    }
+
     $employees = db_fetch_all("
         SELECT e.id, s.basic_salary, s.insurance_salary, s.allowance_total, s.income_tax_percent, s.salary_advances_default
         FROM employees e 
         LEFT JOIN employee_salaries s ON e.id = s.employee_id 
-        WHERE e.status = 'working'" . ($project_id ? " AND e.current_project_id = $project_id" : "")
+        WHERE e.status = 'working' AND e.current_project_id = $project_id"
     );
     
     // Tự động tính công chuẩn của tháng (Tổng ngày - Chủ nhật)
@@ -116,14 +122,20 @@ if (isset($_POST['calculate_payroll'])) {
 }
 
 $projects = db_fetch_all("SELECT * FROM projects WHERE status = 'active' ORDER BY name ASC");
-$payroll_data = db_fetch_all("
-    SELECT p.*, e.fullname, e.code, pr.name as proj_name
-    FROM payroll p
-    JOIN employees e ON p.employee_id = e.id
-    LEFT JOIN projects pr ON e.current_project_id = pr.id
-    WHERE p.month = ? AND p.year = ? " . ($project_id ? " AND e.current_project_id = $project_id" : "") . "
-    ORDER BY e.fullname ASC
-", [$month, $year]);
+
+$payroll_data = [];
+if ($project_id > 0) {
+    $payroll_data = db_fetch_all("
+        SELECT p.*, e.fullname, e.code, pr.name as proj_name, d.name as dept_name, pos.name as pos_name
+        FROM payroll p
+        JOIN employees e ON p.employee_id = e.id
+        LEFT JOIN projects pr ON e.current_project_id = pr.id
+        LEFT JOIN departments d ON e.department_id = d.id
+        LEFT JOIN positions pos ON e.position_id = pos.id
+        WHERE p.month = ? AND p.year = ? AND e.current_project_id = ?
+        ORDER BY d.stt ASC, pos.stt ASC, e.fullname ASC
+    ", [$month, $year, $project_id]);
+}
 
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
@@ -138,12 +150,23 @@ include '../../../includes/sidebar.php';
                 <form method="POST" style="display:inline;">
                     <button type="submit" name="calculate_payroll" class="btn btn-primary btn-sm"><i class="fas fa-sync-alt"></i> TÍNH CHI TIẾT</button>
                 </form>
-                <button class="btn btn-secondary btn-sm" onclick="window.open('print_all.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>', '_blank')">
+                <button class="btn btn-secondary btn-sm" onclick="printPayslips()">
                     <i class="fas fa-print"></i> IN PHIẾU LƯƠNG
                 </button>
                 <a href="config.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-secondary btn-sm"><i class="fas fa-cog"></i> Cấu hình</a>
             </div>
         </div>
+
+        <script>
+        function printPayslips() {
+            const projId = <?php echo $project_id; ?>;
+            if (projId === 0) {
+                Toast.show('warning', 'Nhắc nhở', 'Vui lòng chọn một Dự án cụ thể để in phiếu lương.');
+                return;
+            }
+            window.open('print_all.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=' + projId, '_blank');
+        }
+        </script>
 
         <form method="GET" class="filter-section" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
             <div style="min-width: 160px;">
@@ -167,6 +190,13 @@ include '../../../includes/sidebar.php';
         </form>
 
         <div class="card">
+            <?php if ($project_id == 0): ?>
+                <div style="text-align: center; padding: 50px; color: #94a3b8; border: 2px dashed #e2e8f0;">
+                    <i class="fas fa-city" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                    <h3>Vui lòng chọn Dự án</h3>
+                    <p>Chọn một dự án để xem bảng lương chi tiết.</p>
+                </div>
+            <?php else: ?>
             <div class="table-container">
                 <table class="table">
                     <thead>
@@ -208,6 +238,7 @@ include '../../../includes/sidebar.php';
                     </tbody>
                 </table>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 

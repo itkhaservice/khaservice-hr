@@ -15,9 +15,10 @@ $payroll_data = db_fetch_all("
     FROM payroll p
     JOIN employees e ON p.employee_id = e.id
     LEFT JOIN departments d ON e.department_id = d.id
+    LEFT JOIN positions pos ON e.position_id = pos.id
     LEFT JOIN employee_salaries s ON e.id = s.employee_id
     WHERE p.month = ? AND p.year = ? AND e.current_project_id = ?
-    ORDER BY e.fullname ASC
+    ORDER BY d.stt ASC, pos.stt ASC, e.fullname ASC
 ", [$month, $year, $project_id]);
 
 if (empty($payroll_data)) die("Chưa có dữ liệu lương của tháng này cho dự án.");
