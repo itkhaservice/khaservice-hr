@@ -244,8 +244,10 @@ include '../../../includes/sidebar.php';
 
 <style>
 /* CSS RESET FOR STABILITY */
-.attendance-table { border-collapse: separate; border-spacing: 0; width: max-content; margin: 0; }
+.attendance-table { border-collapse: separate; border-spacing: 0; width: max-content; margin: 0; height: auto !important; }
 .attendance-table th, .attendance-table td { border-right: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 0; box-sizing: border-box; vertical-align: middle; }
+.attendance-table tbody tr { height: 42px !important; }
+.attendance-table tbody tr td { height: 42px !important; }
 .attendance-table thead th { position: sticky; top: 0; background-color: #f8fafc; z-index: 800; }
 .attendance-table thead tr:nth-child(2) th { top: 30px; }
 .attendance-table thead tr:nth-child(3) th { top: 55px; }

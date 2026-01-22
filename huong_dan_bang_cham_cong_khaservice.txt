@@ -455,7 +455,7 @@ Tính năng tương lai cần có
 Số 1. Tạm thời bỏ qua. Vì khi bạn chuyển sang LRV nhiều tính năng và CSS, hiệu ứng bị sót
 
 
-
+Lấy thiết kế của các nút thuộc filter ở trong class="filter-section" trên trang http://localhost/khaservice-hr/admin/modules/employees/index.php làm tiêu chuẩn, áp dụng cho những trang khác để đẹp hơn
 
 vì dữ liệu nhân viên, chấm công, ... bất cứ chỗ nào có lọc theo Dự án bên trên thì sẽ có dữ liệu bảng bên dưới lớn,  thế nên mỗi khi vào những trang có lọc theo Dự án, sẽ không load dữ liệu ra sẵn, phải yêu cầu chọn dự án trước
  
