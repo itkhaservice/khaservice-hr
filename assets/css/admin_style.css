@@ -939,7 +939,7 @@ body.dark-mode .attendance-table td {
 .attendance-table thead tr:nth-child(2) th { top: 30px; }
 .attendance-table thead tr:nth-child(3) th { top: 55px; }
 
-/* STICKY C?T NHÂN VIÊN (TRÁI) */
+/* STICKY C?T NHï¿½N VIï¿½N (TRï¿½I) */
 .attendance-table th:first-child,
 .attendance-table td:first-child {
     position: sticky;
@@ -964,16 +964,16 @@ body.dark-mode .attendance-table td {
     z-index: 130; 
 }
 
-/* V? TRÍ C? Ð?NH BÊN PH?I */
-.sticky-leave-1 { right: 250px; } /* P/CÐ */
-.sticky-leave-2 { right: 210px; } /* VR/Ô/Ts */
+/* V? TRï¿½ C? ï¿½?NH Bï¿½N PH?I */
+.sticky-leave-1 { right: 250px; } /* P/Cï¿½ */
+.sticky-leave-2 { right: 210px; } /* VR/ï¿½/Ts */
 .sticky-leave-3 { right: 170px; } /* L?/T?t */
 
 .sticky-ot-1 { right: 130px; }    /* Gi? TC */
 .sticky-ot-2 { right: 90px; }     /* CN */
 .sticky-ot-3 { right: 50px; }     /* L?/T?t */
 
-.sticky-total { right: 0; }       /* T?ng Công */
+.sticky-total { right: 0; }       /* T?ng Cï¿½ng */
 
 /* DARK MODE ADAPTATION */
 body.dark-mode .attendance-table thead th,
@@ -1032,12 +1032,12 @@ thead .sticky-left-3 {
     z-index: 130; /* Higher than body sticky */
 }
 
-/* 2. Sunday Color (Light Green) */
+/* 2. Sunday Color (Light Yellow) */
 .is-sunday {
-    background-color: #dcfce7 !important; /* Green-100 */
+    background-color: #fef9c3 !important; /* Yellow-100 */
 }
 body.dark-mode .is-sunday {
-    background-color: rgba(22, 101, 52, 0.2) !important;
+    background-color: rgba(234, 179, 8, 0.15) !important;
 }
 
 /* Dark Mode Fixes for Left Sticky */
@@ -1113,15 +1113,15 @@ body.dark-mode .attendance-table td.sticky-left-2 {
 /* 1. Quy d?nh (Total) - Rightmost */
 .sticky-total { right: 0 !important; width: 50px !important; min-width: 50px !important; }
 
-/* 2. Công làm thêm Group */
+/* 2. Cï¿½ng lï¿½m thï¿½m Group */
 .sticky-ot-3 { right: 50px !important; width: 40px !important; min-width: 40px !important; }  /* L?/T?t OT */
 .sticky-ot-2 { right: 90px !important; width: 40px !important; min-width: 40px !important; }  /* CN OT */
 .sticky-ot-1 { right: 130px !important; width: 40px !important; min-width: 40px !important; } /* TC Normal */
 
-/* 3. Ngày ngh? Group */
+/* 3. Ngï¿½y ngh? Group */
 .sticky-leave-3 { right: 170px !important; width: 40px !important; min-width: 40px !important; } /* L?/T?t Leave */
 .sticky-leave-2 { right: 210px !important; width: 40px !important; min-width: 40px !important; } /* VR/Other */
-.sticky-leave-1 { right: 250px !important; width: 40px !important; min-width: 40px !important; } /* P/CÐ */
+.sticky-leave-1 { right: 250px !important; width: 40px !important; min-width: 40px !important; } /* P/Cï¿½ */
 
 /* Header Intersections */
 .attendance-table thead th.sticky-right {

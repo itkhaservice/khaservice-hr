@@ -45,6 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_employee'])) {
     $params = [$code, $fullname, $avatar, $gender, $dob, $phone, $email, $identity_card, $department_id, $position_id, $position_name, $current_project_id, $start_date, $status];
     
     if (db_query($sql, $params)) {
+        $new_emp_id = db_get_last_insert_id();
+        // Log Initial Status
+        db_query("INSERT INTO employee_status_history (employee_id, old_status, new_status, change_date, note, created_by) 
+                  VALUES (?, NULL, ?, ?, ?, ?)", 
+                  [$new_emp_id, $status, $start_date, 'Tạo mới hồ sơ nhân viên', $_SESSION['user_id']]);
+
         set_toast('success', 'Thêm nhân viên mới thành công!');
         redirect('index.php');
     } else {

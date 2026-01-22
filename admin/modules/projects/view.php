@@ -59,10 +59,11 @@ include '../../../includes/sidebar.php';
     <div class="content-wrapper">
         <div class="action-header">
             <div>
-                <h1 class="page-title" style="margin-bottom: 5px;"><?php echo $project['name']; ?></h1>
-                <p style="color: var(--text-sub); display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-map-marker-alt text-danger"></i> <?php echo $project['address']; ?>
-                </p>
+                <h1 class="page-title" style="margin-bottom: 8px;"><?php echo $project['name']; ?></h1>
+                <div class="project-location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span><?php echo $project['address']; ?></span>
+                </div>
             </div>
             <div class="header-actions">
                 <a href="edit.php?id=<?php echo $id; ?>" class="btn btn-primary"><i class="fas fa-edit"></i> Chỉnh sửa</a>
@@ -113,38 +114,69 @@ include '../../../includes/sidebar.php';
                 <div class="card">
                     <h3 style="border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 15px;">Định biên nhân sự chi tiết</h3>
                     <div class="table-container">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Vị trí</th>
-                                    <th>Định biên</th>
-                                    <th>Thực tế</th>
-                                    <th>Chênh lệch</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($positions_req)): ?>
-                                    <tr><td colspan="4" style="text-align:center; padding: 20px; color: #94a3b8;">Chưa cấu hình định biên chi tiết.</td></tr>
-                                <?php else: ?>
-                                    <?php foreach ($positions_req as $pr): 
-                                        $actual_count = db_fetch_row("SELECT COUNT(*) as c FROM employees WHERE current_project_id = ? AND position = ? AND status = 'working'", [$id, $pr['position_name']])['c'];
-                                        $diff = $actual_count - $pr['count_required'];
-                                        $status_color = $diff >= 0 ? ($diff == 0 ? '#24a25c' : '#f59e0b') : '#dc2626';
-                                    ?>
-                                        <tr>
-                                            <td><strong><?php echo $pr['position_name']; ?></strong></td>
-                                            <td><?php echo $pr['count_required']; ?></td>
-                                            <td><?php echo $actual_count; ?></td>
-                                            <td>
-                                                <span style="font-weight:bold; color: <?php echo $status_color; ?>">
-                                                    <?php echo ($diff > 0 ? '+' : '') . $diff; ?>
-                                                </span>
+                        <?php 
+                        // Fetch positions required joined with department name (same logic as edit.php)
+                        $positions_data = db_fetch_all("
+                            SELECT pr.*, d.name as dept_name 
+                            FROM project_positions pr 
+                            LEFT JOIN departments d ON pr.department_id = d.id 
+                            WHERE pr.project_id = ? 
+                            ORDER BY d.name ASC, pr.position_name ASC
+                        ", [$id]);
+                        
+                        if (empty($positions_data)): ?>
+                            <div style="text-align:center; padding: 20px; color: #94a3b8;">Chưa cấu hình định biên chi tiết.</div>
+                        <?php else: 
+                            $grouped_data = [];
+                            foreach ($positions_data as $row) {
+                                $grouped_data[$row['dept_name'] ?: 'Khác'][] = $row;
+                            }
+                        ?>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Phòng ban / Chức vụ</th>
+                                        <th width="100" class="text-center">Định biên</th>
+                                        <th width="100" class="text-center">Thực tế</th>
+                                        <th width="100" class="text-center">Chênh lệch</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($grouped_data as $dept => $items): ?>
+                                        <tr style="background-color: #f8fafc;">
+                                            <td colspan="4" style="font-weight: 700; color: var(--primary-dark); font-size: 0.85rem; text-transform: uppercase;">
+                                                <i class="fas fa-layer-group"></i> <?php echo $dept; ?>
                                             </td>
                                         </tr>
+                                        <?php foreach ($items as $it): 
+                                            // Calculate actual by matching Dept AND Position string (as done in edit.php)
+                                            $actual_count = db_fetch_row("
+                                                SELECT COUNT(*) as c 
+                                                FROM employees 
+                                                WHERE current_project_id = ? 
+                                                AND department_id = ? 
+                                                AND position = ? 
+                                                AND status = 'working'
+                                            ", [$id, $it['department_id'], $it['position_name']])['c'];
+                                            
+                                            $diff = $actual_count - $it['count_required'];
+                                            $status_color = $diff >= 0 ? ($diff == 0 ? '#24a25c' : '#f59e0b') : '#dc2626';
+                                        ?>
+                                            <tr>
+                                                <td style="padding-left: 30px;"><strong><?php echo $it['position_name']; ?></strong></td>
+                                                <td class="text-center"><strong><?php echo $it['count_required']; ?></strong></td>
+                                                <td class="text-center"><?php echo $actual_count; ?></td>
+                                                <td class="text-center">
+                                                    <span style="font-weight:bold; color: <?php echo $status_color; ?>">
+                                                        <?php echo ($diff > 0 ? '+' : '') . $diff; ?>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
                                     <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -222,9 +254,28 @@ include '../../../includes/sidebar.php';
 .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; }
 .info-row:last-child { border-bottom: none; }
 .info-row label { color: var(--text-sub); }
+.project-location {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: var(--text-sub);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+.project-location i { color: #ef4444; font-size: 0.9rem; }
+body.dark-mode .project-location {
+    background: #1e293b;
+    border-color: #334155;
+    color: #94a3b8;
+}
 .text-danger { color: #dc2626; }
 .text-sub { color: #94a3b8; }
 .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+.text-center { text-align: center; }
 </style>
 
 <?php include '../../../includes/footer.php'; ?>

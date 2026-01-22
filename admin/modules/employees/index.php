@@ -72,12 +72,13 @@ $total_sql = "SELECT COUNT(*) as count FROM employees e $where";
 $total_records = db_fetch_row($total_sql, $params)['count'];
 
 // Get Data with Doc Count and User Account Info
-$sql = "SELECT e.*, d.name as dept_name, p.name as proj_name,
+$sql = "SELECT e.*, d.name as dept_name, p.name as proj_name, pos.name as pos_name,
         (SELECT COUNT(DISTINCT doc_type) FROM documents doc WHERE doc.employee_id = e.id AND doc.is_submitted = 1 AND doc.doc_type IN ($mandatory_list)) as submitted_count,
         u.username, u.role, u.status as user_status, u.id as user_id
         FROM employees e 
         LEFT JOIN departments d ON e.department_id = d.id 
         LEFT JOIN projects p ON e.current_project_id = p.id 
+        LEFT JOIN positions pos ON e.position_id = pos.id
         LEFT JOIN users u ON e.id = u.employee_id
         $where 
         ORDER BY e.id DESC 
@@ -147,8 +148,8 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                             <th>Mã NV</th>
                             <th>Họ và tên</th>
                             <th>Phòng ban</th>
+                            <th>Chức vụ</th>
                             <th>Dự án hiện tại</th>
-                            <th>Tài khoản</th>
                             <th>Hồ sơ</th>
                             <th>Trạng thái</th>
                             <th width="120">Thao tác</th>
@@ -156,7 +157,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                     </thead>
                     <tbody>
                         <?php if (empty($employees)): ?>
-                            <tr><td colspan="9" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>
+                            <tr><td colspan="8" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>
                         <?php else: ?>
                             <?php 
                                 $total_req = count($mandatory_docs);
@@ -167,17 +168,8 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                     <td><strong><?php echo $e['code']; ?></strong></td>
                                     <td><?php echo $e['fullname']; ?></td>
                                     <td><?php echo $e['dept_name']; ?></td>
+                                    <td><?php echo $e['pos_name']; ?></td>
                                     <td><?php echo $e['proj_name']; ?></td>
-                                    <td>
-                                        <?php if ($e['user_id']): ?>
-                                            <span class="badge badge-info" title="<?php echo $e['username']; ?>"><i class="fas fa-user"></i> <?php echo ucfirst($e['role']); ?></span>
-                                            <?php if (!$e['user_status']): ?>
-                                                <span class="badge badge-danger" title="Đã khóa"><i class="fas fa-lock"></i></span>
-                                            <?php endif; ?>
-                                        <?php else: ?>
-                                            <span style="color: #94a3b8; font-size: 0.8rem;">- Chưa có -</span>
-                                        <?php endif; ?>
-                                    </td>
                                     <td>
                                         <?php if ($is_complete): ?>
                                             <span class="badge badge-success"><i class="fas fa-check"></i> Đủ</span>

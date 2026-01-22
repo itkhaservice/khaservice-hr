@@ -53,9 +53,19 @@ foreach ($changes as $c) {
     // Let's allow saving, but maybe warn later.
     
     // Check existing
-    $existing = db_fetch_row("SELECT id FROM attendance WHERE employee_id = ? AND date = ?", [$emp_id, $date]);
+    $existing = db_fetch_row("SELECT id, timekeeper_symbol, overtime_hours FROM attendance WHERE employee_id = ? AND date = ?", [$emp_id, $date]);
     
     if ($existing) {
+        // Logging for Audit
+        if ($existing['timekeeper_symbol'] !== $symbol) {
+            db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, ?, ?, 'symbol', ?)", 
+                     [$emp_id, $project_id, $date, $existing['timekeeper_symbol'], $symbol, $_SESSION['user_id']]);
+        }
+        if ((float)$existing['overtime_hours'] !== $ot) {
+            db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, ?, ?, 'ot', ?)", 
+                     [$emp_id, $project_id, $date, $existing['overtime_hours'], $ot, $_SESSION['user_id']]);
+        }
+
         // Update
         if ($symbol === '' && $ot == 0) {
              db_query("UPDATE attendance SET timekeeper_symbol = NULL, overtime_hours = 0, is_manual_import = 0 WHERE id = ?", [$existing['id']]);
@@ -65,6 +75,14 @@ foreach ($changes as $c) {
     } else {
         // Insert only if there is data
         if ($symbol !== '' || $ot > 0) {
+            // Log as new entry
+            db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, '', ?, 'symbol', ?)", 
+                     [$emp_id, $project_id, $date, $symbol, $_SESSION['user_id']]);
+            if ($ot > 0) {
+                db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, '0', ?, 'ot', ?)", 
+                         [$emp_id, $project_id, $date, $ot, $_SESSION['user_id']]);
+            }
+
             db_query("INSERT INTO attendance (employee_id, project_id, date, timekeeper_symbol, overtime_hours, is_manual_import) VALUES (?, ?, ?, ?, ?, 0)", 
                      [$emp_id, $project_id, $date, $symbol, $ot]);
         }

@@ -73,6 +73,7 @@ include '../../../includes/sidebar.php';
                 </form>
             </div>
             <div class="toolbar-right" style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-secondary btn-sm" style="height: 36px;" onclick="window.open('print.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>', '_blank')"><i class="fas fa-print"></i> In Bảng Công</button>
                 <button type="button" class="btn btn-secondary btn-sm" style="height: 36px;"><i class="fas fa-file-excel"></i> Xuất Excel</button>
                 <a href="import.php" class="btn btn-secondary btn-sm" style="height: 36px; display:inline-flex; align-items:center;"><i class="fas fa-file-import"></i> Import</a>
                 
@@ -240,8 +241,8 @@ include '../../../includes/sidebar.php';
 .attendance-table thead .fix-l { z-index: 1000 !important; background-color: #f8fafc; }
 .fix-r { position: sticky; z-index: 900 !important; background-color: #fff; text-align: center; }
 .attendance-table thead .fix-r { z-index: 1000 !important; background-color: #f8fafc; }
-.is-sunday { background-color: #dcfce7 !important; }
-.attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: #cefadd !important; }
+.is-sunday { background-color: #fef9c3 !important; }
+.attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: #fef08a !important; }
 
 .shadow-left { box-shadow: -3px 0 5px -2px rgba(0,0,0,0.1); }
 .att-input { width: 100%; border: none; text-align: center; background: transparent; display: block; cursor: pointer; font-family: 'Inter', sans-serif; outline: none; }
@@ -348,8 +349,8 @@ include '../../../includes/sidebar.php';
 
 /* DARK MODE */
 body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
-body.dark-mode .is-sunday { background-color: rgba(22, 101, 52, 0.25) !important; }
-body.dark-mode .attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: rgba(22, 101, 52, 0.35) !important; }
+body.dark-mode .is-sunday { background-color: rgba(234, 179, 8, 0.15) !important; }
+body.dark-mode .attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: rgba(234, 179, 8, 0.25) !important; }
 body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
 body.dark-mode .att-input.symbol { color: #cbd5e1; } body.dark-mode .att-input.symbol[value="X"] { color: #4ade80; }
 body.dark-mode .att-input.symbol[value="P"] { color: #60a5fa; }

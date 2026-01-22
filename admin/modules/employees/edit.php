@@ -77,6 +77,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_employee'])) {
     $params = [$code, $fullname, $avatar, $gender, $dob, $phone, $email, $identity_card, $department_id, $position_id, $position_name, $current_project_id, $status, $id];
     
     try {
+        // Log Status Change before update
+        if ($employee['status'] !== $status) {
+            db_query("INSERT INTO employee_status_history (employee_id, old_status, new_status, change_date, note, created_by) 
+                      VALUES (?, ?, ?, CURDATE(), ?, ?)", 
+                      [$id, $employee['status'], $status, 'Cập nhật thủ công từ trang quản lý', $_SESSION['user_id']]);
+        }
+
         if (db_query($sql, $params)) {
             set_toast('success', 'Cập nhật thông tin nhân viên thành công!');
             redirect("edit.php?id=$id");
@@ -269,6 +276,9 @@ include '../../../includes/sidebar.php';
                             </a>
                             <a href="../attendance/index.php?employee_id=<?php echo $id; ?>" class="btn btn-secondary" style="justify-content: flex-start;">
                                 <i class="fas fa-calendar-check"></i> Lịch sử chấm công
+                            </a>
+                            <a href="history.php?id=<?php echo $id; ?>" class="btn btn-primary" style="justify-content: flex-start; background: #0f172a; border-color: #0f172a;">
+                                <i class="fas fa-history"></i> Xem Lịch sử Biến động
                             </a>
                         </div>
                     </div>
