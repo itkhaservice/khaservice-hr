@@ -1,0 +1,127 @@
+<?php
+require_once '../../../config/db.php';
+require_once '../../../includes/functions.php';
+
+$year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
+$dept_id = isset($_GET['dept_id']) ? (int)$_GET['dept_id'] : 0;
+$project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
+
+$where = "WHERE e.status = 'working'";
+$params = [$year];
+
+if ($dept_id) {
+    $where .= " AND e.department_id = ?";
+    $params[] = $dept_id;
+}
+if ($project_id) {
+    $where .= " AND e.current_project_id = ?";
+    $params[] = $project_id;
+}
+
+// Fetch all employees with their leave balances
+$sql = "SELECT e.id, e.code, e.fullname, d.name as dept_name, p.name as proj_name,
+               lb.total_days, lb.carried_over, lb.used_days
+        FROM employees e
+        LEFT JOIN departments d ON e.department_id = d.id
+        LEFT JOIN projects p ON e.current_project_id = p.id
+        LEFT JOIN employee_leave_balances lb ON e.id = lb.employee_id AND lb.year = ?
+        $where
+        ORDER BY d.id ASC, e.fullname ASC";
+
+$report_data = db_fetch_all($sql, $params);
+$departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
+$projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
+
+include '../../../includes/header.php';
+include '../../../includes/sidebar.php';
+?>
+
+<div class="main-content">
+    <?php include '../../../includes/topbar.php'; ?>
+    <div class="content-wrapper">
+        <div class="action-header">
+            <h1 class="page-title">Báo cáo Tổng hợp Phép năm <?php echo $year; ?></h1>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> In báo cáo</button>
+            </div>
+        </div>
+
+        <form method="GET" class="filter-section" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 100px;">
+                <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px;">Năm</label>
+                <select name="year" class="form-control" onchange="this.form.submit()">
+                    <?php for($y=2024; $y<=2026; $y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
+                </select>
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px;">Phòng ban</label>
+                <select name="dept_id" class="form-control" onchange="this.form.submit()">
+                    <option value="">-- Tất cả phòng ban --</option>
+                    <?php foreach($departments as $d) echo "<option value='{$d['id']}' ".($d['id']==$dept_id?'selected':'').">{$d['name']}</option>"; ?>
+                </select>
+            </div>
+            <div style="flex: 2; min-width: 200px;">
+                <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px;">Dự án</label>
+                <select name="project_id" class="form-control" onchange="this.form.submit()">
+                    <option value="">-- Tất cả dự án --</option>
+                    <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
+                </select>
+            </div>
+            <div style="display: flex; align-items: flex-end; padding-bottom: 2px;">
+                <a href="leave_report.php" class="btn btn-danger" title="Xóa lọc" style="height: 36px; min-width: 40px; display: flex; align-items: center; justify-content: center; padding: 0;"><i class="fas fa-times"></i></a>
+            </div>
+        </form>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nhân viên</th>
+                            <th>Đơn vị / Dự án</th>
+                            <th class="text-center">Quỹ phép</th>
+                            <th class="text-center">Dư cũ</th>
+                            <th class="text-center">Đã nghỉ</th>
+                            <th class="text-center">Còn lại</th>
+                            <th width="80" class="text-center">Chi tiết</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($report_data)): ?>
+                            <tr><td colspan="7" class="text-center" style="padding: 30px;">Không có dữ liệu phù hợp với bộ lọc.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($report_data as $r): 
+                                $total = ($r['total_days'] ?? 12);
+                                $carried = ($r['carried_over'] ?? 0);
+                                $used = ($r['used_days'] ?? 0);
+                                $remaining = ($total + $carried) - $used;
+                            ?>
+                                <tr>
+                                    <td>
+                                        <strong><?php echo $r['fullname']; ?></strong><br>
+                                        <small class="text-sub"><?php echo $r['code']; ?> - <?php echo $r['dept_name']; ?></small>
+                                    </td>
+                                    <td>
+                                        <small><i class="fas fa-building text-sub"></i> <?php echo $r['proj_name'] ?: 'Chưa gán'; ?></small>
+                                    </td>
+                                    <td class="text-center"><?php echo $total; ?></td>
+                                    <td class="text-center"><?php echo $carried; ?></td>
+                                    <td class="text-center text-danger"><strong><?php echo $used; ?></strong></td>
+                                    <td class="text-center text-success" style="font-weight: 800; font-size: 1.1rem; background: rgba(16, 185, 129, 0.05);">
+                                        <?php echo $remaining; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="../employees/leave.php?id=<?php echo $r['id']; ?>&year=<?php echo $year; ?>" class="btn btn-secondary btn-sm" title="Xem lịch sử chi tiết">
+                                            <i class="fas fa-history"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<?php include '../../../includes/footer.php'; ?>

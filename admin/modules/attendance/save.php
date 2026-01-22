@@ -90,5 +90,11 @@ foreach ($changes as $c) {
     $success_count++;
 }
 
-echo json_encode(['status' => 'success', 'message' => "Đã lưu thành công $success_count mục."]);
+// 4. Recalculate Leave Balance for affected employees in this year
+$unique_emp_ids = array_unique(array_column($changes, 'emp_id'));
+foreach ($unique_emp_ids as $uid) {
+    sync_leave_balance($uid, $year);
+}
+
+echo json_encode(['status' => 'success', 'message' => "Đã lưu thành công $success_count mục và cập nhật quỹ phép."]);
 ?>

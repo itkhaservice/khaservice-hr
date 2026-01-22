@@ -13,11 +13,11 @@ Options -Indexes
     Deny from all
 </FilesMatch>
 
-# 4. Protect Config Files (Double check)
-<FilesMatch "^(config|database)\.(php|json|sql)$">
+# 4. Protect core DB Config File specifically
+<Files "db.php">
     Order allow,deny
     Deny from all
-</FilesMatch>
+</Files>
 
 # 5. Prevent XSS/Clickjacking headers (Optional but recommended)
 <IfModule mod_headers.c>

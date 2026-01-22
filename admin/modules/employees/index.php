@@ -184,6 +184,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                     </td>
                                     <td>
                                         <a href="edit.php?id=<?php echo $e['id']; ?>" title="Sửa"><i class="fas fa-edit text-warning"></i></a> &nbsp;
+                                        <a href="leave.php?id=<?php echo $e['id']; ?>" title="Quản lý Phép"><i class="fas fa-calendar-check text-success"></i></a> &nbsp;
                                         <a href="documents.php?id=<?php echo $e['id']; ?>" title="Hồ sơ"><i class="fas fa-file-alt text-info"></i></a> &nbsp;
                                         <a href="javascript:void(0)" onclick="confirmDelete(<?php echo $e['id']; ?>)" title="Xóa"><i class="fas fa-trash text-danger"></i></a>
                                     </td>

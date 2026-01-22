@@ -13,8 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = clean_input($_POST['username']);
     $password = $_POST['password'];
 
-    // Simple query (In production use password_verify)
-    $user = db_fetch_row("SELECT * FROM users WHERE username = ? AND status = 1", [$username]);
+    // Updated query to fetch role details
+    $user = db_fetch_row("
+        SELECT u.*, r.name as role_name 
+        FROM users u 
+        LEFT JOIN roles r ON u.role_id = r.id 
+        WHERE u.username = ? AND u.status = 1
+    ", [$username]);
 
     $login_success = false;
     
@@ -35,7 +40,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($login_success) {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_name'] = $user['fullname'];
-        $_SESSION['user_role'] = $user['role'];
+        $_SESSION['user_login'] = $user['username']; // Lưu username để check admin
+        $_SESSION['user_role'] = $user['role']; // Legacy role
+        $_SESSION['role_id'] = $user['role_id']; // New RBAC role ID
+        $_SESSION['role_name'] = $user['role_name']; // Role code (e.g., ADMIN)
         redirect('index.php');
     } else {
         $error = 'Tên đăng nhập hoặc mật khẩu không đúng!';

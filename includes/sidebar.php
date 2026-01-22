@@ -2,16 +2,16 @@
 $current_uri = $_SERVER['REQUEST_URI'];
 // Calculate Pending Docs
 $pending_docs_count = 0;
-// Use try-catch or ensure DB is connected before this runs (sidebar is included after header which connects DB)
 if (isset($pdo)) {
-    $stmt = $pdo->query("SELECT COUNT(*) as c FROM documents WHERE approval_status = 'pending'");
-    if ($stmt) $pending_docs_count = $stmt->fetch()['c'];
+    try {
+        $stmt = $pdo->query("SELECT COUNT(*) as c FROM documents WHERE approval_status = 'pending'");
+        if ($stmt) $pending_docs_count = $stmt->fetch()['c'];
+    } catch (Exception $e) {}
 }
 ?>
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <span>KHASERVICE HR</span>
-        <!-- Optional Icon for collapsed state -->
         <i class="fas fa-cube" style="display:none;"></i>
     </div>
     <ul class="sidebar-menu">
@@ -20,16 +20,24 @@ if (isset($pdo)) {
                 <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
             </a>
         </li>
+        
+        <?php if (has_permission('manage_projects')): ?>
         <li>
             <a href="/khaservice-hr/admin/modules/projects/index.php" class="<?php echo is_active('/modules/projects/'); ?>">
                 <i class="fas fa-building"></i> <span>Quản lý Dự án</span>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if (has_permission('view_all_employees')): ?>
         <li>
             <a href="/khaservice-hr/admin/modules/employees/index.php" class="<?php echo is_active('/modules/employees/index.php'); ?>">
                 <i class="fas fa-user-tie"></i> <span>Quản lý Nhân sự</span>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if (has_permission('edit_employee')): ?>
         <li>
             <a href="/khaservice-hr/admin/modules/employees/pending_docs.php" class="<?php echo is_active('pending_docs.php'); ?>" style="position: relative;">
                 <i class="fas fa-file-signature"></i> <span>Duyệt hồ sơ</span>
@@ -38,32 +46,57 @@ if (isset($pdo)) {
                 <?php endif; ?>
             </a>
         </li>
+        <?php endif; ?>
+
         <li>
             <a href="/khaservice-hr/admin/modules/contracts/index.php" class="<?php echo is_active('/modules/contracts/'); ?>">
                 <i class="fas fa-file-contract"></i> <span>Hợp đồng & BH</span>
             </a>
         </li>
+
+        <?php if (has_permission('view_attendance')): ?>
         <li>
             <a href="/khaservice-hr/admin/modules/attendance/index.php" class="<?php echo is_active('/modules/attendance/'); ?>">
                 <i class="fas fa-clock"></i> <span>Chấm công</span>
             </a>
         </li>
+        <?php endif; ?>
+
+        <?php if (has_permission('view_salary')): ?>
         <li>
-            <a href="/khaservice-hr/admin/modules/reports/index.php" class="<?php echo is_active('/modules/reports/'); ?>">
-                <i class="fas fa-chart-bar"></i> <span>Báo cáo</span>
+            <a href="/khaservice-hr/admin/modules/salary/index.php" class="<?php echo is_active('/modules/salary/'); ?>">
+                <i class="fas fa-file-invoice-dollar"></i> <span>Quản lý Tiền lương</span>
             </a>
         </li>
-        <?php if (is_hr_staff()): ?>
+        <?php endif; ?>
+
+        <li>
+            <a href="/khaservice-hr/admin/modules/reports/index.php" class="<?php echo is_active('/modules/reports/index.php'); ?>">
+                <i class="fas fa-chart-bar"></i> <span>Báo cáo Nhân sự</span>
+            </a>
+        </li>
+        <li>
+            <a href="/khaservice-hr/admin/modules/reports/leave_report.php" class="<?php echo is_active('leave_report.php'); ?>">
+                <i class="fas fa-calendar-alt"></i> <span>Báo cáo Phép năm</span>
+            </a>
+        </li>
+
+        <?php if (has_permission('manage_system')): ?>
+        <li>
+            <a href="/khaservice-hr/admin/modules/system/roles.php" class="<?php echo is_active('/modules/system/roles.php'); ?>">
+                <i class="fas fa-user-shield"></i> <span>Quản lý Phân quyền</span>
+            </a>
+        </li>
         <li>
             <a href="/khaservice-hr/admin/modules/employees/file_manager.php" class="<?php echo is_active('file_manager.php'); ?>">
                 <i class="fas fa-folder-tree"></i> <span>File Server</span>
             </a>
         </li>
-        <?php endif; ?>
         <li>
             <a href="/khaservice-hr/admin/settings.php" class="<?php echo is_active('/settings.php'); ?>">
-                <i class="fas fa-cogs"></i> <span>Cấu hình</span>
+                <i class="fas fa-cogs"></i> <span>Cài đặt hệ thống</span>
             </a>
         </li>
+        <?php endif; ?>
     </ul>
 </nav>

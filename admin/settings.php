@@ -4,7 +4,10 @@ require_once '../includes/functions.php';
 
 // --- HANDLE COMPANY SETTINGS ---
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_settings'])) {
-    $keys = ['company_name', 'company_address', 'admin_email', 'company_phone', 'company_website'];
+    $keys = [
+        'company_name', 'company_address', 'admin_email', 'company_phone', 'company_website',
+        'insurance_bhxh_percent', 'insurance_bhyt_percent', 'insurance_bhtn_percent', 'union_fee_amount'
+    ];
     foreach ($keys as $key) {
         $val = clean_input($_POST[$key] ?? '');
         // Upsert logic
@@ -165,6 +168,7 @@ include '../includes/sidebar.php';
                 <div class="tab-item active" data-tab="company">Thông tin Công ty</div>
                 <div class="tab-item" data-tab="departments">Quản lý Phòng ban</div>
                 <div class="tab-item" data-tab="documents">Cấu hình Hồ sơ</div>
+                <div class="tab-item" data-tab="salary">Cấu hình Tiền lương</div>
             </div>
 
             <!-- Tab 1: Company Info -->
@@ -361,10 +365,41 @@ include '../includes/sidebar.php';
                     </div>
                 </div>
             </div>
+            <!-- Tab 4: Salary Config -->
+            <div id="salary" class="tab-content">
+                <form method="POST" style="max-width: 800px;">
+                    <h4 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color);">Hệ số bảo hiểm & Phí cố định (%)</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>BHXH Nhân viên đóng (%)</label>
+                            <input type="number" step="0.1" name="insurance_bhxh_percent" class="form-control" value="<?php echo $settings['insurance_bhxh_percent'] ?? '8'; ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>BHYT Nhân viên đóng (%)</label>
+                            <input type="number" step="0.1" name="insurance_bhyt_percent" class="form-control" value="<?php echo $settings['insurance_bhyt_percent'] ?? '1.5'; ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>BHTN Nhân viên đóng (%)</label>
+                            <input type="number" step="0.1" name="insurance_bhtn_percent" class="form-control" value="<?php echo $settings['insurance_bhtn_percent'] ?? '1'; ?>">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Đoàn phí Công đoàn (Số tiền cố định)</label>
+                        <input type="text" name="union_fee_amount" class="form-control input-money" value="<?php echo number_format($settings['union_fee_amount'] ?? 0); ?>">
+                        <small style="color: #94a3b8;">* Nếu tính theo % lương đóng BH, vui lòng nhập 0 và hệ thống sẽ tự tính 1%.</small>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button type="submit" name="save_settings" class="btn btn-primary"><i class="fas fa-save"></i> Lưu cấu hình lương chung</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
 <style>
+.input-money { text-align: right; font-weight: 600; color: var(--primary-dark); }
 .text-primary-hover:hover { color: var(--primary-color); }
 .text-danger:hover { color: #b91c1c; }
 </style>

@@ -45,8 +45,77 @@ function clean_input($data) {
     return htmlspecialchars(strip_tags(trim($data)));
 }
 
+// --- HỆ THỐNG PHÂN QUYỀN ---
+
 /**
- * Redirect
+ * Kiểm tra xem người dùng hiện tại có quyền cụ thể hay không
+ */
+function has_permission($permission_code) {
+    // 1. Admin mặc định có mọi quyền
+    if (is_admin()) return true;
+    
+    // 2. Kiểm tra role_name trong session (Viết hoa thường đều được)
+    if (isset($_SESSION['role_name']) && strtoupper($_SESSION['role_name']) === 'ADMIN') return true;
+    
+    // Nếu không có role_id trong session, không thể kiểm tra quyền chi tiết
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['role_id'])) return false;
+    
+    static $user_permissions = null;
+    
+    // Cache quyền trong 1 lần thực thi trang
+    if ($user_permissions === null) {
+        $role_id = (int)$_SESSION['role_id'];
+        $rows = db_fetch_all("
+            SELECT p.code 
+            FROM permissions p
+            JOIN role_permissions rp ON p.id = rp.permission_id
+            WHERE rp.role_id = ?
+        ", [$role_id]);
+        $user_permissions = array_column($rows ?? [], 'code');
+    }
+    
+    return in_array($permission_code, $user_permissions);
+}
+
+/**
+ * Chặn truy cập nếu không có quyền
+ */
+function require_permission($permission_code) {
+    if (!has_permission($permission_code)) {
+        header("Location: /khaservice-hr/404.php?error=no_permission&code=" . $permission_code);
+        exit;
+    }
+}
+
+/**
+ * Đồng bộ số ngày phép đã dùng từ bảng chấm công
+ */
+function sync_leave_balance($employee_id, $year) {
+    global $pdo;
+    
+    // 1. Chắc chắn đã có dòng số dư phép cho năm này, nếu chưa có thì tạo mặc định
+    db_query("INSERT IGNORE INTO employee_leave_balances (employee_id, year, total_days, used_days) VALUES (?, ?, 12, 0)", [$employee_id, $year]);
+
+    // 2. Đếm số ngày có ký hiệu P (1 công) và 1/P (0.5 công)
+    $sql = "SELECT 
+                SUM(CASE 
+                    WHEN UPPER(timekeeper_symbol) = 'P' THEN 1.0
+                    WHEN UPPER(timekeeper_symbol) = '1/P' THEN 0.5
+                    ELSE 0 
+                END) as total_used
+            FROM attendance 
+            WHERE employee_id = ? AND YEAR(date) = ?";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$employee_id, $year]);
+    $used = (float)($stmt->fetch()['total_used'] ?? 0);
+    
+    // 3. Cập nhật chính xác số đã dùng
+    db_query("UPDATE employee_leave_balances SET used_days = ? WHERE employee_id = ? AND year = ?", [$used, $employee_id, $year]);
+}
+
+/**
+ * Redirect helpers
  */
 function redirect($url) {
     header("Location: $url");
@@ -99,19 +168,8 @@ function get_emp_folder_name($fullname, $identity_card) {
 
 function is_hr_staff() {
     if (!isset($_SESSION['user_id'])) return false;
-    // Admin always true
-    if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') return true;
+    if (is_admin()) return true;
     
-    // Check if Department is HCNS (You might need to fetch this from DB if not in session)
-    // For simplicity, assuming we'll store dept code in session or fetch it.
-    // Let's fetch to be safe.
-    global $pdo; // Ensure $pdo is available or use db_fetch_row
-    $uid = $_SESSION['user_id'];
-    
-    // Assuming users table is linked to an employee record OR users table has department_id (schema check needed).
-    // The current users table doesn't have department_id. It's usually linked to employees.
-    // Let's assume 'manager' role or 'admin' is enough for now, OR if we link user -> employee.
-    // For this request, I will assume Admin and Managers have HR rights.
     if (isset($_SESSION['user_role']) && ($_SESSION['user_role'] === 'manager' || $_SESSION['user_role'] === 'hr')) return true;
     
     return false;
@@ -121,7 +179,21 @@ function is_hr_staff() {
  * Check if user is Admin
  */
 function is_admin() {
-    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+    if (!isset($_SESSION['user_id'])) return false;
+    
+    // 1. Tuyệt đối tin tưởng ID = 1
+    if ($_SESSION['user_id'] == 1) return true;
+    
+    // 2. Tuyệt đối tin tưởng tên đăng nhập gốc
+    if (isset($_SESSION['user_login']) && strtolower($_SESSION['user_login']) === 'admin') return true;
+    
+    // 3. Kiểm tra các vai trò được gán (Legacy hoặc RBAC)
+    $role = isset($_SESSION['user_role']) ? strtoupper($_SESSION['user_role']) : '';
+    $role_name = isset($_SESSION['role_name']) ? strtoupper($_SESSION['role_name']) : '';
+    
+    if ($role === 'ADMIN' || $role_name === 'ADMIN') return true;
+    
+    return false;
 }
 
 /**
@@ -141,6 +213,21 @@ function get_allowed_projects() {
         $ids[] = $r['id'];
     }
     return $ids;
+}
+
+/**
+ * Tính công chuẩn trong tháng (Tổng ngày - Chủ nhật)
+ */
+function get_standard_working_days($month, $year) {
+    $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+    $standard_days = 0;
+    for ($d = 1; $d <= $days_in_month; $d++) {
+        $ts = strtotime("$year-$month-$d");
+        if (date('N', $ts) != 7) { // 7 là Chủ nhật
+            $standard_days++;
+        }
+    }
+    return $standard_days;
 }
 
 /**

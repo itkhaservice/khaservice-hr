@@ -100,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_account'])) {
     $username = clean_input($_POST['acc_username']);
     $password = $_POST['acc_password'];
     $role = clean_input($_POST['acc_role']);
+    $role_id = (int)$_POST['acc_role_id'];
     $acc_status = (int)$_POST['acc_status'];
     $is_update = (int)$_POST['is_update'];
     
@@ -109,11 +110,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_account'])) {
         // Update User
         if (!empty($password)) {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "UPDATE users SET password = ?, role = ?, status = ? WHERE employee_id = ?";
-            db_query($sql, [$hash, $role, $acc_status, $id]);
+            $sql = "UPDATE users SET password = ?, role = ?, role_id = ?, status = ? WHERE employee_id = ?";
+            db_query($sql, [$hash, $role, $role_id, $acc_status, $id]);
         } else {
-            $sql = "UPDATE users SET role = ?, status = ? WHERE employee_id = ?";
-            db_query($sql, [$role, $acc_status, $id]);
+            $sql = "UPDATE users SET role = ?, role_id = ?, status = ? WHERE employee_id = ?";
+            db_query($sql, [$role, $role_id, $acc_status, $id]);
         }
         
         // Get User ID
@@ -133,8 +134,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_account'])) {
             redirect("edit.php?id=$id#account");
         } else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (username, password, fullname, email, role, status, employee_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            if (db_query($sql, [$username, $hash, $employee['fullname'], $employee['email'], $role, $acc_status, $id])) {
+            $sql = "INSERT INTO users (username, password, fullname, email, role, role_id, status, employee_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            if (db_query($sql, [$username, $hash, $employee['fullname'], $employee['email'], $role, $role_id, $acc_status, $id])) {
                 set_toast('success', 'Đã tạo tài khoản thành công!');
                 // Get New User ID
                 $u_row = db_fetch_row("SELECT id FROM users WHERE username = ?", [$username]);
@@ -177,6 +178,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_account'])) {
 
 // Fetch Account Info
 $account = db_fetch_row("SELECT * FROM users WHERE employee_id = ?", [$id]);
+
+// Fetch All Roles for dropdown
+$all_roles = db_fetch_all("SELECT * FROM roles ORDER BY display_name ASC");
 
 // Handle Account Deletion
 if (isset($_GET['action']) && $_GET['action'] == 'delete_account') {
@@ -276,6 +280,9 @@ include '../../../includes/sidebar.php';
                             </a>
                             <a href="../attendance/index.php?employee_id=<?php echo $id; ?>" class="btn btn-secondary" style="justify-content: flex-start;">
                                 <i class="fas fa-calendar-check"></i> Lịch sử chấm công
+                            </a>
+                            <a href="leave.php?id=<?php echo $id; ?>" class="btn btn-secondary" style="justify-content: flex-start; color: #10b981;">
+                                <i class="fas fa-calendar-alt"></i> Quản lý Nghỉ phép
                             </a>
                             <a href="history.php?id=<?php echo $id; ?>" class="btn btn-primary" style="justify-content: flex-start; background: #0f172a; border-color: #0f172a;">
                                 <i class="fas fa-history"></i> Xem Lịch sử Biến động
@@ -408,7 +415,18 @@ include '../../../includes/sidebar.php';
 
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                                     <div class="form-group">
-                                        <label>Quyền hạn</label>
+                                        <label>Vai trò hệ thống (RBAC)</label>
+                                        <select name="acc_role_id" class="form-control">
+                                            <option value="0">-- Chưa phân vai trò --</option>
+                                            <?php foreach ($all_roles as $role): ?>
+                                                <option value="<?php echo $role['id']; ?>" <?php echo ($account && $account['role_id'] == $role['id']) ? 'selected' : ''; ?>>
+                                                    <?php echo $role['display_name']; ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Quyền hạn (Legacy)</label>
                                         <select name="acc_role" id="accRoleSelect" class="form-control">
                                             <option value="staff" <?php echo ($account && $account['role'] == 'staff') ? 'selected' : ''; ?>>Nhân viên (Staff)</option>
                                             <option value="manager" <?php echo ($account && $account['role'] == 'manager') ? 'selected' : ''; ?>>Quản lý (Manager)</option>

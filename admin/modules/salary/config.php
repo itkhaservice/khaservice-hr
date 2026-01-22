@@ -1,0 +1,194 @@
+<?php
+require_once '../../../config/db.php';
+require_once '../../../includes/functions.php';
+
+if (!is_admin() && !has_permission('view_salary')) {
+    header("Location: /khaservice-hr/404.php?error=no_permission");
+    exit;
+}
+
+$month = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('n');
+$year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
+$project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
+$kw = isset($_GET['kw']) ? clean_input($_GET['kw']) : '';
+
+$projects = db_fetch_all("SELECT id, name FROM projects WHERE status = 'active' ORDER BY name ASC");
+
+$employees = [];
+if ($project_id > 0) {
+    $params = [$month, $year, $project_id];
+    $where = "WHERE e.status = 'working' AND e.current_project_id = ?";
+    if ($kw) { $where .= " AND (e.fullname LIKE ? OR e.code LIKE ?)"; $params[] = "%$kw%"; $params[] = "%$kw%"; }
+
+    $employees = db_fetch_all("
+        SELECT e.id, e.code, e.fullname, d.name as dept_name, 
+               s.basic_salary, s.insurance_salary, s.allowance_total, s.income_tax_percent, s.salary_advances_default,
+               p.union_fee, p.bonus_amount
+        FROM employees e
+        LEFT JOIN departments d ON e.department_id = d.id
+        LEFT JOIN employee_salaries s ON e.id = s.employee_id
+        LEFT JOIN payroll p ON e.id = p.employee_id AND p.month = ? AND p.year = ?
+        $where
+        ORDER BY d.id ASC, e.fullname ASC
+    ", $params);
+}
+
+include '../../../includes/header.php';
+include '../../../includes/sidebar.php';
+?>
+
+<div class="main-content">
+    <?php include '../../../includes/topbar.php'; ?>
+    <div class="content-wrapper">
+        <div class="action-header">
+            <h1 class="page-title">Cấu hình Lương: <?php echo "$month/$year"; ?></h1>
+            <div class="header-actions">
+                <a href="index.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-primary btn-sm"><i class="fas fa-calculator"></i> Xem bảng lương</a>
+            </div>
+        </div>
+
+        <form method="GET" class="filter-section" style="display: flex; gap: 12px; background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #e2e8f0; align-items: flex-end; flex-wrap: wrap;">
+            <div style="min-width: 160px;">
+                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Thời gian</label>
+                <div style="display: flex; gap: 6px;">
+                    <select name="month" class="form-control" style="width: 75px; height: 38px;" onchange="this.form.submit()">
+                        <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">T$i</option>"; ?>
+                    </select>
+                    <select name="year" class="form-control" style="width: 95px; height: 38px;" onchange="this.form.submit()">
+                        <?php for($y=2024;$y<=2026;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?>
+                    </select>
+                </div>
+            </div>
+            
+            <div style="flex: 1; min-width: 250px;">
+                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Dự án vận hành</label>
+                <select name="project_id" class="form-control" style="height: 38px; border-color: var(--primary-light); font-weight: 700;" onchange="this.form.submit()">
+                    <option value="0">-- CHỌN DỰ ÁN --</option>
+                    <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
+                </select>
+            </div>
+
+            <div style="min-width: 200px;">
+                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Tìm nhân viên</label>
+                <input type="text" name="kw" value="<?php echo $kw; ?>" class="form-control" style="height: 38px;" placeholder="Tên, mã NV...">
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-bottom: 2px;">
+                <button type="submit" class="btn btn-primary" style="height: 38px; width: 45px; padding: 0;"><i class="fas fa-search"></i></button>
+                <a href="config.php" class="btn btn-secondary" style="height: 38px; width: 45px; display: inline-flex; align-items: center; justify-content: center; padding: 0; color: #ef4444;"><i class="fas fa-times"></i></a>
+            </div>
+        </form>
+
+        <?php if ($project_id == 0): ?>
+            <div class="card" style="text-align: center; padding: 50px; color: #94a3b8; border: 2px dashed #e2e8f0;">
+                <i class="fas fa-city" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i>
+                <h3>Vui lòng chọn Dự án</h3>
+            </div>
+        <?php else: ?>
+            <div class="card">
+                <div class="table-container">
+                    <table class="table" style="font-size: 0.8rem;">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Nhân viên</th>
+                                <th colspan="5" class="text-center header-fixed">CẤU HÌNH LƯƠNG ĐỊNH MỨC</th>
+                                <th colspan="2" class="text-center header-variable">BIẾN ĐỘNG THÁNG <?php echo "$month/$year"; ?></th>
+                                <th rowspan="2" width="60" class="text-center">Lưu</th>
+                            </tr>
+                            <tr>
+                                <th class="text-center header-fixed">Lương khoán</th>
+                                <th class="text-center header-fixed">Lương HĐ</th>
+                                <th class="text-center header-fixed">Phụ cấp</th>
+                                <th class="text-center header-fixed">Tạm ứng</th>
+                                <th class="text-center header-fixed">Thuế (%)</th>
+                                <th class="text-center header-variable">Thưởng</th>
+                                <th class="text-center header-variable">Đoàn phí</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($employees)): ?>
+                                <tr><td colspan="9" class="text-center" style="padding: 30px;">Dự án này chưa có nhân viên hoặc không tìm thấy kết quả.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($employees as $e): ?>
+                                    <tr data-emp-id="<?php echo $e['id']; ?>">
+                                        <td>
+                                            <strong><?php echo $e['fullname']; ?></strong><br>
+                                            <small class="text-sub"><?php echo $e['code']; ?></small>
+                                        </td>
+                                        <td><input type="text" class="form-control input-money basic_salary" value="<?php echo number_format($e['basic_salary'] ?? 0); ?>"></td>
+                                        <td><input type="text" class="form-control input-money insurance_salary" value="<?php echo number_format($e['insurance_salary'] ?? 0); ?>"></td>
+                                        <td><input type="text" class="form-control input-money allowance_total" value="<?php echo number_format($e['allowance_total'] ?? 0); ?>"></td>
+                                        <td><input type="text" class="form-control input-money salary_advances_default" style="color: #ef4444;" value="<?php echo number_format($e['salary_advances_default'] ?? 0); ?>"></td>
+                                        <td><input type="number" step="0.1" class="form-control income_tax_percent" value="<?php echo $e['income_tax_percent'] ?? 0; ?>" style="text-align:center; height:36px;"></td>
+                                        
+                                        <td><input type="text" class="form-control input-money bonus_amount" style="color: #10b981;" value="<?php echo number_format($e['bonus_amount'] ?? 0); ?>"></td>
+                                        <td><input type="text" class="form-control input-money union_fee" style="color: #64748b;" value="<?php echo number_format($e['union_fee'] ?? 0); ?>"></td>
+                                        
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-success btn-sm btn-save-row"><i class="fas fa-save"></i></button>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
+<style>
+.input-money { text-align: right; font-weight: 600; padding: 5px 10px; height: 36px; min-width: 95px; border-radius: 6px; }
+.header-fixed { background: #f0fdf4 !important; color: #166534; }
+.header-variable { background: #fffbeb !important; color: #92400e; }
+.text-sub { color: #94a3b8; font-size: 0.75rem; }
+</style>
+
+<script>
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('input-money')) {
+        let value = e.target.value.replace(/[^0-9]/g, '');
+        if (value === '') value = '0';
+        e.target.value = new Intl.NumberFormat('en-US').format(parseInt(value));
+    }
+});
+
+document.querySelectorAll('.btn-save-row').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const row = this.closest('tr');
+        const data = {
+            action: 'save_v3',
+            emp_id: row.getAttribute('data-emp-id'),
+            month: <?php echo $month; ?>,
+            year: <?php echo $year; ?>,
+            basic_salary: row.querySelector('.basic_salary').value.replace(/,/g, '') || 0,
+            insurance_salary: row.querySelector('.insurance_salary').value.replace(/,/g, '') || 0,
+            allowance_total: row.querySelector('.allowance_total').value.replace(/,/g, '') || 0,
+            salary_advances_default: row.querySelector('.salary_advances_default').value.replace(/,/g, '') || 0,
+            income_tax_percent: row.querySelector('.income_tax_percent').value || 0,
+            bonus_amount: row.querySelector('.bonus_amount').value.replace(/,/g, '') || 0,
+            union_fee: row.querySelector('.union_fee').value.replace(/,/g, '') || 0
+        };
+
+        const originalBtn = this.innerHTML;
+        this.disabled = true; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        fetch('save_ajax.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === 'success') {
+                Toast.show('success', 'Thành công', 'Dữ liệu đã được lưu');
+                row.style.backgroundColor = '#f0fdf4';
+                setTimeout(() => row.style.backgroundColor = '', 1000);
+            } else { Toast.show('error', 'Lỗi', res.message); }
+        })
+        .finally(() => { this.disabled = false; this.innerHTML = originalBtn; });
+    });
+});
+</script>
+
+<?php include '../../../includes/footer.php'; ?>
