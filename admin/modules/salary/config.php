@@ -3,7 +3,7 @@ require_once '../../../config/db.php';
 require_once '../../../includes/functions.php';
 
 if (!is_admin() && !has_permission('view_salary')) {
-    header("Location: <?php echo BASE_URL; ?>404.php?error=no_permission");
+    header("Location: " . BASE_URL . "404.php?error=no_permission");
     exit;
 }
 

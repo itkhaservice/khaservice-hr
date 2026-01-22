@@ -7,7 +7,7 @@ require_once __DIR__ . '/functions.php';
 
 // Auth Check
 if (!isset($_SESSION['user_id']) && basename($_SERVER['PHP_SELF']) != 'login.php') {
-    header('Location: <?php echo BASE_URL; ?>admin/login.php');
+    header('Location: ' . BASE_URL . 'admin/login.php');
     exit;
 }
 ?>
