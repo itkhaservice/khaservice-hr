@@ -168,24 +168,23 @@ include '../../../includes/sidebar.php';
         }
         </script>
 
-        <form method="GET" class="filter-section" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;">
-            <div style="min-width: 160px;">
-                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Thời gian</label>
-                <div style="display: flex; gap: 6px;">
-                    <select name="month" class="form-control" style="width: 80px; height: 38px;" onchange="this.form.submit()">
-                        <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">T$i</option>"; ?>
-                    </select>
-                    <select name="year" class="form-control" style="width: 95px; height: 38px;" onchange="this.form.submit()">
-                        <?php for($y=2024;$y<=2026;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?>
-                    </select>
-                </div>
-            </div>
-            <div style="flex: 1; min-width: 250px;">
-                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Dự án</label>
-                <select name="project_id" class="form-control" onchange="this.form.submit()" style="height: 38px;">
-                    <option value="0">-- Tất cả dự án --</option>
-                    <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
-                </select>
+        <form method="GET" class="filter-section">
+            <select name="month" class="form-control" style="width: 100px;">
+                <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">Tháng $i</option>"; ?>
+            </select>
+            <select name="year" class="form-control" style="width: 100px;">
+                <?php for($y=2024;$y<=2026;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
+            </select>
+            <select name="project_id" class="form-control" style="min-width: 200px;">
+                <option value="0">-- Chọn Dự án --</option>
+                <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
+            </select>
+            
+            <div style="display: flex; gap: 5px;">
+                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
+                <?php if ($project_id > 0): ?>
+                    <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                <?php endif; ?>
             </div>
         </form>
 

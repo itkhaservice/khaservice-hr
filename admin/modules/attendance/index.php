@@ -65,12 +65,17 @@ include '../../../includes/sidebar.php';
         <div class="attendance-toolbar" style="background: var(--card-bg); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; box-shadow: var(--shadow-sm);">
             <div class="toolbar-left">
                 <form method="GET" style="display: flex; gap: 10px; align-items: center;">
-                    <label style="margin:0; font-weight:600; color:var(--text-sub); font-size: 0.85rem;">Dự án:</label>
-                    <select name="project_id" class="form-control" style="min-width: 200px; height: 36px;" onchange="this.form.submit()">
+                    <select name="project_id" class="form-control" style="min-width: 200px; height: 36px;">
+                        <option value="0">-- Chọn Dự án --</option>
                         <?php foreach($project_options as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
                     </select>
-                    <select name="month" class="form-control" style="width: 75px; height: 36px;" onchange="this.form.submit()"><?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">T$i</option>"; ?></select>
-                    <select name="year" class="form-control" style="width: 90px; height: 36px;" onchange="this.form.submit()"><?php for($y=2023;$y<=2030;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?></select>
+                    <select name="month" class="form-control" style="width: 85px; height: 36px;">
+                        <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">Tháng $i</option>"; ?>
+                    </select>
+                    <select name="year" class="form-control" style="width: 90px; height: 36px;">
+                        <?php for($y=2023;$y<=2030;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?>
+                    </select>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="height: 36px;"><i class="fas fa-filter"></i> Lọc</button>
                 </form>
             </div>
             <div class="toolbar-right" style="display: flex; gap: 8px;">

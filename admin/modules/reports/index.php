@@ -152,22 +152,22 @@ if ($filter_project > 0) {
         </div>
 
         <form method="GET" class="filter-section">
-            <div style="flex: 1; display: flex; align-items: center; gap: 10px;">
-                <label style="font-weight: 600; white-space: nowrap;">Dự án:</label>
-                <select name="project_id" onchange="this.form.submit()" style="flex: 1; max-width: 400px;">
-                    <option value="0">-- CHỌN DỰ ÁN --</option>
-                    <?php foreach($projects as $p): ?>
-                        <option value="<?php echo $p['id']; ?>" <?php echo $filter_project == $p['id'] ? 'selected' : ''; ?>>
-                            <?php echo htmlspecialchars($p['name']); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <?php if($filter_project > 0): ?>
-                <a href="export.php?project_id=<?php echo $filter_project; ?>&type=structure" class="btn btn-success" style="background: #107c41; color: white; border: none;">
-                    <i class="fas fa-file-excel"></i> Xuất Excel
-                </a>
+            <select name="project_id" class="form-control" style="min-width: 300px;">
+                <option value="0">-- CHỌN DỰ ÁN --</option>
+                <?php foreach($projects as $p): ?>
+                    <option value="<?php echo $p['id']; ?>" <?php echo $filter_project == $p['id'] ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($p['name']); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+            
+            <div style="display: flex; gap: 5px;">
+                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
+                <?php if ($filter_project > 0): ?>
+                    <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                    <a href="export.php?project_id=<?php echo $filter_project; ?>&type=structure" class="btn btn-success" style="background: #107c41; color: white; border: none; min-width: 100px;">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </a>
                 <?php endif; ?>
             </div>
         </form>

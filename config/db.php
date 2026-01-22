@@ -12,10 +12,21 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Database Configuration
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'khaservice_hr_db');
+if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1') {
+    // LOCAL ENVIRONMENT (XAMPP)
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'khaservice_hr_db');
+} else {
+    // PRODUCTION ENVIRONMENT (InfinityFree)
+    // Cập nhật thông tin từ Control Panel Hosting của bạn vào đây
+    define('DB_HOST', 'sql309.infinityfree.com'); // Thay bằng "MySQL Hostname" trên CPanel
+    define('DB_USER', 'if0_40778649');            // Username hosting của bạn
+    define('DB_PASS', 'YOUR_DB_PASSWORD');        // Mật khẩu Database (thường là mật khẩu hosting)
+    define('DB_NAME', 'if0_40778649_khaservice_db');
+}
+
 define('DB_CHARSET', 'utf8mb4');
 
 // Create connection

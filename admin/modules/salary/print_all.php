@@ -56,7 +56,7 @@ $standard_days_dynamic = get_standard_working_days($month, $year);
 
         .payslip-half {
             width: 50%;
-            padding: 3mm 5mm;
+            padding: 6mm 6mm;
             box-sizing: border-box;
         }
         
@@ -111,7 +111,7 @@ $standard_days_dynamic = get_standard_working_days($month, $year);
                     <thead>
                         <tr class="bg-subtle">
                             <th colspan="3" class="text-center uppercase py-2" style="font-size: 10px;">
-                                PHIẾU LƯƠNG CB, NV CC <?php echo $project['name']; ?> T<?php echo $month; ?>/<?php echo $year; ?>
+                                PHIẾU LƯƠNG CB, NV -  <?php echo $project['name']; ?> - T<?php echo $month; ?>/<?php echo $year; ?>
                             </th>
                         </tr>
                         <tr>
@@ -216,8 +216,8 @@ $standard_days_dynamic = get_standard_working_days($month, $year);
                         </tr>
 
                         <tr class="font-bold" style="background: #000; color: #fff;">
-                            <td colspan="2" class="py-2" style="font-weight: normal; font-size: 11px;">III. Thực lĩnh = Tổng thu nhập - các khoản giảm trừ</td>
-                            <td class="text-right" style="font-size: 14px; font-weight: bold;"><?php echo number_format($p['net_salary']); ?></td>
+                            <td colspan="2" class="py-2" style="font-weight: bold; font-size: 11px;">III. Thực lĩnh = Tổng thu nhập - các khoản giảm trừ</td>
+                            <td class="text-right" style="font-size: 11px; font-weight: bold;"><?php echo number_format($p['net_salary']); ?></td>
                         </tr>
                     </tbody>
                 </table>

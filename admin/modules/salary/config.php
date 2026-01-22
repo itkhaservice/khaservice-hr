@@ -48,35 +48,24 @@ include '../../../includes/sidebar.php';
             </div>
         </div>
 
-        <form method="GET" class="filter-section" style="display: flex; gap: 12px; background: #fff; padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid #e2e8f0; align-items: flex-end; flex-wrap: wrap;">
-            <div style="min-width: 160px;">
-                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Thời gian</label>
-                <div style="display: flex; gap: 6px;">
-                    <select name="month" class="form-control" style="width: 75px; height: 38px;" onchange="this.form.submit()">
-                        <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">T$i</option>"; ?>
-                    </select>
-                    <select name="year" class="form-control" style="width: 95px; height: 38px;" onchange="this.form.submit()">
-                        <?php for($y=2024;$y<=2026;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?>
-                    </select>
-                </div>
-            </div>
-            
-            <div style="flex: 1; min-width: 250px;">
-                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Dự án vận hành</label>
-                <select name="project_id" class="form-control" style="height: 38px; border-color: var(--primary-light); font-weight: 700;" onchange="this.form.submit()">
-                    <option value="0">-- CHỌN DỰ ÁN --</option>
-                    <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
-                </select>
-            </div>
+        <form method="GET" class="filter-section">
+            <select name="month" class="form-control" style="width: 100px;">
+                <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">Tháng $i</option>"; ?>
+            </select>
+            <select name="year" class="form-control" style="width: 100px;">
+                <?php for($y=2024;$y<=2026;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
+            </select>
+            <select name="project_id" class="form-control" style="min-width: 200px;">
+                <option value="0">-- CHỌN DỰ ÁN --</option>
+                <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
+            </select>
+            <input type="text" name="kw" value="<?php echo $kw; ?>" class="form-control" placeholder="Tên, mã NV...">
 
-            <div style="min-width: 200px;">
-                <label style="font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; display: block; margin-bottom: 6px;">Tìm nhân viên</label>
-                <input type="text" name="kw" value="<?php echo $kw; ?>" class="form-control" style="height: 38px;" placeholder="Tên, mã NV...">
-            </div>
-
-            <div style="display: flex; gap: 8px; margin-bottom: 2px;">
-                <button type="submit" class="btn btn-primary" style="height: 38px; width: 45px; padding: 0;"><i class="fas fa-search"></i></button>
-                <a href="config.php" class="btn btn-secondary" style="height: 38px; width: 45px; display: inline-flex; align-items: center; justify-content: center; padding: 0; color: #ef4444;"><i class="fas fa-times"></i></a>
+            <div style="display: flex; gap: 5px;">
+                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
+                <?php if ($project_id > 0 || $kw != ''): ?>
+                    <a href="config.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                <?php endif; ?>
             </div>
         </form>
 

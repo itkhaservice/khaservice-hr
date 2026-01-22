@@ -50,29 +50,24 @@ include '../../../includes/sidebar.php';
             </div>
         </div>
 
-        <form method="GET" class="filter-section" style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 100px;">
-                <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px;">Năm</label>
-                <select name="year" class="form-control" onchange="this.form.submit()">
-                    <?php for($y=2024; $y<=2026; $y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
-                </select>
-            </div>
-            <div style="flex: 2; min-width: 200px;">
-                <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px;">Phòng ban</label>
-                <select name="dept_id" class="form-control" onchange="this.form.submit()">
-                    <option value="">-- Tất cả phòng ban --</option>
-                    <?php foreach($departments as $d) echo "<option value='{$d['id']}' ".($d['id']==$dept_id?'selected':'').">{$d['name']}</option>"; ?>
-                </select>
-            </div>
-            <div style="flex: 2; min-width: 200px;">
-                <label style="font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px;">Dự án</label>
-                <select name="project_id" class="form-control" onchange="this.form.submit()">
-                    <option value="0">-- CHỌN DỰ ÁN --</option>
-                    <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
-                </select>
-            </div>
-            <div style="display: flex; align-items: flex-end; padding-bottom: 2px;">
-                <a href="leave_report.php" class="btn btn-danger" title="Xóa lọc" style="height: 36px; min-width: 40px; display: flex; align-items: center; justify-content: center; padding: 0;"><i class="fas fa-times"></i></a>
+        <form method="GET" class="filter-section">
+            <select name="year" class="form-control" style="width: 100px;">
+                <?php for($y=2024; $y<=2026; $y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
+            </select>
+            <select name="dept_id" class="form-control">
+                <option value="">-- Tất cả phòng ban --</option>
+                <?php foreach($departments as $d) echo "<option value='{$d['id']}' ".($d['id']==$dept_id?'selected':'').">{$d['name']}</option>"; ?>
+            </select>
+            <select name="project_id" class="form-control" style="min-width: 200px;">
+                <option value="0">-- CHỌN DỰ ÁN --</option>
+                <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
+            </select>
+            
+            <div style="display: flex; gap: 5px;">
+                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
+                <?php if ($project_id > 0 || $dept_id > 0): ?>
+                    <a href="leave_report.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                <?php endif; ?>
             </div>
         </form>
 
