@@ -205,7 +205,7 @@ $all_projects = db_fetch_all("SELECT id, name FROM projects WHERE $where_p ORDER
                                 </td>
                                 <td style="text-align:center;">
                                     <div style="display: flex; gap: 5px; justify-content: center;">
-                                        <a href="/khaservice-hr/upload/documents/<?php echo $item_path; ?>" target="_blank" class="btn btn-sm btn-secondary">Tải</a>
+                                        <a href="<?php echo BASE_URL; ?>upload/documents/<?php echo $item_path; ?>" target="_blank" class="btn btn-sm btn-secondary">Tải</a>
                                         <a href="javascript:void(0)" onclick="deleteItem('<?php echo htmlspecialchars($item_path); ?>')" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
                                     </div>
                                 </td>

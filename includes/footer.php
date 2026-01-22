@@ -7,7 +7,7 @@
 
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="/khaservice-hr/assets/js/main.js"></script>
+<script src="<?php echo BASE_URL; ?>assets/js/main.js"></script>
 <script>
     $(document).ready(function() {
         // Show Toast from Session

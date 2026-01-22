@@ -85,7 +85,7 @@ $pending_docs = db_fetch_all($sql);
                                     </td>
                                     <td><?php echo date('H:i d/m/Y', strtotime($pd['created_at'])); ?></td>
                                     <td>
-                                        <a href="/khaservice-hr/<?php echo $pd['file_path']; ?>" target="_blank" class="btn btn-secondary btn-sm">
+                                        <a href="<?php echo BASE_URL; ?><?php echo $pd['file_path']; ?>" target="_blank" class="btn btn-secondary btn-sm">
                                             <i class="fas fa-eye"></i> Xem file
                                         </a>
                                     </td>

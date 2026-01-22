@@ -1,8 +1,8 @@
 # Khaservice HR Security Configuration
 
 # 1. Custom Error Pages
-ErrorDocument 404 /khaservice-hr/404.php
-ErrorDocument 403 /khaservice-hr/404.php
+ErrorDocument 404 /404.php
+ErrorDocument 403 /404.php
 
 # 2. Disable Directory Browsing (Security)
 Options -Indexes

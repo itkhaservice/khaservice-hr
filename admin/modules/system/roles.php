@@ -4,7 +4,7 @@ require_once '../../../includes/functions.php';
 
 // Chỉ ADMIN mới được vào trang này
 if (!is_admin()) {
-    header("Location: /khaservice-hr/404.php?error=no_permission");
+    header("Location: <?php echo BASE_URL; ?>404.php?error=no_permission");
     exit;
 }
 

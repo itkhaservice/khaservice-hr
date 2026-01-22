@@ -242,7 +242,7 @@ include '../../../includes/sidebar.php';
                     <div class="card" style="text-align: center;">
                         <div class="avatar-preview-container" style="margin-bottom: 20px;">
                             <?php 
-                                $avatar_path = !empty($employee['avatar']) ? "/khaservice-hr/" . $employee['avatar'] : "https://ui-avatars.com/api/?name=" . urlencode($employee['fullname']) . "&size=200&background=24a25c&color=fff";
+                                $avatar_path = !empty($employee['avatar']) ? BASE_URL . $employee['avatar'] : "https://ui-avatars.com/api/?name=" . urlencode($employee['fullname']) . "&size=200&background=24a25c&color=fff";
                             ?>
                             <img id="avatarPreview" src="<?php echo $avatar_path; ?>" alt="Avatar" style="width: 200px; height: 200px; border-radius: 12px; object-fit: cover; border: 4px solid #f1f5f9; box-shadow: var(--shadow-sm);">
                         </div>

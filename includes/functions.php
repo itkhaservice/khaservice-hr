@@ -82,7 +82,7 @@ function has_permission($permission_code) {
  */
 function require_permission($permission_code) {
     if (!has_permission($permission_code)) {
-        header("Location: /khaservice-hr/404.php?error=no_permission&code=" . $permission_code);
+        header("Location: <?php echo BASE_URL; ?>404.php?error=no_permission&code=" . $permission_code);
         exit;
     }
 }

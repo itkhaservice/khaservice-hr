@@ -175,7 +175,7 @@ include '../../../includes/sidebar.php';
                                                     <?php if ($f['expiry_date'] && strtotime($f['expiry_date']) < time()) echo ' <span class="text-danger">(Hết hạn)</span>'; ?>
                                                 </td>
                                                 <td style="border:none; border-bottom:1px solid var(--border-color);">
-                                                    <a href="/khaservice-hr/<?php echo $f['file_path']; ?>" target="_blank" class="text-info"><i class="fas fa-download"></i> Tải về</a>
+                                                    <a href="<?php echo BASE_URL; ?><?php echo $f['file_path']; ?>" target="_blank" class="text-info"><i class="fas fa-download"></i> Tải về</a>
                                                     <?php 
                                                         if ($f['approval_status'] == 'pending') echo ' <span class="badge badge-warning">Chờ duyệt</span>';
                                                         elseif ($f['approval_status'] == 'rejected') echo ' <span class="badge badge-danger">Từ chối</span>';

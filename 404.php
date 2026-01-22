@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once 'config/db.php';
 $error_type = $_GET['error'] ?? '';
 $perm_code = $_GET['code'] ?? '';
 $is_permission_error = ($error_type === 'no_permission');
@@ -12,7 +12,7 @@ $requested_page = $_SERVER['HTTP_REFERER'] ?? 'Không rõ';
     <meta charset="UTF-8">
     <title><?php echo $is_permission_error ? '403 - Từ chối truy cập' : '404 - Không tìm thấy trang'; ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/khaservice-hr/assets/css/admin_style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin_style.css">
     <style>
         body { background: #f1f5f9; height: 100vh; display: flex; align-items: center; justify-content: center; margin: 0; font-family: 'Inter', sans-serif; }
         .error-card { text-align: center; max-width: 550px; width: 90%; padding: 40px; background: #fff; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
@@ -59,7 +59,7 @@ $requested_page = $_SERVER['HTTP_REFERER'] ?? 'Không rõ';
             - Link gốc: <code><?php echo htmlspecialchars($_SERVER['REQUEST_URI']); ?></code>
         </div>
 
-        <a href="/khaservice-hr/admin/index.php" class="btn-home">
+        <a href="<?php echo BASE_URL; ?>admin/index.php" class="btn-home">
             <i class="fas fa-home"></i> Quay về Dashboard
         </a>
     </div>
