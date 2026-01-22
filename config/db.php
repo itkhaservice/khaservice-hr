@@ -69,4 +69,10 @@ function db_fetch_all($sql, $params = []) {
     $stmt = db_query($sql, $params);
     return $stmt ? $stmt->fetchAll() : [];
 }
+
+// Function to get last inserted ID
+function db_last_insert_id() {
+    global $pdo;
+    return $pdo->lastInsertId();
+}
 ?>
