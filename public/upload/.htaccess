@@ -1,0 +1,22 @@
+# SECURITY: Prevent script execution in upload folder
+# This prevents hackers from uploading and running PHP shells
+
+# Disable PHP Engine if server allows
+<IfModule mod_php5.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+# Prevent accessing script files directly
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|html|shtml|sh|cgi)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Disable Directory Listing (Don't let them see all files)
+Options -Indexes
