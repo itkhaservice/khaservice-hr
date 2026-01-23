@@ -22,7 +22,7 @@ if (!isset($_SESSION['user_id']) && basename($_SERVER['PHP_SELF']) != 'login.php
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin_style.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/admin_style.css?v=<?php echo time(); ?>">
     
     <!-- Driver.js for Product Tour -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
