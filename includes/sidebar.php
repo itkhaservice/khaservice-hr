@@ -100,5 +100,11 @@ if (isset($pdo)) {
             </a>
         </li>
         <?php endif; ?>
+
+        <li>
+            <a href="<?php echo BASE_URL; ?>admin/modules/support/index.php" class="<?php echo is_active('/modules/support/'); ?>">
+                <i class="fas fa-life-ring"></i> <span>Hỗ trợ hệ thống</span>
+            </a>
+        </li>
     </ul>
 </nav>

@@ -1,7 +1,7 @@
 /**
  * Khaservice HRMS - Product Tour System
  * Thư viện sử dụng: Driver.js
- * Cập nhật: 23/01/2026 - Thêm Module Hợp đồng & Topbar
+ * Cập nhật: 23/01/2026 - Thêm Module Hợp đồng, Hỗ trợ & Topbar
  */
 
 const driver = window.driver.js.driver;
@@ -54,6 +54,13 @@ const tourConfigs = {
     // 5. BÁO CÁO
     '/reports/index.php': [
         { element: '.card[style*="border-top"]', popover: { title: 'Tổng quan định biên', description: 'Biểu đồ theo dõi tỷ lệ lấp đầy nhân sự so with kế hoạch.', side: "bottom" } }
+    ],
+
+    // 6. HỖ TRỢ & HỆ THỐNG
+    '/support/index.php': [
+        { element: '.card:nth-child(1)', popover: { title: 'Đội ngũ phát triển', description: 'Thông tin liên hệ và đơn vị xây dựng hệ thống Khaservice HRMS.', side: "bottom" } },
+        { element: '.card:nth-child(2)', popover: { title: 'Thông số kỹ thuật', description: 'Chi tiết về phiên bản phần mềm, ngôn ngữ lập trình và môi trường vận hành.', side: "bottom" } },
+        { element: '.support-box:nth-child(2)', popover: { title: 'Trung tâm trợ giúp', description: 'Nơi bạn có thể gửi yêu cầu hỗ trợ kỹ thuật hoặc xem lại các kịch bản hướng dẫn.', side: "top" } }
     ]
 };
 
