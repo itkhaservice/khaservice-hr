@@ -130,31 +130,35 @@ const Loader = {
 // 4. Theme Toggle (Dark/Light Mode)
 const Theme = {
     init() {
-        const toggleBtn = document.getElementById('theme-toggle');
-        if (!toggleBtn) return;
+        try {
+            const toggleBtn = document.getElementById('theme-toggle');
+            if (!toggleBtn) return;
 
-        const currentTheme = localStorage.getItem('theme');
-        const icon = toggleBtn.querySelector('i');
+            const currentTheme = localStorage.getItem('theme');
+            const icon = toggleBtn.querySelector('i');
 
-        // Apply saved theme
-        if (currentTheme === 'dark') {
-            document.body.classList.add('dark-mode');
-            icon.classList.replace('fa-moon', 'fa-sun');
-        }
-
-        toggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-            
-            let theme = 'light';
-            if (document.body.classList.contains('dark-mode')) {
-                theme = 'dark';
-                icon.classList.replace('fa-moon', 'fa-sun');
-            } else {
-                icon.classList.replace('fa-sun', 'fa-moon');
+            // Apply saved theme
+            if (currentTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                if (icon) icon.classList.replace('fa-moon', 'fa-sun');
             }
-            
-            localStorage.setItem('theme', theme);
-        });
+
+            toggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                
+                let theme = 'light';
+                if (document.body.classList.contains('dark-mode')) {
+                    theme = 'dark';
+                    if (icon) icon.classList.replace('fa-moon', 'fa-sun');
+                } else {
+                    if (icon) icon.classList.replace('fa-sun', 'fa-moon');
+                }
+                
+                localStorage.setItem('theme', theme);
+            });
+        } catch (e) {
+            console.error('Theme init error:', e);
+        }
     }
 };
 
@@ -180,36 +184,37 @@ document.addEventListener('DOMContentLoaded', () => {
     Theme.init();
 
     // --- Sidebar Logic (Mobile & Desktop) ---
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    const body = document.body;
-    
-    // 1. Create Overlay for Mobile
-    const overlay = document.createElement('div');
-    overlay.className = 'sidebar-overlay';
-    body.appendChild(overlay);
+    // Use Event Delegation for robustness
+    document.addEventListener('click', (e) => {
+        const toggleBtn = e.target.closest('#sidebarToggle');
+        if (!toggleBtn) return;
 
-    // 2. Restore State on Load (Desktop Only)
-    if (window.innerWidth > 768) {
-        const savedState = localStorage.getItem('sidebarState');
-        if (savedState === 'collapsed') {
-            sidebar.classList.add('collapsed');
-            if (mainContent) mainContent.classList.add('expanded');
+        e.stopPropagation();
+        
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.querySelector('.main-content');
+        const overlay = document.querySelector('.sidebar-overlay');
+
+        // Create overlay if missing (lazy init)
+        if (!overlay && window.innerWidth <= 768) {
+            const newOverlay = document.createElement('div');
+            newOverlay.className = 'sidebar-overlay';
+            document.body.appendChild(newOverlay);
+            // Re-select
+            // overlay = newOverlay; 
+            // Note: complex to re-assign const, but strictly checking DOM next time is fine.
+            // For now, let's just use the newly created one if we need it immediately
+             newOverlay.classList.toggle('active'); // Immediate toggle for this click
+        } else if (overlay && window.innerWidth <= 768) {
+             overlay.classList.toggle('active');
         }
-    }
 
-    // 3. Toggle Handler
-    if (sidebarToggle && sidebar) {
-        sidebarToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            
+        if (sidebar) {
             if (window.innerWidth <= 768) {
-                // Mobile: Toggle Active/Overlay (No persistence needed)
+                // Mobile: Toggle Active
                 sidebar.classList.toggle('active');
-                overlay.classList.toggle('active');
             } else {
-                // Desktop: Toggle Collapsed/Expanded & Persist
+                // Desktop: Toggle Collapsed
                 sidebar.classList.toggle('collapsed');
                 if (mainContent) {
                     mainContent.classList.toggle('expanded');
@@ -219,20 +224,46 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isCollapsed = sidebar.classList.contains('collapsed');
                 localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
             }
-        });
+        }
+    });
 
-        // 4. Close on Overlay Click (Mobile only)
-        overlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
+    // Sidebar Overlay Click (Delegation)
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('sidebar-overlay')) {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = e.target;
+            
+            if (sidebar) sidebar.classList.remove('active');
             overlay.classList.remove('active');
-        });
+        }
+    });
 
-        // 5. Auto-close on Link Click (Mobile only)
+    // 1. Create Overlay for Mobile (Pre-emptive)
+    if (!document.querySelector('.sidebar-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
+
+    // 2. Restore State on Load (Desktop Only)
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
+    if (window.innerWidth > 768 && sidebar) {
+        const savedState = localStorage.getItem('sidebarState');
+        if (savedState === 'collapsed') {
+            sidebar.classList.add('collapsed');
+            if (mainContent) mainContent.classList.add('expanded');
+        }
+    }
+    
+    // 3. Auto-close on Link Click (Mobile only)
+    if (sidebar) {
         sidebar.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
                     sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
+                    const overlay = document.querySelector('.sidebar-overlay');
+                    if (overlay) overlay.classList.remove('active');
                 }
             });
         });

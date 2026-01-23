@@ -4,7 +4,14 @@
  * Cập nhật: 23/01/2026 - Thêm Module Hợp đồng, Hỗ trợ & Topbar
  */
 
-const driver = window.driver.js.driver;
+let driver = null;
+try {
+    if (window.driver && window.driver.js) {
+        driver = window.driver.js.driver;
+    }
+} catch (e) {
+    console.warn('Driver.js not loaded:', e);
+}
 
 const tourConfigs = {
     // 0. CHUNG (Xuất hiện ở mọi trang qua nút ?)
@@ -65,6 +72,10 @@ const tourConfigs = {
 };
 
 function startProductTour(force = false) {
+    if (!driver) {
+        if (force) console.warn('Product Tour: Driver library not available.');
+        return;
+    }
     const currentPath = window.location.pathname;
     let steps = [];
 

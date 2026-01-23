@@ -413,6 +413,13 @@ include '../includes/sidebar.php';
 .input-money { text-align: right; font-weight: 600; color: var(--primary-dark); }
 .text-primary-hover:hover { color: var(--primary-color); }
 .text-danger:hover { color: #b91c1c; }
+
+/* Force Z-Index for Settings Page */
+#sidebarToggle, #theme-toggle, #start-tour {
+    position: relative !important;
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
 </style>
 
 <?php include '../includes/footer.php'; ?>
