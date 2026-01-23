@@ -3,16 +3,23 @@ require_once '../../../config/db.php';
 require_once '../../../includes/functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_employee'])) {
+    // Code Logic: If empty, generate NV + Timestamp
     $code = clean_input($_POST['code']);
+    if (empty($code)) {
+        $code = "NV" . date('ymd') . rand(100, 999);
+    }
+
     $fullname = clean_input($_POST['fullname']);
     $gender = clean_input($_POST['gender']);
     $dob = clean_input($_POST['dob']);
     $phone = clean_input($_POST['phone']);
     $email = clean_input($_POST['email']);
     $identity_card = clean_input($_POST['identity_card']);
+    
     $department_id = (int)$_POST['department_id'];
     $position_id = (int)$_POST['position_id'];
     
+    // Get Position Name for legacy reasons or display
     $pos_info = db_fetch_row("SELECT name FROM positions WHERE id = ?", [$position_id]);
     $position_name = $pos_info ? $pos_info['name'] : '';
 
@@ -25,44 +32,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_employee'])) {
     if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
         $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         $ext = strtolower(pathinfo($_FILES['avatar']['name'], PATHINFO_EXTENSION));
-        
         if (in_array($ext, $allowed)) {
             $filename = "avatar_" . time() . "_" . rand(100,999) . "." . $ext;
             $target = "../../../upload/avatars/" . $filename;
-            
+            if (!file_exists('../../../upload/avatars')) mkdir('../../../upload/avatars', 0777, true);
             if (move_uploaded_file($_FILES['avatar']['tmp_name'], $target)) {
                 $avatar = "upload/avatars/" . $filename;
             }
         }
     }
 
-    $sql = "INSERT INTO employees (code, fullname, avatar, gender, dob, phone, email, identity_card, department_id, position_id, position, current_project_id, position, start_date, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    // Note: There was a double 'position' in my mental SQL, fixed below:
+    // Insert Query (Updated with gender)
     $sql = "INSERT INTO employees (code, fullname, avatar, gender, dob, phone, email, identity_card, department_id, position_id, position, current_project_id, start_date, status) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $params = [$code, $fullname, $avatar, $gender, $dob, $phone, $email, $identity_card, $department_id, $position_id, $position_name, $current_project_id, $start_date, $status];
     
     if (db_query($sql, $params)) {
-        $new_emp_id = db_get_last_insert_id();
-        // Log Initial Status
+        $new_emp_id = db_last_insert_id();
         db_query("INSERT INTO employee_status_history (employee_id, old_status, new_status, change_date, note, created_by) 
                   VALUES (?, NULL, ?, ?, ?, ?)", 
-                  [$new_emp_id, $status, $start_date, 'Tạo mới hồ sơ nhân viên', $_SESSION['user_id']]);
+                  [$new_emp_id, $status, $start_date ?: date('Y-m-d'), 'Tạo mới hồ sơ nhân viên', $_SESSION['user_id']]);
 
         set_toast('success', 'Thêm nhân viên mới thành công!');
         redirect('index.php');
     } else {
-        set_toast('error', 'Có lỗi xảy ra, vui lòng thử lại!');
+        set_toast('error', 'Có lỗi xảy ra (Có thể trùng Mã NV hoặc CCCD), vui lòng thử lại!');
     }
 }
 
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
 $projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
 $positions = db_fetch_all("SELECT * FROM positions ORDER BY name ASC");
-
-// Security: Get Allowed Projects
 $allowed_projs = get_allowed_projects();
 
 include '../../../includes/header.php';
@@ -93,7 +94,6 @@ include '../../../includes/sidebar.php';
                             <i class="fas fa-camera"></i> Chọn ảnh khuôn mặt
                         </label>
                         <input type="file" id="avatarInput" name="avatar" style="display: none;" accept="image/*" onchange="previewImage(this)">
-                        
                         <p style="margin-top: 15px; font-size: 0.8rem; color: #64748b;">Hỗ trợ: JPG, PNG, WEBP. Tối đa 2MB.</p>
                     </div>
                 </div>
@@ -109,8 +109,8 @@ include '../../../includes/sidebar.php';
                         <div id="personal" class="tab-content active">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                                 <div class="form-group">
-                                    <label>Mã nhân viên <span style="color:red;">*</span></label>
-                                    <input type="text" name="code" class="form-control" required placeholder="Ví dụ: NV001">
+                                    <label>Mã nhân viên (Bỏ trống để tự tạo)</label>
+                                    <input type="text" name="code" class="form-control" placeholder="Ví dụ: NV001">
                                 </div>
                                 <div class="form-group">
                                     <label>Họ và tên <span style="color:red;">*</span></label>
@@ -158,6 +158,10 @@ include '../../../includes/sidebar.php';
                                     <label>Chức vụ</label>
                                     <select name="position_id" id="positionSelect" class="form-control">
                                         <option value="">-- Chọn chức vụ --</option>
+                                        <!-- Fallback loaded via JS or manually -->
+                                        <?php foreach ($positions as $p): ?>
+                                             <option value="<?php echo $p['id']; ?>" class="pos-option" data-dept="<?php echo $p['department_id']; ?>"><?php echo $p['name']; ?></option>
+                                        <?php endforeach; ?>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -165,7 +169,6 @@ include '../../../includes/sidebar.php';
                                     <select name="current_project_id" class="form-control">
                                         <option value="">-- Chọn dự án --</option>
                                         <?php foreach ($projects as $p): 
-                                            // Filter allowed projects
                                             if ($allowed_projs !== 'ALL' && !in_array($p['id'], $allowed_projs)) continue;
                                         ?>
                                             <option value="<?php echo $p['id']; ?>"><?php echo $p['name']; ?></option>
@@ -196,8 +199,6 @@ include '../../../includes/sidebar.php';
 <?php include '../../../includes/footer.php'; ?>
 
 <script>
-const allPositions = <?php echo json_encode($positions); ?>;
-
 $(document).ready(function() {
     $('.tab-item').on('click', function() {
         var tabId = $(this).data('tab');
@@ -206,19 +207,33 @@ $(document).ready(function() {
         $(this).addClass('active');
         $('#' + tabId).addClass('active');
     });
+    
+    // Initial call to hide unrelated positions if department is already selected (e.g. edit mode)
+    updatePositions();
 });
 
 function updatePositions() {
     const deptId = $('#departmentSelect').val();
     const $posSelect = $('#positionSelect');
+    const $options = $posSelect.find('option.pos-option');
     
-    $posSelect.empty().append('<option value="">-- Chọn chức vụ --</option>');
-    
-    if (deptId) {
-        const filtered = allPositions.filter(p => p.department_id == deptId);
-        filtered.forEach(p => {
-            $posSelect.append(`<option value="${p.id}">${p.name}</option>`);
+    // Reset selection if needed, or just hide/show
+    if (!deptId) {
+        $options.show(); // Show all if no dept selected (or hide all? User choice. Let's show all for flexibility)
+    } else {
+        $options.each(function() {
+            // Check if position belongs to dept (if position has department_id column logic)
+            // Assuming your position structure might NOT map strictly in JS if department_id isn't in DB for positions
+            // But I printed the loop with data-dept attribute above.
+            const pDept = $(this).data('dept');
+            if (pDept && pDept != deptId) {
+                $(this).hide();
+            } else {
+                $(this).show();
+            }
         });
+        // Select first visible
+        $posSelect.val('');
     }
 }
 
