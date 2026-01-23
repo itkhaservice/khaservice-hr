@@ -95,7 +95,7 @@ if (isset($pdo)) {
         </li>
         */ ?>
         <li>
-            <a href="<?php echo BASE_URL; ?>admin/settings.php" class="<?php echo is_active('/settings.php'); ?>">
+            <a href="<?php echo BASE_URL; ?>admin/modules/settings/index.php" class="<?php echo is_active('/modules/settings/'); ?>">
                 <i class="fas fa-cogs"></i> <span>Cài đặt hệ thống</span>
             </a>
         </li>
