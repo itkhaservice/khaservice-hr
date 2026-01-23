@@ -145,6 +145,20 @@ include '../../../includes/sidebar.php';
 .role-item:hover { background: #f1f5f9; }
 .role-item.active { background: #e0f2fe; border-left: 4px solid #3b82f6; }
 .perm-group label span { font-size: 0.95rem; color: #334155; }
+
+/* DARK MODE */
+body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
+body.dark-mode .card div[style*="background: #f8fafc"] { background-color: #0f172a !important; border-bottom-color: #334155 !important; color: #94a3b8 !important; }
+body.dark-mode .role-item { border-bottom-color: #334155 !important; }
+body.dark-mode .role-item:hover { background-color: rgba(255,255,255,0.02) !important; }
+body.dark-mode .role-item.active { background-color: rgba(59, 130, 246, 0.1) !important; border-left-color: #3b82f6 !important; }
+body.dark-mode .role-item div[style*="color: var(--primary-dark)"] { color: #4ade80 !important; }
+body.dark-mode h3[style*="color: var(--primary-color)"] { color: #4ade80 !important; }
+body.dark-mode .perm-group h4 { border-bottom-color: #334155 !important; }
+body.dark-mode .perm-group label span { color: #cbd5e1; }
+body.dark-mode div[style*="border-top: 1px solid #eee"] { border-top-color: #334155 !important; }
+body.dark-mode .modal-box { background-color: #1e293b; color: #f1f5f9; border: 1px solid #334155; }
+body.dark-mode .form-control { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
 </style>
 
 <?php include '../../../includes/footer.php'; ?>

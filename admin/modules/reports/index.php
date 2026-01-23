@@ -143,6 +143,25 @@ if ($filter_project > 0) {
 }
 ?>
 
+<style>
+/* DARK MODE CHO TRANG BÁO CÁO */
+body.dark-mode .filter-section { background-color: #1e293b; border-color: var(--primary-color); }
+body.dark-mode .filter-section select { background-color: #0f172a; border-color: #334155; color: #cbd5e1; }
+body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
+body.dark-mode .section-title { color: #cbd5e1 !important; }
+body.dark-mode .card div[style*="background: #f8fafc"] { background-color: #0f172a !important; border-bottom-color: #334155 !important; }
+body.dark-mode .card h4 { color: #cbd5e1 !important; }
+body.dark-mode .table td { border-bottom-color: #334155 !important; color: #cbd5e1 !important; }
+body.dark-mode .table td div[style*="color: #1e293b"] { color: #f1f5f9 !important; }
+body.dark-mode .table tr[style*="background: #fff1f2"] { background-color: rgba(220, 38, 38, 0.1) !important; }
+body.dark-mode .note-box { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+body.dark-mode .note-box div { color: #fbbf24 !important; }
+body.dark-mode .note-box ul { color: #94a3b8 !important; }
+body.dark-mode .table thead { background-color: #334155 !important; }
+body.dark-mode .table thead th { background-color: #334155 !important; color: #94a3b8; }
+body.dark-mode div[style*="color: #334155"] { color: #cbd5e1 !important; }
+</style>
+
 <div class="main-content">
     <?php include '../../../includes/topbar.php'; ?>
 

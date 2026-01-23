@@ -509,6 +509,13 @@ include '../../../includes/sidebar.php';
 }
 
 /* DARK MODE */
+body.dark-mode .filter-section { background-color: #1e293b; border-color: var(--primary-color); }
+body.dark-mode .filter-section select, 
+body.dark-mode .filter-section input { 
+    background-color: #0f172a; 
+    border-color: #334155; 
+    color: #cbd5e1; 
+}
 body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
 body.dark-mode .is-sunday { background-color: rgba(234, 179, 8, 0.15) !important; }
 body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }

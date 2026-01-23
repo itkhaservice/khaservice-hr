@@ -138,6 +138,23 @@ include '../../../includes/sidebar.php';
 .header-variable { background: #fffbeb !important; color: #92400e; }
 .table tbody tr:hover { background-color: #f1f5f9; }
 
+/* DARK MODE */
+body.dark-mode .filter-section { background-color: #1e293b; border-color: var(--primary-color); }
+body.dark-mode .filter-section select, 
+body.dark-mode .filter-section input { 
+    background-color: #0f172a; 
+    border-color: #334155; 
+    color: #cbd5e1; 
+}
+body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
+body.dark-mode #salary-config-card div[style*="background: #f8fafc"] { background-color: #1e293b !important; border-bottom-color: #334155 !important; }
+body.dark-mode .table thead th { background-color: #334155; color: #94a3b8; border-color: #475569; }
+body.dark-mode .header-fixed { background-color: rgba(22, 101, 52, 0.2) !important; color: #4ade80 !important; }
+body.dark-mode .header-variable { background-color: rgba(146, 64, 14, 0.2) !important; color: #fbbf24 !important; }
+body.dark-mode .table td { border-bottom-color: #334155; color: #cbd5e1; }
+body.dark-mode .table tr:hover { background-color: rgba(255,255,255,0.02); }
+body.dark-mode .form-control { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
+
 /* Fullscreen Styles for Card */
 #salary-config-card:fullscreen {
     width: 100vw !important;

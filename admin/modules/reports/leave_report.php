@@ -40,6 +40,42 @@ include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 ?>
 
+<style>
+/* DARK MODE CHO TRANG BÁO CÁO PHÉP */
+body.dark-mode .filter-section { 
+    background-color: #1e293b; 
+    border-color: var(--primary-color); 
+}
+body.dark-mode .filter-section select { 
+    background-color: #0f172a; 
+    border-color: #334155; 
+    color: #cbd5e1; 
+}
+body.dark-mode .card { 
+    background-color: #1e293b; 
+    border-color: #334155; 
+}
+body.dark-mode .table thead th {
+    background-color: #334155;
+    color: #94a3b8;
+    border-bottom-color: #475569;
+}
+body.dark-mode .table td {
+    border-bottom-color: #334155;
+    color: #cbd5e1;
+}
+body.dark-mode .table tr:hover {
+    background-color: rgba(255,255,255,0.02);
+}
+body.dark-mode .table td[style*="background: rgba(16, 185, 129, 0.05)"] {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+}
+body.dark-mode .text-center[style*="dashed"] {
+    border-color: #334155 !important;
+    color: #475569 !important;
+}
+</style>
+
 <div class="main-content">
     <?php include '../../../includes/topbar.php'; ?>
     <div class="content-wrapper">
