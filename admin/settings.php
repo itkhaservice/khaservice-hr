@@ -416,8 +416,6 @@ include '../includes/sidebar.php';
 .text-danger:hover { color: #b91c1c; }
 </style>
 
-<?php include '../includes/footer.php'; ?>
-
 <script>
 $(document).ready(function() {
     // Tab switching logic
@@ -537,3 +535,5 @@ function confirmDelDoc(id) {
     });
 }
 </script>
+
+<?php include '../includes/footer.php'; ?>
