@@ -389,6 +389,7 @@ include '../includes/sidebar.php';
             </div>
         </div>
     </div>
+</div>
 
 <!-- Position Modal -->
 <div id="posModal" class="modal-overlay">
@@ -415,6 +416,8 @@ include '../includes/sidebar.php';
 .text-primary-hover:hover { color: var(--primary-color); }
 .text-danger:hover { color: #b91c1c; }
 </style>
+
+<?php include '../includes/footer.php'; ?>
 
 <script>
 $(document).ready(function() {
@@ -535,5 +538,3 @@ function confirmDelDoc(id) {
     });
 }
 </script>
-
-<?php include '../includes/footer.php'; ?>
