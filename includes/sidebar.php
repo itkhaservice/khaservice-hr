@@ -87,6 +87,11 @@ if (isset($pdo)) {
                 <i class="fas fa-user-shield"></i> <span>Quản lý Phân quyền</span>
             </a>
         </li>
+        <li>
+            <a href="<?php echo BASE_URL; ?>admin/settings.php" class="<?php echo is_active('admin/settings.php'); ?>">
+                <i class="fas fa-cog"></i> <span>Cài đặt hệ thống</span>
+            </a>
+        </li>
         <?php endif; ?>
 
         <li>
