@@ -54,49 +54,49 @@ include '../../../includes/sidebar.php';
 <div class="main-content">
     <?php include '../../../includes/topbar.php'; ?>
     <div class="content-wrapper" style="overflow: hidden; display: flex; flex-direction: column; height: calc(100vh - 65px);">
-        <div class="action-header" style="flex-shrink: 0; margin-bottom: 10px;">
-            <div>
-                <h1 class="page-title">Bảng Chấm Công - <?php echo "$month/$year"; ?> <span style="font-size:0.5em; color:#ccc;">(v5.1 Fixed)</span></h1>
+        <div class="action-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <h1 class="page-title">Bảng Chấm Công - <?php echo "$month/$year"; ?></h1>
                 <span class="badge <?php echo $is_locked?'badge-danger':'badge-success'; ?>"><i class="fas <?php echo $is_locked?'fa-lock':'fa-pen'; ?>"></i> <?php echo $is_locked?'Đã Khóa':'Đang mở'; ?></span>
             </div>
-        </div>
-
-        <!-- Toolbar (Dưới tiêu đề, Trên bảng dữ liệu) -->
-        <div class="attendance-toolbar" style="background: var(--card-bg); padding: 10px 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; box-shadow: var(--shadow-sm);">
-            <div class="toolbar-left">
-                <form method="GET" style="display: flex; gap: 10px; align-items: center;">
-                    <select name="project_id" class="form-control" style="min-width: 200px; height: 36px;">
-                        <option value="0">-- Chọn Dự án --</option>
-                        <?php foreach($project_options as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
-                    </select>
-                    <select name="month" class="form-control" style="width: 85px; height: 36px;">
-                        <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">Tháng $i</option>"; ?>
-                    </select>
-                    <select name="year" class="form-control" style="width: 90px; height: 36px;">
-                        <?php for($y=2023;$y<=2030;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?>
-                    </select>
-                    <button type="submit" class="btn btn-secondary btn-sm" style="height: 36px;"><i class="fas fa-filter"></i> Lọc</button>
-                </form>
-            </div>
-            <div class="toolbar-right" style="display: flex; gap: 8px;">
-                <button type="button" class="btn btn-secondary btn-sm" style="height: 36px;" onclick="window.open('print.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>', '_blank')"><i class="fas fa-print"></i> In Bảng Công</button>
-                <button type="button" class="btn btn-secondary btn-sm" style="height: 36px;"><i class="fas fa-file-excel"></i> Xuất Excel</button>
-                <a href="import.php" class="btn btn-secondary btn-sm" style="height: 36px; display:inline-flex; align-items:center;"><i class="fas fa-file-import"></i> Import</a>
+            <div class="header-actions">
+                <?php if (!$is_locked): ?>
+                    <button type="button" class="btn btn-primary" onclick="saveAttendance()"><i class="fas fa-save"></i> Lưu dữ liệu</button>
+                <?php endif; ?>
                 
                 <?php if ($allowed_projs === 'ALL' && $project_id > 0): ?>
                     <form method="POST" id="lockForm" style="display:inline;">
                         <input type="hidden" name="toggle_lock" value="<?php echo $is_locked ? 'unlock' : 'lock'; ?>">
-                        <button type="button" class="btn <?php echo $is_locked ? 'btn-warning' : 'btn-danger'; ?> btn-sm" style="height: 36px;" onclick="confirmLock()">
+                        <button type="button" class="btn <?php echo $is_locked ? 'btn-warning' : 'btn-danger'; ?>" onclick="confirmLock()">
                             <i class="fas <?php echo $is_locked ? 'fa-lock-open' : 'fa-lock'; ?>"></i> <?php echo $is_locked ? 'Mở khóa' : 'Khóa sổ'; ?>
                         </button>
                     </form>
                 <?php endif; ?>
 
-                <?php if (!$is_locked): ?>
-                    <button type="button" class="btn btn-primary btn-sm" style="min-width: 100px; height: 36px;" onclick="saveAttendance()"><i class="fas fa-save"></i> LƯU DỮ LIỆU</button>
-                <?php endif; ?>
+                <button type="button" class="btn btn-secondary" onclick="window.open('print.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>', '_blank')"><i class="fas fa-print"></i> In</button>
+                <button type="button" class="btn btn-info"><i class="fas fa-file-excel"></i> Xuất Excel</button>
+                <a href="import.php" class="btn btn-success"><i class="fas fa-file-import"></i> Import</a>
             </div>
         </div>
+
+        <form method="GET" class="filter-section">
+            <select name="project_id">
+                <option value="0">-- Chọn Dự án --</option>
+                <?php foreach($project_options as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
+            </select>
+            <select name="month">
+                <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">Tháng $i</option>"; ?>
+            </select>
+            <select name="year">
+                <?php for($y=2023;$y<=2030;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?>
+            </select>
+            <div style="display: flex; gap: 5px;">
+                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
+                <?php if ($project_id > 0 || $month != date('n') || $year != date('Y')): ?>
+                    <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                <?php endif; ?>
+            </div>
+        </form>
 
         <?php if ($project_id == 0): ?>
             <div class="card" style="text-align: center; padding: 50px; color: #94a3b8; border: 2px dashed #e2e8f0;">

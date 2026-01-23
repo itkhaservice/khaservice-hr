@@ -149,11 +149,19 @@ if ($filter_project > 0) {
     <div class="content-wrapper">
         <div class="action-header">
             <h1 class="page-title">Báo cáo Nhân sự Thông minh</h1>
+            <div class="header-actions">
+                <?php if ($filter_project > 0): ?>
+                    <a href="export.php?project_id=<?php echo $filter_project; ?>&type=structure" class="btn btn-info">
+                        <i class="fas fa-file-excel"></i> Xuất Excel
+                    </a>
+                <?php endif; ?>
+                <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> In báo cáo</button>
+            </div>
         </div>
 
         <form method="GET" class="filter-section">
-            <select name="project_id" class="form-control" style="min-width: 300px;">
-                <option value="0">-- CHỌN DỰ ÁN --</option>
+            <select name="project_id">
+                <option value="0">-- Chọn Dự án --</option>
                 <?php foreach($projects as $p): ?>
                     <option value="<?php echo $p['id']; ?>" <?php echo $filter_project == $p['id'] ? 'selected' : ''; ?>>
                         <?php echo htmlspecialchars($p['name']); ?>
@@ -162,12 +170,9 @@ if ($filter_project > 0) {
             </select>
             
             <div style="display: flex; gap: 5px;">
-                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
+                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
                 <?php if ($filter_project > 0): ?>
                     <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
-                    <a href="export.php?project_id=<?php echo $filter_project; ?>&type=structure" class="btn btn-success" style="background: #107c41; color: white; border: none; min-width: 100px;">
-                        <i class="fas fa-file-excel"></i> Xuất Excel
-                    </a>
                 <?php endif; ?>
             </div>
         </form>

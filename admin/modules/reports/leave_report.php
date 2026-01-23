@@ -47,25 +47,26 @@ include '../../../includes/sidebar.php';
             <h1 class="page-title">Báo cáo Tổng hợp Phép năm <?php echo $year; ?></h1>
             <div class="header-actions">
                 <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> In báo cáo</button>
+                <button class="btn btn-info"><i class="fas fa-file-excel"></i> Xuất Excel</button>
             </div>
         </div>
 
         <form method="GET" class="filter-section">
-            <select name="year" class="form-control" style="width: 100px;">
+            <select name="year">
                 <?php for($y=2024; $y<=2026; $y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
             </select>
-            <select name="dept_id" class="form-control">
+            <select name="dept_id">
                 <option value="">-- Tất cả phòng ban --</option>
                 <?php foreach($departments as $d) echo "<option value='{$d['id']}' ".($d['id']==$dept_id?'selected':'').">{$d['name']}</option>"; ?>
             </select>
-            <select name="project_id" class="form-control" style="min-width: 200px;">
-                <option value="0">-- CHỌN DỰ ÁN --</option>
+            <select name="project_id">
+                <option value="0">-- Dự án --</option>
                 <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
             </select>
             
             <div style="display: flex; gap: 5px;">
-                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
-                <?php if ($project_id > 0 || $dept_id > 0): ?>
+                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
+                <?php if ($project_id > 0 || $dept_id > 0 || $year != date('Y')): ?>
                     <a href="leave_report.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
                 <?php endif; ?>
             </div>

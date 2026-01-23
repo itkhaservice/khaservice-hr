@@ -148,12 +148,12 @@ include '../../../includes/sidebar.php';
             <h1 class="page-title">Bảng lương tháng <?php echo "$month/$year"; ?></h1>
             <div class="header-actions">
                 <form method="POST" style="display:inline;">
-                    <button type="submit" name="calculate_payroll" class="btn btn-primary btn-sm"><i class="fas fa-sync-alt"></i> TÍNH CHI TIẾT</button>
+                    <button type="submit" name="calculate_payroll" class="btn btn-primary"><i class="fas fa-sync-alt"></i> Tính chi tiết</button>
                 </form>
-                <button class="btn btn-secondary btn-sm" onclick="printPayslips()">
-                    <i class="fas fa-print"></i> IN PHIẾU LƯƠNG
+                <button class="btn btn-secondary" onclick="printPayslips()">
+                    <i class="fas fa-print"></i> In Phiếu lương
                 </button>
-                <a href="config.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-secondary btn-sm"><i class="fas fa-cog"></i> Cấu hình</a>
+                <a href="config.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-secondary"><i class="fas fa-cog"></i> Cấu hình</a>
             </div>
         </div>
 
@@ -169,19 +169,19 @@ include '../../../includes/sidebar.php';
         </script>
 
         <form method="GET" class="filter-section">
-            <select name="month" class="form-control" style="width: 100px;">
+            <select name="month">
                 <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">Tháng $i</option>"; ?>
             </select>
-            <select name="year" class="form-control" style="width: 100px;">
+            <select name="year">
                 <?php for($y=2024;$y<=2026;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
             </select>
-            <select name="project_id" class="form-control" style="min-width: 200px;">
+            <select name="project_id">
                 <option value="0">-- Chọn Dự án --</option>
                 <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
             </select>
             
             <div style="display: flex; gap: 5px;">
-                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
+                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
                 <?php if ($project_id > 0): ?>
                     <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
                 <?php endif; ?>
