@@ -376,7 +376,12 @@ ul { list-style: none; padding: 0; margin: 0; }
     box-shadow: var(--shadow-header);
 }
 
-.toggle-sidebar { cursor: pointer; font-size: 1.2rem; color: var(--text-sub); padding: 5px; }
+.toggle-sidebar { cursor: pointer; font-size: 1.2rem; color: var(--text-sub); padding: 5px; position: relative; z-index: 1000; }
+
+#theme-toggle, #start-tour {
+    position: relative;
+    z-index: 1000;
+}
 
 .user-info { display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative; }
 .user-dropdown {
