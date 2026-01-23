@@ -45,6 +45,7 @@ foreach ($changes as $c) {
     $day = (int)$c['day'];
     $symbol = strtoupper(trim($c['symbol'])); // Ký hiệu luôn viết hoa
     $ot = (float)$c['ot'];
+    $target_proj_id = isset($c['target_project_id']) ? (int)$c['target_project_id'] : 0;
     
     $date = "$year-$month-$day";
     
@@ -53,7 +54,7 @@ foreach ($changes as $c) {
     // Let's allow saving, but maybe warn later.
     
     // Check existing
-    $existing = db_fetch_row("SELECT id, timekeeper_symbol, overtime_hours FROM attendance WHERE employee_id = ? AND date = ?", [$emp_id, $date]);
+    $existing = db_fetch_row("SELECT id, timekeeper_symbol, overtime_hours, target_project_id FROM attendance WHERE employee_id = ? AND date = ?", [$emp_id, $date]);
     
     if ($existing) {
         // Logging for Audit
@@ -65,16 +66,20 @@ foreach ($changes as $c) {
             db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, ?, ?, 'ot', ?)", 
                      [$emp_id, $project_id, $date, $existing['overtime_hours'], $ot, $_SESSION['user_id']]);
         }
+        if ((int)($existing['target_project_id'] ?? 0) !== $target_proj_id) {
+            db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, ?, ?, 'target_proj', ?)", 
+                     [$emp_id, $project_id, $date, $existing['target_project_id'] ?? 0, $target_proj_id, $_SESSION['user_id']]);
+        }
 
         // Update
-        if ($symbol === '' && $ot == 0) {
-             db_query("UPDATE attendance SET timekeeper_symbol = NULL, overtime_hours = 0, is_manual_import = 0 WHERE id = ?", [$existing['id']]);
+        if ($symbol === '' && $ot == 0 && $target_proj_id == 0) {
+             db_query("UPDATE attendance SET timekeeper_symbol = NULL, overtime_hours = 0, target_project_id = 0, is_manual_import = 0 WHERE id = ?", [$existing['id']]);
         } else {
-             db_query("UPDATE attendance SET project_id = ?, timekeeper_symbol = ?, overtime_hours = ?, is_manual_import = 0 WHERE id = ?", [$project_id, $symbol, $ot, $existing['id']]);
+             db_query("UPDATE attendance SET project_id = ?, timekeeper_symbol = ?, overtime_hours = ?, target_project_id = ?, is_manual_import = 0 WHERE id = ?", [$project_id, $symbol, $ot, $target_proj_id, $existing['id']]);
         }
     } else {
         // Insert only if there is data
-        if ($symbol !== '' || $ot > 0) {
+        if ($symbol !== '' || $ot > 0 || $target_proj_id > 0) {
             // Log as new entry
             db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, '', ?, 'symbol', ?)", 
                      [$emp_id, $project_id, $date, $symbol, $_SESSION['user_id']]);
@@ -82,9 +87,13 @@ foreach ($changes as $c) {
                 db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, '0', ?, 'ot', ?)", 
                          [$emp_id, $project_id, $date, $ot, $_SESSION['user_id']]);
             }
+            if ($target_proj_id > 0) {
+                db_query("INSERT INTO attendance_logs (employee_id, project_id, attendance_date, old_value, new_value, field_type, changed_by) VALUES (?, ?, ?, '0', ?, 'target_proj', ?)", 
+                         [$emp_id, $project_id, $date, $target_proj_id, $_SESSION['user_id']]);
+            }
 
-            db_query("INSERT INTO attendance (employee_id, project_id, date, timekeeper_symbol, overtime_hours, is_manual_import) VALUES (?, ?, ?, ?, ?, 0)", 
-                     [$emp_id, $project_id, $date, $symbol, $ot]);
+            db_query("INSERT INTO attendance (employee_id, project_id, date, timekeeper_symbol, overtime_hours, target_project_id, is_manual_import) VALUES (?, ?, ?, ?, ?, ?, 0)", 
+                     [$emp_id, $project_id, $date, $symbol, $ot, $target_proj_id]);
         }
     }
     $success_count++;

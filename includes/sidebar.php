@@ -11,7 +11,7 @@ if (isset($pdo)) {
 ?>
 <nav class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <span>KHASERVICE HR</span>
+        <!-- <span>KHASERVICE HR</span> -->
         <i class="fas fa-cube" style="display:none;"></i>
     </div>
     <ul class="sidebar-menu">

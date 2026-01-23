@@ -30,10 +30,14 @@ if ($project_id > 0 && !empty($employees)) {
     $end_date = sprintf("%04d-%02d-%02d", $year, $month, $days_in_month);
     $emp_ids = array_column($employees, 'id');
     if (!empty($emp_ids)) {
-        $raw_att = db_fetch_all("SELECT employee_id, DAY(date) as day, timekeeper_symbol, overtime_hours FROM attendance WHERE date BETWEEN ? AND ? AND employee_id IN (".implode(',',$emp_ids).")", [$start_date, $end_date]);
-        foreach ($raw_att as $r) $att_data[$r['employee_id']][$r['day']] = ['symbol' => $r['timekeeper_symbol'], 'ot' => $r['overtime_hours']];
+        $raw_att = db_fetch_all("SELECT employee_id, DAY(date) as day, timekeeper_symbol, overtime_hours, target_project_id FROM attendance WHERE date BETWEEN ? AND ? AND employee_id IN (".implode(',',$emp_ids).")", [$start_date, $end_date]);
+        foreach ($raw_att as $r) $att_data[$r['employee_id']][$r['day']] = ['symbol' => $r['timekeeper_symbol'], 'ot' => $r['overtime_hours'], 'target_proj' => $r['target_project_id']];
     }
 }
+
+// Map Project Names for Quick Lookup
+$proj_map = []; foreach($project_options as $p) $proj_map[$p['id']] = $p['name'];
+$cross_project_notes = [];
 
 // Xử lý Khóa/Mở khóa bảng công (Chỉ dành cho Admin có quyền ALL)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['toggle_lock']) && $allowed_projs === 'ALL') {
@@ -50,6 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['toggle_lock']) && $all
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 ?>
+
+<!-- Context Menu for Cross-Project Selection -->
+<ul id="projectContextMenu" class="dropdown-menu" style="display:none; position:absolute; z-index:10000; min-width:200px; padding: 5px 0;">
+    <li class="dropdown-header" style="padding: 5px 15px; font-weight:700; background:#f1f5f9;">Gán dự án tăng cường:</li>
+    <li><a href="javascript:void(0)" class="dropdown-item" onclick="assignProject(0)" style="padding: 8px 15px; display:block; color:#333;"><i class="fas fa-undo"></i> Xóa (Về dự án gốc)</a></li>
+    <li class="dropdown-divider" style="height:1px; margin:5px 0; background:#e2e8f0;"></li>
+    <?php foreach($project_options as $p): if($p['id'] == $project_id) continue; ?>
+        <li><a href="javascript:void(0)" class="dropdown-item" onclick="assignProject(<?php echo $p['id']; ?>)" style="padding: 8px 15px; display:block; color:#333;"><?php echo htmlspecialchars($p['name']); ?></a></li>
+    <?php endforeach; ?>
+</ul>
 
 <div class="main-content">
     <?php include '../../../includes/topbar.php'; ?>
@@ -145,7 +159,8 @@ include '../../../includes/sidebar.php';
                             <span><b>1/lt</b>: Làm nửa ngày lễ/tết</span>
                         </div>
                         <div style="margin-top: 10px; color: var(--text-sub); font-style: italic;">
-                            * <b>Ô dưới:</b> Nhập số giờ làm thêm (tăng ca). Nhấp đúp vào ô ký hiệu để đánh dấu nhanh 'X'.
+                            * <b>Ô dưới:</b> Nhập số giờ làm thêm (tăng ca). Nhấp đúp vào ô ký hiệu để đánh dấu nhanh 'X'.<br>
+                            * <b>Gán dự án:</b> Chuột phải vào ô TC để chọn dự án hỗ trợ.
                         </div>
                     </div>
                 </div>
@@ -198,9 +213,21 @@ include '../../../includes/sidebar.php';
                                         <div style="font-size: 0.65rem; color: #64748b;"><?php echo $emp['dept_name'] ?? '-'; ?> - <?php echo $emp['position']; ?></div>
                                     </td>
                                     <?php for($d=1; $d<=$days_in_month; $d++): 
-                                        $cell = $att_data[$emp['id']][$d] ?? ['symbol'=>'','ot'=>0]; $sym = strtoupper($cell['symbol']); $ot = (float)$cell['ot'];
+                                        $cell = $att_data[$emp['id']][$d] ?? ['symbol'=>'','ot'=>0, 'target_proj'=>0]; 
+                                        $sym = strtoupper($cell['symbol']); $ot = (float)$cell['ot']; $t_proj = (int)($cell['target_proj'] ?? 0);
                                         $is_sun = (date('N', strtotime("$year-$month-$d")) == 7);
                                         
+                                        // Collect Cross-Project Notes
+                                        if ($t_proj > 0 && $t_proj != $project_id) {
+                                            $proj_name = $proj_map[$t_proj] ?? "Dự án #$t_proj";
+                                            $cross_project_notes[] = [
+                                                'date' => "$d/$month/$year",
+                                                'emp' => $emp['fullname'],
+                                                'proj' => $proj_name,
+                                                'ot' => $ot
+                                            ];
+                                        }
+
                                         if (in_array($sym, ['X','ĐH','DH'])) { $s['total'] += 1; }
                                         elseif (in_array($sym, ['1/2', '1/P', '1/CĐ', '1/CD'])) { $s['total'] += 0.5; }
                                         if (in_array($sym, ['P','CĐ','CD'])) { $s['p_cd'] += 1; }
@@ -213,16 +240,19 @@ include '../../../includes/sidebar.php';
                                             elseif (in_array($sym, ['F1']) || $is_sun) $s['ot_sun'] += $ot;
                                             else $s['ot_norm'] += $ot;
                                         }
+                                        
+                                        // Visual Class for Cross-Project
+                                        $ot_class = ($t_proj > 0 && $t_proj != $project_id) ? 'has-cross-proj' : '';
                                     ?>
                                         <td class="<?php echo $is_sun?'is-sunday':''; ?>">
                                             <?php if($is_locked): ?>
-                                                <div class="locked-cell-view">
+                                                <div class="locked-cell-view <?php echo $ot_class; ?>">
                                                     <div class="sym symbol" data-day="<?php echo $d; ?>" data-is-sunday="<?php echo $is_sun ? '1' : '0'; ?>"><?php echo $sym; ?></div>
                                                     <div class="ot" data-day="<?php echo $d; ?>"><?php echo $ot > 0 ? $ot : ''; ?></div>
                                                 </div>
                                             <?php else: ?>
                                                 <input type="text" class="att-input symbol" data-day="<?php echo $d; ?>" data-is-sunday="<?php echo $is_sun?'1':'0'; ?>" value="<?php echo $sym; ?>" maxlength="4" autocomplete="off" oninput="this.value = this.value.toUpperCase();" ondblclick="toggleSymbol(this)" onfocus="this.select()">
-                                                <input type="text" class="att-input ot" data-day="<?php echo $d; ?>" value="<?php echo $ot?:''; ?>" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" autocomplete="off" onfocus="this.select()">
+                                                <input type="text" class="att-input ot <?php echo $ot_class; ?>" data-day="<?php echo $d; ?>" data-target-proj-id="<?php echo $t_proj; ?>" value="<?php echo $ot?:''; ?>" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" autocomplete="off" onfocus="this.select()" oncontextmenu="showProjectMenu(event, this); return false;">
                                             <?php endif; ?>
                                         </td>
                                     <?php endfor; ?>
@@ -239,6 +269,23 @@ include '../../../includes/sidebar.php';
                     </table>
                 </div>
             </div>
+
+            <!-- Footnote for Cross-Project OT -->
+            <?php if (!empty($cross_project_notes)): ?>
+                <div class="card" style="margin-top: 20px; border-left: 4px solid #3b82f6;">
+                    <h3 style="font-size: 1rem; color: #1e40af; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Ghi chú chi tiết tăng ca liên dự án</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: #334155;">
+                        <?php foreach($cross_project_notes as $note): ?>
+                            <li style="margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px dashed #e2e8f0;">
+                                <strong>Ngày <?php echo $note['date']; ?>:</strong> 
+                                NV <strong><?php echo $note['emp']; ?></strong> 
+                                tăng ca <strong><?php echo $note['ot']; ?>h</strong> 
+                                tại dự án <span class="badge badge-info"><?php echo $note['proj']; ?></span>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
         <?php endif; ?>
     </div>
 
@@ -267,6 +314,17 @@ include '../../../includes/sidebar.php';
 .att-input.ot { font-size: 0.75rem; color: #c2410c; font-weight: 600; height: 18px; }
 .att-input:focus { background-color: rgba(0,0,0,0.05); }
 .att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; }
+
+/* Cross Project Indicator */
+.att-input.ot.has-cross-proj {
+    background-color: #dbeafe; /* Blue-100 */
+    color: #1e40af;
+    font-weight: 700;
+    border-radius: 2px;
+}
+.locked-cell-view.has-cross-proj {
+    background-color: #dbeafe;
+}
 
 /* Locked View Styles */
 .locked-cell-view {
@@ -380,11 +438,52 @@ body.dark-mode .attendance-table tbody tr:hover td,
 body.dark-mode .attendance-table tbody tr:hover .fix-l,
 body.dark-mode .attendance-table tbody tr:hover .fix-r { background-color: #334155 !important; }
 
+/* Dropdown Menu */
+.dropdown-menu { background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+.dropdown-item:hover { background: #f1f5f9; color: var(--primary-color) !important; }
+
 </style>
 
 <?php include '../../../includes/footer.php'; ?>
 
 <script>
+// Context Menu Logic
+let selectedOtInput = null;
+
+function showProjectMenu(e, input) {
+    e.preventDefault();
+    selectedOtInput = input;
+    const menu = document.getElementById('projectContextMenu');
+    menu.style.display = 'block';
+    menu.style.left = e.pageX + 'px';
+    menu.style.top = e.pageY + 'px';
+}
+
+function assignProject(projId) {
+    if (!selectedOtInput) return;
+    
+    const currentProjId = parseInt($(selectedOtInput).attr('data-target-proj-id')) || 0;
+    if (currentProjId !== projId) {
+        $(selectedOtInput).attr('data-target-proj-id', projId);
+        $(selectedOtInput).addClass('changed');
+        if (projId > 0) {
+            $(selectedOtInput).addClass('has-cross-proj');
+        } else {
+            $(selectedOtInput).removeClass('has-cross-proj');
+        }
+    }
+    
+    document.getElementById('projectContextMenu').style.display = 'none';
+}
+
+// Hide menu when clicking elsewhere
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('projectContextMenu');
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+    }
+});
+
 function toggleFullScreen() {
     const card = document.getElementById('attendance-card');
     if (!document.fullscreenElement) {
@@ -417,13 +516,28 @@ document.addEventListener('fullscreenchange', function() {
 let changedData = {}; 
 $(document).ready(function() {
     $('.att-input').each(function() { $(this).data('original', $(this).val()); });
+    // Also store original target proj id
+    $('.att-input.ot').each(function() { 
+        $(this).data('original-target', $(this).attr('data-target-proj-id')); 
+    });
+    
     $('tr[data-emp-id]').each(function() { calculateRow($(this)); });
 });
 $(document).on('change', '.att-input', function() {
     let currentVal = $(this).val(); let originalVal = $(this).data('original');
     let tr = $(this).closest('tr'); let day = $(this).data('day');
-    let key = `${tr.data('emp-id')}_${day}`;
-    if (currentVal !== originalVal) { $(this).addClass('changed'); } else { $(this).removeClass('changed'); }
+    
+    // Check target proj change as well
+    let isChanged = false;
+    if (currentVal !== originalVal) isChanged = true;
+    
+    if ($(this).hasClass('ot')) {
+        let currentTarget = $(this).attr('data-target-proj-id');
+        let originalTarget = $(this).data('original-target');
+        if (currentTarget != originalTarget) isChanged = true;
+    }
+
+    if (isChanged) { $(this).addClass('changed'); } else { $(this).removeClass('changed'); }
     calculateRow(tr);
 });
 $(document).on('keydown', '.att-input', function(e) {
@@ -473,17 +587,41 @@ function saveAttendance() {
         tr.find('.att-input.symbol').each(function() {
             let day = $(this).data('day');
             let symbolInput = $(this); let otInput = tr.find(`.ot[data-day="${day}"]`);
-            let symVal = symbolInput.val(); let otVal = otInput.val();
-            let symOrg = symbolInput.data('original'); let otOrg = otInput.data('original');
-            if (symVal !== symOrg || otVal !== otOrg) { payload.push({ emp_id: empId, day: day, symbol: symVal, ot: otVal || 0 }); }
+            
+            let symVal = symbolInput.val(); 
+            let otVal = otInput.val();
+            let targetProjId = otInput.attr('data-target-proj-id') || 0;
+
+            let symOrg = symbolInput.data('original'); 
+            let otOrg = otInput.data('original');
+            let targetOrg = otInput.data('original-target') || 0;
+
+            // Check if ANY value changed
+            if (symVal !== symOrg || otVal !== otOrg || targetProjId != targetOrg) { 
+                payload.push({ 
+                    emp_id: empId, 
+                    day: day, 
+                    symbol: symVal, 
+                    ot: otVal || 0,
+                    target_project_id: targetProjId 
+                }); 
+            }
         });
     });
     if (payload.length === 0) return Toast.info('Không có thay đổi nào để lưu.');
     let $btn = $('button[onclick="saveAttendance()"]'); $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Đang lưu...');
     fetch('save.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ month: <?php echo $month; ?>, year: <?php echo $year; ?>, project_id: <?php echo $project_id; ?>, changes: payload })
     }).then(r => r.json()).then(data => { 
-        if (data.status === 'success') { Toast.success(data.message); $('.att-input.changed').removeClass('changed'); $('.att-input').each(function() { $(this).data('original', $(this).val()); }); } else { Toast.error(data.message); }
-    }).catch(err => { Toast.error('Lỗi kết nối máy chủ.'); console.error(err); }).finally(() => { $btn.prop('disabled', false).html('<i class="fas fa-save"></i> LƯU DỮ LIỆU'); });
+        if (data.status === 'success') { 
+            Toast.success(data.message); 
+            $('.att-input.changed').removeClass('changed'); 
+            $('.att-input').each(function() { $(this).data('original', $(this).val()); }); 
+            $('.att-input.ot').each(function() { $(this).data('original-target', $(this).attr('data-target-proj-id')); }); 
+            // Reload page to show footnotes updated? No, just keep simple for now or ask user to reload.
+            // Actually, for footnotes to appear, a reload is best or dynamic DOM. 
+            // For now, let's keep it simple.
+        } else { Toast.error(data.message); }
+    }).catch(err => { Toast.error('Lỗi kết nối máy chủ.'); console.error(err); }).finally(() => { $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Lưu dữ liệu'); });
 }
 let isDragging = false; let startCell = null; let selectionRange = [];
 $(document).on('dragstart', '.att-input', function(e) { e.preventDefault(); return false; });

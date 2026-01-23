@@ -102,10 +102,15 @@ if (isset($_GET['del_doctype'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_position'])) {
     $dept_id = (int)$_POST['dept_id'];
     $name = clean_input($_POST['pos_name']);
+    $code = clean_input($_POST['pos_code']);
     
     if ($dept_id && $name) {
-        db_query("INSERT INTO positions (department_id, name) VALUES (?, ?)", [$dept_id, $name]);
-        set_toast('success', 'Thêm chức vụ thành công!');
+        try {
+            db_query("INSERT INTO positions (department_id, name, code) VALUES (?, ?, ?)", [$dept_id, $name, $code]);
+            set_toast('success', 'Thêm chức vụ thành công!');
+        } catch (PDOException $e) {
+            set_toast('error', 'Mã chức vụ đã tồn tại!');
+        }
     }
     redirect('settings.php#departments');
 }
@@ -113,8 +118,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_position'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_position'])) {
     $id = (int)$_POST['pos_id'];
     $name = clean_input($_POST['pos_name']);
+    $code = clean_input($_POST['pos_code']);
     
-    db_query("UPDATE positions SET name = ? WHERE id = ?", [$name, $id]);
+    db_query("UPDATE positions SET name = ?, code = ? WHERE id = ?", [$name, $code, $id]);
     set_toast('success', 'Cập nhật chức vụ thành công!');
     redirect('settings.php#departments');
 }
@@ -254,7 +260,10 @@ include '../includes/sidebar.php';
                                                     <?php if (isset($positions_by_dept[$d['id']])): ?>
                                                         <?php foreach ($positions_by_dept[$d['id']] as $p): ?>
                                                             <li class="border-dashed" style="display: flex; justify-content: space-between; padding: 4px 0;">
-                                                                <span>- <?php echo $p['name']; ?></span>
+                                                                <span>
+                                                                    <span class="badge badge-secondary" style="font-size: 0.7em; padding: 2px 5px; margin-right: 5px; min-width: 30px; text-align: center; display: inline-block;"><?php echo $p['code'] ?? ''; ?></span>
+                                                                    <?php echo $p['name']; ?>
+                                                                </span>
                                                                 <span style="opacity: 0.6;">
                                                                     <a href="javascript:void(0)" onclick="editPos(<?php echo htmlspecialchars(json_encode($p)); ?>, '<?php echo $d['name']; ?>')" title="Sửa"><i class="fas fa-edit"></i></a>
                                                                     <a href="javascript:void(0)" onclick="confirmDelPos(<?php echo $p['id']; ?>)" title="Xóa" style="margin-left:5px; color:#dc2626;"><i class="fas fa-trash"></i></a>
@@ -288,8 +297,12 @@ include '../includes/sidebar.php';
                         <input type="hidden" name="dept_id" id="posDeptId">
                         <input type="hidden" name="pos_id" id="posId">
                         <div class="form-group">
+                            <label>Mã chức vụ <span style="color:red;">*</span></label>
+                            <input type="text" name="pos_code" id="posCode" class="form-control" required placeholder="VD: GĐ">
+                        </div>
+                        <div class="form-group">
                             <label>Tên chức vụ <span style="color:red;">*</span></label>
-                            <input type="text" name="pos_name" id="posName" class="form-control" required placeholder="VD: Trưởng phòng">
+                            <input type="text" name="pos_name" id="posName" class="form-control" required placeholder="VD: Giám đốc">
                         </div>
                         <div style="display:flex; gap:10px; margin-top:20px;">
                             <button type="submit" name="add_position" id="posBtn" class="btn btn-primary">Lưu</button>
@@ -466,6 +479,7 @@ function openPosModal(deptId, deptName) {
     $('#posDeptId').val(deptId);
     $('#posId').val('');
     $('#posName').val('');
+    $('#posCode').val('');
     
     $('#posBtn').attr('name', 'add_position').text('Thêm mới');
     $('#posModal').css('display', 'flex');
@@ -477,6 +491,7 @@ function editPos(data, deptName) {
     $('#posDeptId').val(data.department_id);
     $('#posId').val(data.id);
     $('#posName').val(data.name);
+    $('#posCode').val(data.code);
     
     $('#posBtn').attr('name', 'edit_position').text('Cập nhật');
     $('#posModal').css('display', 'flex');
