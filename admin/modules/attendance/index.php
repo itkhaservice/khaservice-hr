@@ -347,8 +347,8 @@ include '../../../includes/sidebar.php';
 .attendance-table thead .fix-l { z-index: 1000 !important; background-color: #f8fafc; }
 .fix-r { position: sticky; z-index: 900 !important; background-color: #fff; text-align: center; }
 .attendance-table thead .fix-r { z-index: 1000 !important; background-color: #f8fafc; }
-.is-sunday { background-color: #fef9c3 !important; }
-.attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: #fef08a !important; }
+.is-sunday { background-color: #fefce8 !important; } /* Light yellow for Sunday */
+.attendance-table tbody tr:hover td.is-sunday { background-color: #fef9c3 !important; }
 
 .shadow-left { box-shadow: -3px 0 5px -2px rgba(0,0,0,0.1); }
 .att-input { width: 100%; border: none; text-align: center; background: transparent; display: block; cursor: pointer; font-family: 'Inter', sans-serif; outline: none; }
@@ -358,7 +358,7 @@ include '../../../includes/sidebar.php';
 .att-input.symbol[value="OF"] { color: #64748b; font-weight: 400; }
 .att-input.ot { font-size: 0.75rem; color: #c2410c; font-weight: 600; height: 18px; }
 .att-input:focus { background-color: rgba(0,0,0,0.05); }
-.att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; }
+.att-input.changed { background-color: #fffbeb !important; border-radius: 2px; }
 
 /* Cross Project Indicator */
 .att-input.ot.has-cross-proj {
@@ -390,8 +390,6 @@ include '../../../includes/sidebar.php';
     color: #c2410c;
     font-weight: 600;
 }
-
-.att-input.changed { background-color: #fef3c7 !important; border-radius: 2px; }
 
 /* Fullscreen Styles */
 .btn-fullscreen {
@@ -457,17 +455,16 @@ include '../../../includes/sidebar.php';
     pointer-events: none;
 }
 
-.attendance-table tbody tr:nth-child(even) td { background-color: #f1f5f9 !important; }
+.attendance-table tbody tr:nth-child(even) td { background-color: #f8fafc !important; }
 .attendance-table tbody tr:nth-child(even) .fix-l, 
-.attendance-table tbody tr:nth-child(even) .fix-r { background-color: #f1f5f9 !important; }
-.attendance-table tbody tr:hover td { background-color: #e2e8f0 !important; }
+.attendance-table tbody tr:nth-child(even) .fix-r { background-color: #f8fafc !important; }
+.attendance-table tbody tr:hover td { background-color: #f1f5f9 !important; }
 .attendance-table tbody tr:hover .fix-l, 
-.attendance-table tbody tr:hover .fix-r { background-color: #e2e8f0 !important; }
+.attendance-table tbody tr:hover .fix-r { background-color: #f1f5f9 !important; }
 
 /* DARK MODE */
 body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
 body.dark-mode .is-sunday { background-color: rgba(234, 179, 8, 0.15) !important; }
-body.dark-mode .attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: rgba(234, 179, 8, 0.25) !important; }
 body.dark-mode .attendance-table td { background-color: #1e293b; border-color: #334155; }
 body.dark-mode .att-input.symbol { color: #cbd5e1; } body.dark-mode .att-input.symbol[value="X"] { color: #4ade80; }
 body.dark-mode .att-input.symbol[value="P"] { color: #60a5fa; }
@@ -699,56 +696,232 @@ function saveAttendance() {
         } else { Toast.error(data.message); }
     }).catch(err => { Toast.error('Lỗi kết nối máy chủ.'); console.error(err); }).finally(() => { $btn.prop('disabled', false).html('<i class="fas fa-save"></i> Lưu dữ liệu'); });
 }
-let isDragging = false; let startCell = null; let selectionRange = [];
+// --- Advanced Interaction Logic (Excel-like) ---
+let isDragging = false;
+let startCell = null;
+let selectionRange = [];
+let dragType = null; // 'symbol' or 'ot'
+let autoScrollInterval = null;
+
+const tableContainer = document.querySelector('.table-container');
+
+// Helper to get cell coordinates
+function getCellCoords(input) {
+    const td = input.closest('td');
+    const tr = td.parentElement;
+    const colIdx = Array.from(tr.children).indexOf(td);
+    const rowIdx = Array.from(tr.parentElement.children).indexOf(tr);
+    return { row: rowIdx, col: colIdx };
+}
+
 $(document).on('dragstart', '.att-input', function(e) { e.preventDefault(); return false; });
+
 $(document).on('mousedown', '.att-input', function(e) {
-    if (e.button !== 0) return;
-    isDragging = true; startCell = $(this); selectionRange = [$(this)];
-    if ($(this).hasClass('symbol')) dragType = 'symbol'; else if ($(this).hasClass('ot')) dragType = 'ot';
-    $('.att-input.drag-selected').removeClass('drag-selected'); $('.att-input.selected-cell').removeClass('selected-cell'); 
-    $(this).addClass('selected-cell'); $(this).focus();
-});
-$(document).on('mousemove', 'td', function(e) {
-    if (!isDragging || !startCell) return;
-    if (e.buttons !== 1) { isDragging = false; return; }
-    let input = $(this).find('.' + dragType);
-    if (input.length === 0) return;
-    let startRow = startCell.closest('tr')[0]; let currentRow = $(this).closest('tr')[0];
-    if (startRow === currentRow) {
-        $('.att-input.drag-selected').removeClass('drag-selected');
-        let startIdx = startCell.parent().index(); let currentIdx = $(this).index();
-        let minIdx = Math.min(startIdx, currentIdx); let maxIdx = Math.max(startIdx, currentIdx);
-        let tr = $(startRow);
-        tr.find('td').slice(minIdx, maxIdx + 1).each(function() {
-            let item = $(this).find('.' + dragType);
-            if (item.length) { item.addClass('drag-selected'); selectionRange.push(item); }
-        });
+    if (e.button !== 0) return; // Only left click
+    isDragging = true;
+    startCell = $(this);
+    
+    if ($(this).hasClass('symbol')) dragType = 'symbol';
+    else if ($(this).hasClass('ot')) dragType = 'ot';
+    else {
+        dragType = null;
+        return;
     }
+
+    // Clear old selection
+    $('.att-input.drag-selected').removeClass('drag-selected');
+    $('.att-input.selected-cell').removeClass('selected-cell');
+    
+    $(this).addClass('selected-cell');
+    $(this).focus();
+    
+    selectionRange = [$(this)];
 });
+
+$(document).on('mousemove', function(e) {
+    if (!isDragging || !startCell || !dragType) return;
+
+    // Auto Scroll Logic (Enhanced)
+    const edgeThreshold = 100; // Increase threshold
+    const scrollSpeed = 30;    // Increase speed
+    const containerRect = tableContainer.getBoundingClientRect();
+    
+    if (autoScrollInterval) cancelAnimationFrame(autoScrollInterval);
+    
+    function scrollStep() {
+        if (!isDragging) return;
+        
+        let scrolled = false;
+        
+        // Check relative to viewport
+        if (e.clientX < containerRect.left + edgeThreshold) {
+            tableContainer.scrollLeft -= scrollSpeed;
+            scrolled = true;
+        } else if (e.clientX > containerRect.right - edgeThreshold) {
+            tableContainer.scrollLeft += scrollSpeed;
+            scrolled = true;
+        }
+        
+        if (scrolled) {
+            autoScrollInterval = requestAnimationFrame(scrollStep);
+            
+            // While scrolling, pick an element slightly inside the scrollable area
+            // to ensure we select cells even if mouse is over sticky headers
+            let checkX = e.clientX;
+            if (e.clientX < containerRect.left + 150) checkX = containerRect.left + 255; // Offset past left sticky
+            if (e.clientX > containerRect.right - 150) checkX = containerRect.right - 60; // Offset before right sticky
+            
+            const elemBelow = document.elementFromPoint(checkX, e.clientY);
+            if (elemBelow) highlightSelection(elemBelow);
+        }
+    }
+    scrollStep();
+
+    // If NOT scrolling, handle normal selection
+    // If mouse is over sticky column (invalid target), we try to project into the table
+    let target = e.target;
+    let targetInput = $(target).closest('td').find('.' + dragType);
+    
+    if (targetInput.length === 0) {
+        // Mouse might be over sticky column. Project X coordinate into scrollable area.
+        let checkX = e.clientX;
+        if (e.clientX < containerRect.left + 250) checkX = containerRect.left + 255; // Skip ~250px left sticky
+        else if (e.clientX > containerRect.right - 60) checkX = containerRect.right - 65; // Skip ~60px right sticky
+        
+        if (checkX !== e.clientX) {
+            let elem = document.elementFromPoint(checkX, e.clientY);
+            if (elem) target = elem;
+        }
+    }
+
+    highlightSelection(target);
+});
+
+function highlightSelection(target) {
+    // Find the closest input of the same type under cursor
+    // If target is the input itself, great. If td, find input.
+    let targetInput = $(target).closest('td').find('.' + dragType);
+    
+    // If hovering over sticky columns or outside, we might not find it directly.
+    // But assuming user stays within table rows.
+    if (targetInput.length === 0) return;
+
+    const startCoords = getCellCoords(startCell[0]);
+    const currentCoords = getCellCoords(targetInput[0]);
+
+    const minRow = Math.min(startCoords.row, currentCoords.row);
+    const maxRow = Math.max(startCoords.row, currentCoords.row);
+    const minCol = Math.min(startCoords.col, currentCoords.col);
+    const maxCol = Math.max(startCoords.col, currentCoords.col);
+
+    // Update Selection UI
+    $('.att-input.drag-selected').removeClass('drag-selected');
+    $('td.drag-selected-cell').removeClass('drag-selected-cell'); // Clear cell backgrounds
+    selectionRange = [];
+
+    const tbody = startCell.closest('tbody');
+    const rows = tbody[0].children; // Use native DOM for speed
+    
+    // Efficiently select range
+    for (let r = minRow; r <= maxRow; r++) {
+        const row = rows[r];
+        if (!row) continue;
+        const cells = row.children;
+        
+        for (let c = minCol; c <= maxCol; c++) {
+            const cell = cells[c];
+            // Check if cell contains the input type we are selecting
+            const input = cell.querySelector('.' + dragType);
+            if (input) {
+                input.classList.add('drag-selected');
+                cell.classList.add('drag-selected-cell'); // Highlight the TD
+                selectionRange.push($(input));
+            }
+        }
+    }
+}
+
 $(document).on('mouseup', function() {
+    if (autoScrollInterval) cancelAnimationFrame(autoScrollInterval);
+    autoScrollInterval = null;
+    
     if (isDragging && startCell && selectionRange.length > 1) {
         let valToCopy = startCell.val();
+        
+        // Copy ONLY if start cell is NOT empty.
+        // If start cell is empty, we assume user just wants to select (e.g. to delete later).
         if (valToCopy !== '') {
-            let tr = startCell.closest('tr'); let affected = false;
-            selectionRange.forEach(function(el) { if (el[0] !== startCell[0]) { el.val(valToCopy).trigger('change'); affected = true; } });
-            if (affected) calculateRow(tr);
+            let affectedRows = new Set();
+            selectionRange.forEach(function(el) { 
+                if (el[0] !== startCell[0]) { 
+                    el.val(valToCopy).trigger('change'); 
+                    affectedRows.add(el.closest('tr')[0]);
+                } 
+            });
+            affectedRows.forEach(row => calculateRow($(row)));
         }
     }
     isDragging = false;
 });
+
 $(document).on('keydown', function(e) {
+    // Bulk Delete
     if ((e.keyCode === 46 || e.keyCode === 8) && selectionRange.length > 0) {
-        e.preventDefault();
-        let tr = selectionRange[0].closest('tr'); let affected = false;
-        selectionRange.forEach(function(el) { if (el.val() !== '') { el.val('').trigger('change'); affected = true; } });
-        if (affected) calculateRow(tr);
-        $('.att-input.drag-selected').removeClass('drag-selected'); $('.att-input.selected-cell').removeClass('selected-cell'); selectionRange = [];
+        // Prevent backspace nav if not editing text
+        if (selectionRange.length > 1 || !$(document.activeElement).is('input')) {
+             e.preventDefault();
+        }
+        
+        let affectedRows = new Set();
+        selectionRange.forEach(function(el) { 
+            if (el.val() !== '') { 
+                el.val('').trigger('change'); 
+                affectedRows.add(el.closest('tr')[0]);
+            } 
+        });
+        affectedRows.forEach(row => calculateRow($(row)));
     }
 });
+
 $(document).on('click', function(e) {
-    if (!$(e.target).closest('.attendance-table').length) {
-        $('.att-input.drag-selected').removeClass('drag-selected'); $('.att-input.selected-cell').removeClass('selected-cell'); selectionRange = [];
+    // Clear selection if clicking outside table inputs
+    if (!$(e.target).hasClass('att-input')) {
+        $('.att-input.drag-selected').removeClass('drag-selected');
+        $('td.drag-selected-cell').removeClass('drag-selected-cell');
+        $('.att-input.selected-cell').removeClass('selected-cell');
+        selectionRange = [];
     }
 });
-$('head').append('<style>.drag-selected { background-color: #60a5fa !important; color: #fff !important; outline: 2px solid #2563eb !important; z-index: 9999 !important; position: relative; box-shadow: 0 0 5px rgba(37, 99, 235, 0.5); } .selected-cell { outline: 2px solid #2563eb !important; z-index: 9999; position: relative; }</style>');
+
+$('head').append('<style>td.drag-selected-cell { background-color: rgba(36, 162, 92, 0.25) !important; box-shadow: inset 0 0 0 1px rgba(36, 162, 92, 0.5); } .selected-cell { outline: 2px solid var(--primary-dark) !important; z-index: 50; position: relative; }</style>');
+
+// --- Fullscreen Logic (Restored) ---
+function toggleFullScreen() {
+    const card = document.getElementById('attendance-card');
+    if (!document.fullscreenElement) {
+        if (card.requestFullscreen) {
+            card.requestFullscreen();
+        } else if (card.webkitRequestFullscreen) {
+            card.webkitRequestFullscreen();
+        } else if (card.msRequestFullscreen) {
+            card.msRequestFullscreen();
+        }
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+document.addEventListener('fullscreenchange', function() {
+    const card = document.getElementById('attendance-card');
+    const hint = document.getElementById('fullscreen-hint');
+    if (document.fullscreenElement) {
+        $(card).addClass('is-fullscreen');
+        $(hint).fadeIn().delay(3000).fadeOut();
+    } else {
+        $(card).removeClass('is-fullscreen');
+        $(hint).hide();
+    }
+});
 </script>
