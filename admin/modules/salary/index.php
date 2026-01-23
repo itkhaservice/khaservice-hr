@@ -216,7 +216,12 @@ include '../../../includes/sidebar.php';
                         <?php else: ?>
                             <?php foreach ($payroll_data as $p): ?>
                                 <tr>
-                                    <td><strong><?php echo $p['fullname']; ?></strong><br><small class="text-sub"><?php echo $p['proj_name']; ?></small></td>
+                                    <td>
+                                        <div style="font-weight: 700; color: var(--primary-dark);"><?php echo $p['fullname']; ?></div>
+                                        <div style="font-size: 0.75rem; color: #64748b;">
+                                            <?php echo $p['dept_name']; ?> - <?php echo $p['pos_name']; ?>
+                                        </div>
+                                    </td>
                                     <td class="text-center"><strong><?php echo $p['total_work_days']; ?></strong></td>
                                     <td class="text-center"><?php echo $p['paid_leave_days']; ?></td>
                                     <td class="text-center"><?php echo ($p['holiday_paid_days'] + $p['holiday_work_days']); ?></td>

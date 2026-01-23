@@ -44,25 +44,25 @@ include '../../../includes/sidebar.php';
         <div class="action-header">
             <h1 class="page-title">Cấu hình Lương: <?php echo "$month/$year"; ?></h1>
             <div class="header-actions">
-                <a href="index.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-primary btn-sm"><i class="fas fa-calculator"></i> Xem bảng lương</a>
+                <a href="index.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-primary"><i class="fas fa-calculator"></i> Xem bảng lương</a>
             </div>
         </div>
 
         <form method="GET" class="filter-section">
-            <select name="month" class="form-control" style="width: 100px;">
+            <select name="month">
                 <?php for($i=1;$i<=12;$i++) echo "<option value='$i' ".($i==$month?'selected':'').">Tháng $i</option>"; ?>
             </select>
-            <select name="year" class="form-control" style="width: 100px;">
+            <select name="year">
                 <?php for($y=2024;$y<=2026;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">Năm $y</option>"; ?>
             </select>
-            <select name="project_id" class="form-control" style="min-width: 200px;">
-                <option value="0">-- CHỌN DỰ ÁN --</option>
+            <select name="project_id">
+                <option value="0">-- Chọn Dự án --</option>
                 <?php foreach($projects as $p) echo "<option value='{$p['id']}' ".($p['id']==$project_id?'selected':'').">{$p['name']}</option>"; ?>
             </select>
-            <input type="text" name="kw" value="<?php echo $kw; ?>" class="form-control" placeholder="Tên, mã NV...">
+            <input type="text" name="kw" value="<?php echo $kw; ?>" placeholder="Tên, mã NV..." style="flex:1;">
 
             <div style="display: flex; gap: 5px;">
-                <button type="submit" class="btn btn-secondary" style="min-width: 100px;"><i class="fas fa-filter"></i> Lọc</button>
+                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
                 <?php if ($project_id > 0 || $kw != ''): ?>
                     <a href="config.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
                 <?php endif; ?>

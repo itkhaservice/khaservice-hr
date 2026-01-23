@@ -186,8 +186,8 @@ if ($allowed_projs !== 'ALL') {
     }
 }
 if ($kw) {
-    $where .= " AND (e.fullname LIKE ? OR e.code LIKE ? OR e.phone LIKE ? OR e.identity_card LIKE ?)";
-    $params = array_merge($params, ["%$kw%", "%$kw%", "%$kw%", "%$kw%"]);
+    $where .= " AND (e.fullname LIKE ? OR e.code LIKE ? OR e.phone LIKE ? OR e.identity_card LIKE ? OR e.email LIKE ?)";
+    $params = array_merge($params, ["%$kw%", "%$kw%", "%$kw%", "%$kw%", "%$kw%"]);
 }
 if ($dept_id) { $where .= " AND e.department_id = ?"; $params[] = $dept_id; }
 if ($proj_id) { $where .= " AND e.current_project_id = ?"; $params[] = $proj_id; }
@@ -379,7 +379,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
 
         <!-- Filters (Same as before) -->
         <form method="GET" class="filter-section">
-            <input type="text" name="kw" value="<?php echo $kw; ?>" class="form-control" placeholder="Tên, mã, SĐT, CCCD...">
+            <input type="text" name="kw" value="<?php echo $kw; ?>" class="form-control" placeholder="Tìm kiếm nâng cao...">
             <select name="dept_id">
                 <option value="">-- Phòng ban --</option>
                 <?php foreach ($departments as $d): ?>
@@ -387,7 +387,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <?php endforeach; ?>
             </select>
             <select name="proj_id">
-                <option value="">-- Dự án --</option>
+                <option value="0">-- Tất cả Dự án --</option>
                 <?php foreach ($projects as $p): 
                     if ($allowed_projs !== 'ALL' && !in_array($p['id'], $allowed_projs)) continue;
                 ?>
@@ -435,7 +435,16 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                     Vui lòng chọn <b>Dự án</b> hoặc nhập từ khóa tìm kiếm.
                                 </td></tr>
                             <?php else: ?>
-                                <tr><td colspan="8" style="text-align:center;">Không tìm thấy nhân viên nào</td></tr>
+                                <tr>
+                                    <td colspan="8" style="text-align:center; padding: 30px;">
+                                        <div style="color: #64748b; margin-bottom: 10px;">Không tìm thấy nhân viên nào phù hợp.</div>
+                                        <?php if ($proj_id > 0 && $kw != ''): ?>
+                                            <a href="index.php?kw=<?php echo urlencode($kw); ?>&proj_id=0" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-search"></i> Thử tìm trong TOÀN BỘ hệ thống
+                                            </a>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
                             <?php endif; ?>
                         <?php else: ?>
                             <?php 
