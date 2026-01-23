@@ -55,15 +55,49 @@ include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 ?>
 
-<!-- Context Menu for Cross-Project Selection -->
-<ul id="projectContextMenu" class="dropdown-menu" style="display:none; position:absolute; z-index:10000; min-width:200px; padding: 5px 0;">
-    <li class="dropdown-header" style="padding: 5px 15px; font-weight:700; background:#f1f5f9;">Gán dự án tăng cường:</li>
-    <li><a href="javascript:void(0)" class="dropdown-item" onclick="assignProject(0)" style="padding: 8px 15px; display:block; color:#333;"><i class="fas fa-undo"></i> Xóa (Về dự án gốc)</a></li>
-    <li class="dropdown-divider" style="height:1px; margin:5px 0; background:#e2e8f0;"></li>
-    <?php foreach($project_options as $p): if($p['id'] == $project_id) continue; ?>
-        <li><a href="javascript:void(0)" class="dropdown-item" onclick="assignProject(<?php echo $p['id']; ?>)" style="padding: 8px 15px; display:block; color:#333;"><?php echo htmlspecialchars($p['name']); ?></a></li>
-    <?php endforeach; ?>
-</ul>
+<!-- Modal for Cross-Project Selection -->
+<div id="projectSelectModal" class="custom-import-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); align-items:center; justify-content:center; z-index:10000;">
+    <div class="modal-box" style="width: 600px; max-width: 95%; max-height: 80vh; display: flex; flex-direction: column; padding: 0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: none;">
+        <!-- Header -->
+        <div style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #fff; border-radius: 12px 12px 0 0;">
+            <h3 style="margin: 0; font-size: 1.1rem; color: #1e293b; font-weight: 700;"><i class="fas fa-exchange-alt" style="color:var(--primary-color);"></i> Chọn Dự án Tăng cường</h3>
+            <button onclick="closeProjectModal()" style="border: none; background: #f1f5f9; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b;">&times;</button>
+        </div>
+        
+        <!-- Search & Actions -->
+        <div style="padding: 15px 20px; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+            <div style="display: flex; gap: 10px;">
+                <div style="position: relative; flex: 1;">
+                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                    <input type="text" id="projectSearchInput" class="form-control" placeholder="Tìm tên dự án..." onkeyup="filterProjects()" style="padding-left: 35px; background: #fff;">
+                </div>
+                <button class="btn btn-danger" onclick="assignProject(0)" title="Quay về dự án mặc định"><i class="fas fa-undo"></i> Xóa gán</button>
+            </div>
+        </div>
+
+        <!-- Project Grid -->
+        <div style="flex: 1; overflow-y: auto; padding: 15px; background: #fff;">
+            <div id="projectGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <?php foreach($project_options as $p): if($p['id'] == $project_id) continue; ?>
+                    <div class="project-item" onclick="assignProject(<?php echo $p['id']; ?>)" data-name="<?php echo strtolower($p['name']); ?>" 
+                         style="background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 24px; height: 24px; background: #fff; color: var(--primary-color); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1px solid #e2e8f0;">
+                            <i class="fas fa-city" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <span style="font-weight: 500; font-size: 0.85rem; color: #334155; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><?php echo htmlspecialchars($p['name']); ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <div id="noProjectFound" style="display: none; text-align: center; padding: 30px; color: #64748b; font-style: italic;">
+                Không tìm thấy dự án nào khớp với từ khóa.
+            </div>
+        </div>
+        
+        <div style="padding: 10px 20px; background: #f1f5f9; border-top: 1px solid #e2e8f0; border-radius: 0 0 12px 12px; font-size: 0.8rem; color: #64748b; text-align: center;">
+            Mẹo: Nhập tên dự án để lọc nhanh danh sách.
+        </div>
+    </div>
+</div>
 
 <div class="main-content">
     <?php include '../../../includes/topbar.php'; ?>
@@ -218,7 +252,7 @@ include '../../../includes/sidebar.php';
                                         $is_sun = (date('N', strtotime("$year-$month-$d")) == 7);
                                         
                                         // Collect Cross-Project Notes
-                                        if ($t_proj > 0 && $t_proj != $project_id) {
+                                        if ($t_proj > 0 && $t_proj != $project_id && $ot > 0) {
                                             $proj_name = $proj_map[$t_proj] ?? "Dự án #$t_proj";
                                             $cross_project_notes[] = [
                                                 'date' => "$d/$month/$year",
@@ -252,7 +286,7 @@ include '../../../includes/sidebar.php';
                                                 </div>
                                             <?php else: ?>
                                                 <input type="text" class="att-input symbol" data-day="<?php echo $d; ?>" data-is-sunday="<?php echo $is_sun?'1':'0'; ?>" value="<?php echo $sym; ?>" maxlength="4" autocomplete="off" oninput="this.value = this.value.toUpperCase();" ondblclick="toggleSymbol(this)" onfocus="this.select()">
-                                                <input type="text" class="att-input ot <?php echo $ot_class; ?>" data-day="<?php echo $d; ?>" data-target-proj-id="<?php echo $t_proj; ?>" value="<?php echo $ot?:''; ?>" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" autocomplete="off" onfocus="this.select()" oncontextmenu="showProjectMenu(event, this); return false;">
+                                                <input type="text" class="att-input ot <?php echo $ot_class; ?>" data-day="<?php echo $d; ?>" data-target-proj-id="<?php echo $t_proj; ?>" value="<?php echo $ot?:''; ?>" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" autocomplete="off" onfocus="this.select()" oncontextmenu="openProjectModal(this); return false;">
                                             <?php endif; ?>
                                         </td>
                                     <?php endfor; ?>
@@ -270,20 +304,31 @@ include '../../../includes/sidebar.php';
                 </div>
             </div>
 
-            <!-- Footnote for Cross-Project OT -->
+            <!-- Footnote for Cross-Project OT (Collapsed by default) -->
             <?php if (!empty($cross_project_notes)): ?>
-                <div class="card" style="margin-top: 20px; border-left: 4px solid #3b82f6;">
-                    <h3 style="font-size: 1rem; color: #1e40af; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Ghi chú chi tiết tăng ca liên dự án</h3>
-                    <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: #334155;">
-                        <?php foreach($cross_project_notes as $note): ?>
-                            <li style="margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px dashed #e2e8f0;">
-                                <strong>Ngày <?php echo $note['date']; ?>:</strong> 
-                                NV <strong><?php echo $note['emp']; ?></strong> 
-                                tăng ca <strong><?php echo $note['ot']; ?>h</strong> 
-                                tại dự án <span class="badge badge-info"><?php echo $note['proj']; ?></span>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
+                <div class="card" style="margin-top: 15px; padding: 10px 15px; border-left: 4px solid #3b82f6; background: #eff6ff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="$('#crossProjectDetails').slideToggle()">
+                        <div style="font-weight: 600; color: #1e40af;">
+                            <i class="fas fa-info-circle"></i> Có <span class="badge badge-primary"><?php echo count($cross_project_notes); ?></span> lượt tăng ca hỗ trợ dự án khác
+                        </div>
+                        <div style="color: #3b82f6; font-size: 0.9rem;">
+                            <i class="fas fa-chevron-down"></i> Xem chi tiết
+                        </div>
+                    </div>
+                    
+                    <div id="crossProjectDetails" style="display: none; margin-top: 15px; padding-top: 10px; border-top: 1px solid #dbeafe;">
+                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.9rem; color: #334155; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 10px;">
+                            <?php foreach($cross_project_notes as $note): ?>
+                                <li style="padding: 5px; background: #fff; border-radius: 4px; border: 1px solid #e2e8f0;">
+                                    <span style="color: #64748b; font-size: 0.85rem;"><?php echo $note['date']; ?>:</span> 
+                                    <strong><?php echo $note['emp']; ?></strong> 
+                                    <span style="color: #dc2626;">(<?php echo $note['ot']; ?>h)</span>
+                                    <i class="fas fa-arrow-right" style="font-size: 0.8rem; color: #94a3b8; margin: 0 5px;"></i>
+                                    <span style="color: #0284c7; font-weight: 500;"><?php echo $note['proj']; ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
                 </div>
             <?php endif; ?>
         <?php endif; ?>
@@ -447,16 +492,41 @@ body.dark-mode .attendance-table tbody tr:hover .fix-r { background-color: #3341
 <?php include '../../../includes/footer.php'; ?>
 
 <script>
-// Context Menu Logic
+// Project Selection Modal Logic
 let selectedOtInput = null;
 
-function showProjectMenu(e, input) {
-    e.preventDefault();
+function openProjectModal(input) {
     selectedOtInput = input;
-    const menu = document.getElementById('projectContextMenu');
-    menu.style.display = 'block';
-    menu.style.left = e.pageX + 'px';
-    menu.style.top = e.pageY + 'px';
+    const modal = document.getElementById('projectSelectModal');
+    const searchInput = document.getElementById('projectSearchInput');
+    
+    modal.style.display = 'flex';
+    searchInput.value = '';
+    filterProjects(); // Reset filter
+    setTimeout(() => searchInput.focus(), 100);
+}
+
+function closeProjectModal() {
+    document.getElementById('projectSelectModal').style.display = 'none';
+    selectedOtInput = null;
+}
+
+function filterProjects() {
+    const filter = document.getElementById('projectSearchInput').value.toLowerCase();
+    const items = document.querySelectorAll('.project-item');
+    let hasVisible = false;
+    
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        if (name.includes(filter)) {
+            item.style.display = 'flex';
+            hasVisible = true;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    document.getElementById('noProjectFound').style.display = hasVisible ? 'none' : 'block';
 }
 
 function assignProject(projId) {
@@ -466,23 +536,29 @@ function assignProject(projId) {
     if (currentProjId !== projId) {
         $(selectedOtInput).attr('data-target-proj-id', projId);
         $(selectedOtInput).addClass('changed');
+        
+        // Auto-fill value 'X' or number if empty? No, keep logic separate.
+        // But maybe visual feedback?
         if (projId > 0) {
             $(selectedOtInput).addClass('has-cross-proj');
         } else {
             $(selectedOtInput).removeClass('has-cross-proj');
         }
+        
+        // Trigger change event to ensure row calculation if needed (though target proj doesn't affect sum yet)
+        // $(selectedOtInput).trigger('change'); 
     }
     
-    document.getElementById('projectContextMenu').style.display = 'none';
+    closeProjectModal();
 }
 
-// Hide menu when clicking elsewhere
-document.addEventListener('click', function(e) {
-    const menu = document.getElementById('projectContextMenu');
-    if (menu.style.display === 'block') {
-        menu.style.display = 'none';
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('projectSelectModal');
+    if (event.target == modal) {
+        closeProjectModal();
     }
-});
+}
 
 function toggleFullScreen() {
     const card = document.getElementById('attendance-card');

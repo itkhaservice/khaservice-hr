@@ -15,6 +15,9 @@ foreach ($raw_settings as $s) $settings[$s['setting_key']] = $s['setting_value']
 
 // Fetch Project Info
 $project = db_fetch_row("SELECT * FROM projects WHERE id = ?", [$project_id]);
+// Fetch All Projects for mapping
+$all_projects = db_fetch_all("SELECT id, name FROM projects");
+$proj_map = []; foreach($all_projects as $p) $proj_map[$p['id']] = $p['name'];
 
 // Fetch Employees
 $employees = db_fetch_all("SELECT e.id, e.fullname, e.code, e.position, d.name as dept_name, p.name as pos_name 
@@ -26,13 +29,37 @@ $employees = db_fetch_all("SELECT e.id, e.fullname, e.code, e.position, d.name a
 
 $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 $att_data = [];
+$cross_project_notes = [];
+
 if (!empty($employees)) {
     $start_date = sprintf("%04d-%02d-01", $year, $month);
     $end_date = sprintf("%04d-%02d-%02d", $year, $month, $days_in_month);
     $emp_ids = array_column($employees, 'id');
-    $raw_att = db_fetch_all("SELECT employee_id, DAY(date) as day, timekeeper_symbol, overtime_hours FROM attendance WHERE date BETWEEN ? AND ? AND employee_id IN (".implode(',',$emp_ids).")", [$start_date, $end_date]);
-    foreach ($raw_att as $r) $att_data[$r['employee_id']][$r['day']] = ['symbol' => $r['timekeeper_symbol'], 'ot' => $r['overtime_hours']];
+    
+    // Map Employee Names for Notes
+    $emp_map = []; foreach($employees as $e) $emp_map[$e['id']] = $e['fullname'];
+
+    $raw_att = db_fetch_all("SELECT employee_id, DAY(date) as day, timekeeper_symbol, overtime_hours, target_project_id FROM attendance WHERE date BETWEEN ? AND ? AND employee_id IN (".implode(',',$emp_ids).")", [$start_date, $end_date]);
+    
+    foreach ($raw_att as $r) {
+        $att_data[$r['employee_id']][$r['day']] = ['symbol' => $r['timekeeper_symbol'], 'ot' => $r['overtime_hours']];
+        
+        // Collect Notes
+        $t_proj = (int)$r['target_project_id'];
+        $ot = (float)$r['overtime_hours'];
+        if ($t_proj > 0 && $t_proj != $project_id && $ot > 0) {
+            $cross_project_notes[] = [
+                'day' => $r['day'],
+                'emp_name' => $emp_map[$r['employee_id']] ?? 'NV',
+                'ot' => $ot,
+                'target_proj_name' => $proj_map[$t_proj] ?? "DA #$t_proj"
+            ];
+        }
+    }
 }
+
+// Sort Notes by Day
+usort($cross_project_notes, function($a, $b) { return $a['day'] - $b['day']; });
 
 // Manual Pagination Settings
 $rows_per_page = 15; // Number of employees per page
@@ -244,6 +271,17 @@ if ($total_pages == 0) $total_pages = 1;
         <!-- Signature Block (Only if last data page AND fits) -->
         <?php if ($page_index === $total_data_pages - 1 && !$need_extra_page_for_sig): ?>
             <div class="footer-content">
+                <?php if (!empty($cross_project_notes)): ?>
+                    <div style="margin-top: 10px; border: 1px dashed #000; padding: 5px;">
+                        <div style="font-weight: bold; font-size: 8.5pt;">* Ghi chú tăng ca hỗ trợ dự án khác:</div>
+                        <ul style="margin: 2px 0 0 20px; padding: 0; font-size: 8.5pt; list-style-type: square; display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px;">
+                            <?php foreach($cross_project_notes as $n): ?>
+                                <li>Ngày <?php echo $n['day']; ?>: <strong><?php echo $n['emp_name']; ?></strong> tăng ca <strong><?php echo $n['ot']; ?>h</strong> tại <?php echo $n['target_proj_name']; ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
+
                 <div style="margin-top: 8px; font-weight: bold; font-size: 8pt;">* Ghi chú ký hiệu công:</div>
                 <div class="legend-container">
                     <div class="legend-grid">
@@ -277,6 +315,17 @@ if ($total_pages == 0) $total_pages = 1;
     <div class="page-container">
         <div style="height: 20px;"></div>
         <div class="footer-content">
+            <?php if (!empty($cross_project_notes)): ?>
+                <div style="margin-bottom: 10px; border: 1px dashed #000; padding: 5px;">
+                    <div style="font-weight: bold; font-size: 9pt;">* Ghi chú tăng ca hỗ trợ dự án khác:</div>
+                    <ul style="margin: 2px 0 0 20px; padding: 0; font-size: 9pt; list-style-type: square; display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px;">
+                        <?php foreach($cross_project_notes as $n): ?>
+                            <li>Ngày <?php echo $n['day']; ?>: <strong><?php echo $n['emp_name']; ?></strong> tăng ca <strong><?php echo $n['ot']; ?>h</strong> tại <?php echo $n['target_proj_name']; ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            <?php endif; ?>
+
             <div style="margin-bottom: 8px; font-weight: bold; font-size: 9pt;">* Ghi chú ký hiệu công:</div>
             <div class="legend-container">
                 <div class="legend-grid">
