@@ -2,18 +2,27 @@
 require_once '../config/db.php';
 require_once '../includes/functions.php';
 
-// --- HANDLE COMPANY SETTINGS ---
+// --- HANDLE COMPANY SETTINGS & SALARY CONFIG ---
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_settings'])) {
     $keys = [
         'company_name', 'company_address', 'admin_email', 'company_phone', 'company_website',
         'insurance_bhxh_percent', 'insurance_bhyt_percent', 'insurance_bhtn_percent', 'union_fee_amount'
     ];
     foreach ($keys as $key) {
-        $val = clean_input($_POST[$key] ?? '');
-        // Upsert logic
-        db_query("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?", [$key, $val, $val]);
+        if (isset($_POST[$key])) {
+            $val = clean_input($_POST[$key]);
+            
+            // Remove commas for money fields before saving
+            if ($key === 'union_fee_amount') {
+                $val = str_replace(',', '', $val);
+            }
+            
+            db_query("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?", [$key, $val, $val]);
+        }
     }
-    set_toast('success', 'Đã lưu cấu hình công ty!');
+    set_toast('success', 'Đã lưu cấu hình thành công!');
+    $tab = clean_input($_POST['current_tab'] ?? 'company');
+    redirect('settings.php#' . $tab);
 }
 
 // --- HANDLE DEPARTMENTS ---
@@ -102,15 +111,10 @@ if (isset($_GET['del_doctype'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_position'])) {
     $dept_id = (int)$_POST['dept_id'];
     $name = clean_input($_POST['pos_name']);
-    $code = clean_input($_POST['pos_code']);
     
     if ($dept_id && $name) {
-        try {
-            db_query("INSERT INTO positions (department_id, name, code) VALUES (?, ?, ?)", [$dept_id, $name, $code]);
-            set_toast('success', 'Thêm chức vụ thành công!');
-        } catch (PDOException $e) {
-            set_toast('error', 'Mã chức vụ đã tồn tại!');
-        }
+        db_query("INSERT INTO positions (department_id, name) VALUES (?, ?)", [$dept_id, $name]);
+        set_toast('success', 'Thêm chức vụ thành công!');
     }
     redirect('settings.php#departments');
 }
@@ -118,9 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_position'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['edit_position'])) {
     $id = (int)$_POST['pos_id'];
     $name = clean_input($_POST['pos_name']);
-    $code = clean_input($_POST['pos_code']);
     
-    db_query("UPDATE positions SET name = ?, code = ? WHERE id = ?", [$name, $code, $id]);
+    db_query("UPDATE positions SET name = ? WHERE id = ?", [$name, $id]);
     set_toast('success', 'Cập nhật chức vụ thành công!');
     redirect('settings.php#departments');
 }
@@ -180,6 +183,7 @@ include '../includes/sidebar.php';
             <!-- Tab 1: Company Info -->
             <div id="company" class="tab-content active">
                 <form method="POST" style="max-width: 800px;">
+                    <input type="hidden" name="current_tab" value="company">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group">
                             <label>Tên Công ty</label>
@@ -260,10 +264,7 @@ include '../includes/sidebar.php';
                                                     <?php if (isset($positions_by_dept[$d['id']])): ?>
                                                         <?php foreach ($positions_by_dept[$d['id']] as $p): ?>
                                                             <li class="border-dashed" style="display: flex; justify-content: space-between; padding: 4px 0;">
-                                                                <span>
-                                                                    <span class="badge badge-secondary" style="font-size: 0.7em; padding: 2px 5px; margin-right: 5px; min-width: 30px; text-align: center; display: inline-block;"><?php echo $p['code'] ?? ''; ?></span>
-                                                                    <?php echo $p['name']; ?>
-                                                                </span>
+                                                                <span>- <?php echo $p['name']; ?></span>
                                                                 <span style="opacity: 0.6;">
                                                                     <a href="javascript:void(0)" onclick="editPos(<?php echo htmlspecialchars(json_encode($p)); ?>, '<?php echo $d['name']; ?>')" title="Sửa"><i class="fas fa-edit"></i></a>
                                                                     <a href="javascript:void(0)" onclick="confirmDelPos(<?php echo $p['id']; ?>)" title="Xóa" style="margin-left:5px; color:#dc2626;"><i class="fas fa-trash"></i></a>
@@ -297,12 +298,8 @@ include '../includes/sidebar.php';
                         <input type="hidden" name="dept_id" id="posDeptId">
                         <input type="hidden" name="pos_id" id="posId">
                         <div class="form-group">
-                            <label>Mã chức vụ <span style="color:red;">*</span></label>
-                            <input type="text" name="pos_code" id="posCode" class="form-control" required placeholder="VD: GĐ">
-                        </div>
-                        <div class="form-group">
                             <label>Tên chức vụ <span style="color:red;">*</span></label>
-                            <input type="text" name="pos_name" id="posName" class="form-control" required placeholder="VD: Giám đốc">
+                            <input type="text" name="pos_name" id="posName" class="form-control" required placeholder="VD: Trưởng phòng">
                         </div>
                         <div style="display:flex; gap:10px; margin-top:20px;">
                             <button type="submit" name="add_position" id="posBtn" class="btn btn-primary">Lưu</button>
@@ -381,6 +378,7 @@ include '../includes/sidebar.php';
             <!-- Tab 4: Salary Config -->
             <div id="salary" class="tab-content">
                 <form method="POST" style="max-width: 800px;">
+                    <input type="hidden" name="current_tab" value="salary">
                     <h4 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color);">Hệ số bảo hiểm & Phí cố định (%)</h4>
                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
                         <div class="form-group">
@@ -429,6 +427,14 @@ $(document).ready(function() {
     $('.tab-item').on('click', function() {
         var tabId = $(this).data('tab');
         showTab(tabId);
+    });
+
+    // Money formatting logic
+    $('.input-money').on('input', function() {
+        var value = $(this).val().replace(/[^0-9]/g, '');
+        if (value !== "") {
+            $(this).val(new Intl.NumberFormat('en-US').format(value));
+        }
     });
 });
 
@@ -479,7 +485,6 @@ function openPosModal(deptId, deptName) {
     $('#posDeptId').val(deptId);
     $('#posId').val('');
     $('#posName').val('');
-    $('#posCode').val('');
     
     $('#posBtn').attr('name', 'add_position').text('Thêm mới');
     $('#posModal').css('display', 'flex');
@@ -491,7 +496,6 @@ function editPos(data, deptName) {
     $('#posDeptId').val(data.department_id);
     $('#posId').val(data.id);
     $('#posName').val(data.name);
-    $('#posCode').val(data.code);
     
     $('#posBtn').attr('name', 'edit_position').text('Cập nhật');
     $('#posModal').css('display', 'flex');
