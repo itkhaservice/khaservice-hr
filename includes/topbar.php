@@ -5,6 +5,10 @@
     
     <div style="flex: 1;"></div>
 
+    <div id="start-tour" onclick="startProductTour(true)" style="margin-right: 10px; cursor: pointer; font-size: 1.2rem; color: var(--text-sub); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.3s;" title="Hướng dẫn sử dụng">
+        <i class="fas fa-question-circle"></i>
+    </div>
+
     <div id="theme-toggle" style="margin-right: 20px; cursor: pointer; font-size: 1.2rem; color: var(--text-sub); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background 0.3s;">
         <i class="fas fa-moon"></i>
     </div>
