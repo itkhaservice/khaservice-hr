@@ -179,43 +179,55 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Theme
     Theme.init();
 
-    // --- Mobile Sidebar Logic ---
+    // --- Sidebar Logic (Mobile & Desktop) ---
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.querySelector('.main-content');
     const body = document.body;
     
-    // 1. Create Overlay
+    // 1. Create Overlay for Mobile
     const overlay = document.createElement('div');
     overlay.className = 'sidebar-overlay';
     body.appendChild(overlay);
 
-    // 2. Toggle Handler
+    // 2. Restore State on Load (Desktop Only)
+    if (window.innerWidth > 768) {
+        const savedState = localStorage.getItem('sidebarState');
+        if (savedState === 'collapsed') {
+            sidebar.classList.add('collapsed');
+            if (mainContent) mainContent.classList.add('expanded');
+        }
+    }
+
+    // 3. Toggle Handler
     if (sidebarToggle && sidebar) {
-        const mainContent = document.querySelector('.main-content');
-        
         sidebarToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             
             if (window.innerWidth <= 768) {
-                // Mobile: Toggle Active/Overlay
+                // Mobile: Toggle Active/Overlay (No persistence needed)
                 sidebar.classList.toggle('active');
                 overlay.classList.toggle('active');
             } else {
-                // Desktop: Toggle Collapsed/Expanded
+                // Desktop: Toggle Collapsed/Expanded & Persist
                 sidebar.classList.toggle('collapsed');
                 if (mainContent) {
                     mainContent.classList.toggle('expanded');
                 }
+                
+                // Save state
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
             }
         });
 
-        // 3. Close on Overlay Click (Mobile only)
+        // 4. Close on Overlay Click (Mobile only)
         overlay.addEventListener('click', () => {
             sidebar.classList.remove('active');
             overlay.classList.remove('active');
         });
 
-        // 4. Auto-close on Link Click (Mobile only)
+        // 5. Auto-close on Link Click (Mobile only)
         sidebar.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
