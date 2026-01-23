@@ -289,6 +289,103 @@ include '../includes/sidebar.php';
                 </div>
             </div>
 
+            <!-- Tab 3: Document Types -->
+            <div id="documents" class="tab-content">
+                <div style="display: flex; gap: 20px;">
+                    <!-- Add/Edit Form -->
+                    <div class="bg-subtle" style="flex: 1; min-width: 300px; padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); height: fit-content;">
+                        <h4 id="docFormTitle" style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color);">Thêm loại hồ sơ</h4>
+                        <form method="POST" id="docForm">
+                            <input type="hidden" name="doc_id" id="docId">
+                            <div class="form-group">
+                                <label>Mã hồ sơ <span style="color:red;">*</span></label>
+                                <input type="text" name="doc_code" id="docCode" class="form-control" required placeholder="VD: CCCD">
+                            </div>
+                            <div class="form-group">
+                                <label>Tên loại hồ sơ <span style="color:red;">*</span></label>
+                                <input type="text" name="doc_name" id="docName" class="form-control" required placeholder="VD: Căn cước công dân">
+                            </div>
+                            <div class="form-group" style="display:flex; gap:20px;">
+                                <label style="display:flex; align-items:center; cursor:pointer;">
+                                    <input type="checkbox" name="is_required" id="docRequired" value="1" checked style="margin-right:8px;"> Bắt buộc
+                                </label>
+                                <label style="display:flex; align-items:center; cursor:pointer;">
+                                    <input type="checkbox" name="is_multiple" id="docMultiple" value="1" style="margin-right:8px;"> Cho phép nhiều file
+                                </label>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" name="add_doctype" id="docBtn" class="btn btn-primary" style="flex:1;">Thêm mới</button>
+                                <button type="button" id="docCancel" class="btn btn-secondary" style="display:none;" onclick="resetDocForm()">Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- List -->
+                    <div style="flex: 2;">
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th width="50">ID</th>
+                                        <th>Mã</th>
+                                        <th>Tên loại hồ sơ</th>
+                                        <th>Tính chất</th>
+                                        <th width="100" style="text-align:center;">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($doc_types as $d): ?>
+                                        <tr>
+                                            <td><?php echo $d['id']; ?></td>
+                                            <td><span class="badge badge-secondary"><?php echo $d['code']; ?></span></td>
+                                            <td><strong><?php echo $d['name']; ?></strong></td>
+                                            <td>
+                                                <?php if($d['is_required']): ?><span class="badge badge-warning">Bắt buộc</span><?php endif; ?>
+                                                <?php if($d['is_multiple']): ?><span class="badge badge-info">Nhiều file</span><?php endif; ?>
+                                            </td>
+                                            <td style="text-align:center;">
+                                                <a href="javascript:void(0)" onclick="editDoc(<?php echo htmlspecialchars(json_encode($d)); ?>)" class="text-primary-hover" style="margin-right: 10px;"><i class="fas fa-edit"></i></a>
+                                                <a href="javascript:void(0)" onclick="confirmDelDoc(<?php echo $d['id']; ?>)" class="text-danger"><i class="fas fa-trash"></i></a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 4: Salary Config -->
+            <div id="salary" class="tab-content">
+                <form method="POST" style="max-width: 800px;">
+                    <input type="hidden" name="current_tab" value="salary">
+                    <h4 style="margin-top: 0; margin-bottom: 20px; color: var(--primary-color);">Hệ số bảo hiểm & Phí cố định (%)</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label>BHXH Nhân viên đóng (%)</label>
+                            <input type="number" step="0.1" name="insurance_bhxh_percent" class="form-control" value="<?php echo $settings['insurance_bhxh_percent'] ?? '8'; ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>BHYT Nhân viên đóng (%)</label>
+                            <input type="number" step="0.1" name="insurance_bhyt_percent" class="form-control" value="<?php echo $settings['insurance_bhyt_percent'] ?? '1.5'; ?>">
+                        </div>
+                        <div class="form-group">
+                            <label>BHTN Nhân viên đóng (%)</label>
+                            <input type="number" step="0.1" name="insurance_bhtn_percent" class="form-control" value="<?php echo $settings['insurance_bhtn_percent'] ?? '1'; ?>">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Đoàn phí Công đoàn (Số tiền cố định)</label>
+                        <input type="text" name="union_fee_amount" class="form-control input-money" value="<?php echo number_format($settings['union_fee_amount'] ?? 0); ?>">
+                        <small style="color: #94a3b8;">* Nếu tính theo % lương đóng BH, vui lòng nhập 0 và hệ thống sẽ tự tính 1%.</small>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <button type="submit" name="save_settings" class="btn btn-primary"><i class="fas fa-save"></i> Lưu cấu hình lương chung</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
