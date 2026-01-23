@@ -455,12 +455,58 @@ include '../../../includes/sidebar.php';
     pointer-events: none;
 }
 
+/* 1. MÀU NỀN CƠ BẢN (Thấp nhất - Zebra) */
 .attendance-table tbody tr:nth-child(even) td { background-color: #f8fafc !important; }
 .attendance-table tbody tr:nth-child(even) .fix-l, 
 .attendance-table tbody tr:nth-child(even) .fix-r { background-color: #f8fafc !important; }
-.attendance-table tbody tr:hover td { background-color: #f1f5f9 !important; }
-.attendance-table tbody tr:hover .fix-l, 
-.attendance-table tbody tr:hover .fix-r { background-color: #f1f5f9 !important; }
+
+/* 2. MÀU CỘT CHỦ NHẬT (Thắng Zebra) */
+.attendance-table tbody tr td.is-sunday,
+.attendance-table tbody tr:nth-child(even) td.is-sunday { background-color: #fefce8 !important; }
+
+/* 3. HIỆU ỨNG HOVER (Thắng Sunday & Zebra) */
+/* Ngang (Dòng) */
+.attendance-table tbody tr:hover td,
+.attendance-table tbody tr:hover td.is-sunday,
+.attendance-table tbody tr:hover .fix-l,
+.attendance-table tbody tr:hover .fix-r { background-color: #bae6fd !important; }
+
+/* Dọc (Cột) */
+.attendance-table tbody tr td.col-hover,
+.attendance-table tbody tr td.col-hover.is-sunday,
+.attendance-table tbody tr .fix-l.col-hover,
+.attendance-table tbody tr .fix-r.col-hover { background-color: #bae6fd !important; }
+
+/* Giao điểm (Ô hiện tại) */
+.attendance-table tbody tr:hover td.col-hover,
+.attendance-table tbody tr:hover td.col-hover.is-sunday,
+.attendance-table tbody tr:hover .fix-l.col-hover,
+.attendance-table tbody tr:hover .fix-r.col-hover { background-color: #7dd3fc !important; }
+
+/* 4. HIỆU ỨNG BÔI CHỌN (CAO NHẤT - Thắng Hover, Sunday, Zebra) */
+.attendance-table tbody tr td.drag-selected-cell,
+.attendance-table tbody tr:nth-child(even) td.drag-selected-cell,
+.attendance-table tbody tr td.is-sunday.drag-selected-cell,
+/* Các trường hợp kết hợp với Hover */
+.attendance-table tbody tr:hover td.drag-selected-cell,
+.attendance-table tbody tr td.col-hover.drag-selected-cell,
+.attendance-table tbody tr:hover td.col-hover.drag-selected-cell {
+    background-color: rgba(36, 162, 92, 0.25) !important;
+    box-shadow: inset 0 0 0 1px rgba(36, 162, 92, 0.5) !important;
+}
+
+/* Đảm bảo các lớp bên trong không che màu nền */
+.attendance-table tbody tr:hover td .att-input,
+.attendance-table tbody tr td.col-hover .att-input,
+.att-input.drag-selected {
+    background-color: transparent !important;
+}
+
+.selected-cell {
+    outline: 2px solid var(--primary-dark) !important;
+    z-index: 50;
+    position: relative;
+}
 
 /* DARK MODE */
 body.dark-mode .attendance-table thead th, body.dark-mode .fix-l, body.dark-mode .fix-r { background-color: #1e293b !important; color: #94a3b8; border-color: #334155; }        
@@ -595,6 +641,18 @@ $(document).ready(function() {
     });
     
     $('tr[data-emp-id]').each(function() { calculateRow($(this)); });
+
+    // Column Hover Logic
+    $('.attendance-table').on('mouseover', 'td', function() {
+        const cell = $(this);
+        const colIndex = cell.index() + 1; // nth-child is 1-based
+        // Remove old highlights (optimization: only if changed)
+        $('.col-hover').removeClass('col-hover');
+        // Highlight new column (excluding sticky left/right columns if preferred, but usually all is fine)
+        $(`.attendance-table tbody tr td:nth-child(${colIndex})`).addClass('col-hover');
+    }).on('mouseleave', function() {
+        $('.col-hover').removeClass('col-hover');
+    });
 });
 $(document).on('change', '.att-input', function() {
     let currentVal = $(this).val(); let originalVal = $(this).data('original');
@@ -893,7 +951,7 @@ $(document).on('click', function(e) {
     }
 });
 
-$('head').append('<style>td.drag-selected-cell { background-color: rgba(36, 162, 92, 0.25) !important; box-shadow: inset 0 0 0 1px rgba(36, 162, 92, 0.5); } .selected-cell { outline: 2px solid var(--primary-dark) !important; z-index: 50; position: relative; }</style>');
+
 
 // --- Fullscreen Logic (Restored) ---
 function toggleFullScreen() {
