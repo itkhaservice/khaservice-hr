@@ -460,7 +460,6 @@ ul { list-style: none; padding: 0; margin: 0; }
     border-radius: var(--border-radius-card);
     box-shadow: var(--shadow-sm);
     padding: 25px;
-    margin-bottom: 25px;
 }
 .table-container { 
     overflow-x: auto; 
