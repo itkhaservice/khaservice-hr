@@ -290,9 +290,9 @@ include '../includes/sidebar.php';
             </div>
 
             <!-- Position Modal -->
-            <div id="posModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:2000; align-items:center; justify-content:center;">
-                <div class="card" style="width:400px;">
-                    <h3 id="posModalTitle">Thêm chức vụ</h3>
+            <div id="posModal" class="modal-overlay">
+                <div class="modal-box">
+                    <h3 id="posModalTitle" class="modal-title">Thêm chức vụ</h3>
                     <p id="posModalSubtitle" style="color:#666; margin-bottom:15px; font-style:italic;"></p>
                     <form method="POST">
                         <input type="hidden" name="dept_id" id="posDeptId">
@@ -301,9 +301,9 @@ include '../includes/sidebar.php';
                             <label>Tên chức vụ <span style="color:red;">*</span></label>
                             <input type="text" name="pos_name" id="posName" class="form-control" required placeholder="VD: Trưởng phòng">
                         </div>
-                        <div style="display:flex; gap:10px; margin-top:20px;">
-                            <button type="submit" name="add_position" id="posBtn" class="btn btn-primary">Lưu</button>
+                        <div class="modal-actions">
                             <button type="button" class="btn btn-secondary" onclick="$('#posModal').hide()">Đóng</button>
+                            <button type="submit" name="add_position" id="posBtn" class="btn btn-primary">Lưu</button>
                         </div>
                     </form>
                 </div>
@@ -421,8 +421,6 @@ include '../includes/sidebar.php';
     pointer-events: auto !important;
 }
 </style>
-
-<?php include '../includes/footer.php'; ?>
 
 <script>
 $(document).ready(function() {
@@ -543,3 +541,5 @@ function confirmDelDoc(id) {
     });
 }
 </script>
+
+<?php include '../includes/footer.php'; ?>
