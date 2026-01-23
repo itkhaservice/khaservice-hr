@@ -1,285 +1,146 @@
 /**
  * main.js - UX Enhancements for Khaservice HR
+ * Sử dụng jQuery với Event Delegation để đảm bảo hoạt động trên mọi trang
  */
 
 // 1. Toast Notification System
-const Toast = {
-    container: null,
-    
+window.Toast = {
     init() {
-        if (!document.getElementById('toast-container')) {
-            this.container = document.createElement('div');
-            this.container.id = 'toast-container';
-            document.body.appendChild(this.container);
-        } else {
-            this.container = document.getElementById('toast-container');
+        if ($('#toast-container').length === 0) {
+            $('body').append('<div id="toast-container"></div>');
         }
     },
 
     show(type, title, message) {
         this.init();
-        
-        const iconMap = {
-            success: 'fa-check-circle',
-            error: 'fa-exclamation-circle',
-            info: 'fa-info-circle',
-            warning: 'fa-exclamation-triangle'
-        };
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-            <i class="fas ${iconMap[type]}"></i>
-            <div class="toast-content">
-                <div class="toast-title">${title}</div>
-                <div class="toast-message">${message}</div>
+        const iconMap = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle', warning: 'fa-exclamation-triangle' };
+        const toast = $(`
+            <div class="toast ${type}">
+                <i class="fas ${iconMap[type]}"></i>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <i class="fas fa-times btn-close-toast" style="cursor:pointer; opacity:0.5;"></i>
             </div>
-            <i class="fas fa-times" style="cursor:pointer; opacity:0.5;" onclick="this.parentElement.remove()"></i>
-        `;
-
-        this.container.appendChild(toast);
-
-        // Auto remove
+        `);
+        $('#toast-container').append(toast);
+        toast.find('.btn-close-toast').on('click', function() { $(this).parent().remove(); });
         setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease-in forwards';
+            toast.css('animation', 'slideOut 0.3s ease-in forwards');
             setTimeout(() => toast.remove(), 300);
         }, 4000);
-    },
-
-    success(msg) { this.show('success', 'Thành công', msg); },
-    error(msg) { this.show('error', 'Lỗi', msg); },
-    info(msg) { this.show('info', 'Thông tin', msg); },
-    warning(msg) { this.show('warning', 'Cảnh báo', msg); }
+    }
 };
 
 // 2. Custom Confirm Modal
-const Modal = {
+window.Modal = {
     currentCallback: null,
-
     init() {
-        if (!document.getElementById('confirmModal')) {
+        if ($('#confirmModal').length === 0) {
             const html = `
                 <div id="confirmModal" class="modal-overlay">
                     <div class="modal-box">
                         <div class="modal-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="modal-title">Xác nhận hành động</div>
-                        <div class="modal-desc">Bạn có chắc chắn muốn thực hiện hành động này không? Hành động này không thể hoàn tác.</div>
+                        <div class="modal-desc"></div>
                         <div class="modal-actions">
-                            <button class="btn btn-secondary" onclick="Modal.close()">Hủy bỏ</button>
-                            <button id="modalConfirmBtn" class="btn btn-danger">Xác nhận</button>
+                            <button class="btn btn-secondary btn-modal-cancel">Hủy bỏ</button>
+                            <button class="btn btn-danger btn-modal-confirm">Xác nhận</button>
                         </div>
                     </div>
                 </div>
             `;
-            document.body.insertAdjacentHTML('beforeend', html);
+            $('body').append(html);
+            $('#confirmModal .btn-modal-cancel').on('click', () => this.close());
         }
     },
-
     confirm(message, callback) {
         this.init();
-        const modal = document.getElementById('confirmModal');
-        modal.querySelector('.modal-desc').textContent = message;
-        
+        $('#confirmModal').find('.modal-desc').text(message);
         this.currentCallback = callback;
-        
-        // Setup confirm button
-        const btn = document.getElementById('modalConfirmBtn');
-        // Remove old listeners to prevent stacking
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        
-        newBtn.addEventListener('click', () => {
-            if (typeof Modal.currentCallback === 'function') {
-                Modal.currentCallback();
-            }
-            Modal.close();
+        $('#confirmModal').find('.btn-modal-confirm').off('click').on('click', () => {
+            if (typeof this.currentCallback === 'function') this.currentCallback();
+            this.close();
         });
-
-        modal.style.display = 'flex';
+        $('#confirmModal').css('display', 'flex');
     },
-
-    close() {
-        document.getElementById('confirmModal').style.display = 'none';
-    }
+    close() { $('#confirmModal').hide(); }
 };
 
-// 3. Page Loader
-const Loader = {
-    start() {
-        if (!document.querySelector('.page-loader')) {
-            const loader = document.createElement('div');
-            loader.className = 'page-loader';
-            loader.innerHTML = '<div class="bar"></div>';
-            document.body.prepend(loader);
-        }
-        setTimeout(() => document.querySelector('.page-loader .bar').style.width = '70%', 100);
-    },
-
-    finish() {
-        const bar = document.querySelector('.page-loader .bar');
-        if (bar) {
-            bar.style.width = '100%';
-            setTimeout(() => {
-                const loader = document.querySelector('.page-loader');
-                if (loader) loader.remove();
-            }, 300);
-        }
-    }
-};
-
-// 4. Theme Toggle (Dark/Light Mode)
+// 3. Theme Manager
 const Theme = {
-    init() {
-        try {
-            const toggleBtn = document.getElementById('theme-toggle');
-            if (!toggleBtn) return;
-
-            const currentTheme = localStorage.getItem('theme');
-            const icon = toggleBtn.querySelector('i');
-
-            // Apply saved theme
-            if (currentTheme === 'dark') {
-                document.body.classList.add('dark-mode');
-                if (icon) icon.classList.replace('fa-moon', 'fa-sun');
-            }
-
-            toggleBtn.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                
-                let theme = 'light';
-                if (document.body.classList.contains('dark-mode')) {
-                    theme = 'dark';
-                    if (icon) icon.classList.replace('fa-moon', 'fa-sun');
-                } else {
-                    if (icon) icon.classList.replace('fa-sun', 'fa-moon');
-                }
-                
-                localStorage.setItem('theme', theme);
-            });
-        } catch (e) {
-            console.error('Theme init error:', e);
+    apply() {
+        const currentTheme = localStorage.getItem('theme');
+        if (currentTheme === 'dark') {
+            $('body').addClass('dark-mode');
+            $('#theme-toggle i').removeClass('fa-moon').addClass('fa-sun');
         }
+    },
+    toggle() {
+        $('body').toggleClass('dark-mode');
+        const isDark = $('body').hasClass('dark-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        $('#theme-toggle i').toggleClass('fa-moon fa-sun');
     }
 };
-
-// 5. Password Toggle
-function togglePassword(inputId, iconElement) {
-    const input = document.getElementById(inputId);
-    if (!input) return;
-
-    if (input.type === 'password') {
-        input.type = 'text';
-        iconElement.classList.remove('fa-eye');
-        iconElement.classList.add('fa-eye-slash');
-    } else {
-        input.type = 'password';
-        iconElement.classList.remove('fa-eye-slash');
-        iconElement.classList.add('fa-eye');
-    }
-}
 
 // Global Init
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Theme
-    Theme.init();
+$(document).ready(function() {
+    // Initial Theme Apply
+    Theme.apply();
 
-    // --- Sidebar Logic (Mobile & Desktop) ---
-    // Use Event Delegation for robustness
-    document.addEventListener('click', (e) => {
-        const toggleBtn = e.target.closest('#sidebarToggle');
-        if (!toggleBtn) return;
+    // Sidebar State
+    if (window.innerWidth > 768) {
+        if (localStorage.getItem('sidebarState') === 'collapsed') {
+            $('.sidebar').addClass('collapsed');
+            $('.main-content').addClass('expanded');
+        }
+    }
 
+    // EVENT DELEGATION - Bám vào document để đảm bảo nút luôn bấm được
+    $(document).on('click', '#theme-toggle', function(e) {
+        e.preventDefault();
+        Theme.toggle();
+    });
+
+    $(document).on('click', '#sidebarToggle', function(e) {
+        e.preventDefault();
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            $('.sidebar').toggleClass('active');
+            $('.sidebar-overlay').toggleClass('active');
+        } else {
+            $('.sidebar').toggleClass('collapsed');
+            $('.main-content').toggleClass('expanded');
+            localStorage.setItem('sidebarState', $('.sidebar').hasClass('collapsed') ? 'collapsed' : 'expanded');
+        }
+    });
+
+    $(document).on('click', '.sidebar-overlay', function() {
+        $('.sidebar').removeClass('active');
+        $(this).removeClass('active');
+    });
+
+    $(document).on('click', '.user-info', function(e) {
         e.stopPropagation();
-        
-        const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('.main-content');
-        const overlay = document.querySelector('.sidebar-overlay');
-
-        // Create overlay if missing (lazy init)
-        if (!overlay && window.innerWidth <= 768) {
-            const newOverlay = document.createElement('div');
-            newOverlay.className = 'sidebar-overlay';
-            document.body.appendChild(newOverlay);
-            // Re-select
-            // overlay = newOverlay; 
-            // Note: complex to re-assign const, but strictly checking DOM next time is fine.
-            // For now, let's just use the newly created one if we need it immediately
-             newOverlay.classList.toggle('active'); // Immediate toggle for this click
-        } else if (overlay && window.innerWidth <= 768) {
-             overlay.classList.toggle('active');
-        }
-
-        if (sidebar) {
-            if (window.innerWidth <= 768) {
-                // Mobile: Toggle Active
-                sidebar.classList.toggle('active');
-            } else {
-                // Desktop: Toggle Collapsed
-                sidebar.classList.toggle('collapsed');
-                if (mainContent) {
-                    mainContent.classList.toggle('expanded');
-                }
-                
-                // Save state
-                const isCollapsed = sidebar.classList.contains('collapsed');
-                localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
-            }
-        }
+        $(this).find('.user-dropdown').toggleClass('show');
     });
 
-    // Sidebar Overlay Click (Delegation)
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('sidebar-overlay')) {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = e.target;
-            
-            if (sidebar) sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-        }
+    $(document).on('click', function() {
+        $('.user-dropdown').removeClass('show');
     });
 
-    // 1. Create Overlay for Mobile (Pre-emptive)
-    if (!document.querySelector('.sidebar-overlay')) {
-        const overlay = document.createElement('div');
-        overlay.className = 'sidebar-overlay';
-        document.body.appendChild(overlay);
+    // Password Toggles
+    $(document).on('click', '.password-toggle-btn', function() {
+        const $input = $('#' + $(this).data('target'));
+        const isPass = $input.attr('type') === 'password';
+        $input.attr('type', isPass ? 'text' : 'password');
+        $(this).find('i').toggleClass('fa-eye fa-eye-slash');
+    });
+
+    // Sidebar Auto Overlay
+    if ($('.sidebar-overlay').length === 0) {
+        $('body').append('<div class="sidebar-overlay"></div>');
     }
-
-    // 2. Restore State on Load (Desktop Only)
-    const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    if (window.innerWidth > 768 && sidebar) {
-        const savedState = localStorage.getItem('sidebarState');
-        if (savedState === 'collapsed') {
-            sidebar.classList.add('collapsed');
-            if (mainContent) mainContent.classList.add('expanded');
-        }
-    }
-    
-    // 3. Auto-close on Link Click (Mobile only)
-    if (sidebar) {
-        sidebar.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                    const overlay = document.querySelector('.sidebar-overlay');
-                    if (overlay) overlay.classList.remove('active');
-                }
-            });
-        });
-    }
-
-    // Intercept form submissions for loader
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', () => Loader.start());
-    });
-
-    // Auto-setup password toggles
-    document.querySelectorAll('.password-toggle-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const targetId = this.getAttribute('data-target');
-            const icon = this.querySelector('i');
-            togglePassword(targetId, icon);
-        });
-    });
 });

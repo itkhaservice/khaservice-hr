@@ -372,15 +372,15 @@ ul { list-style: none; padding: 0; margin: 0; }
     padding: 0 25px;
     position: sticky;
     top: 0;
-    z-index: 900;
+    z-index: 3000; /* Increased to stay above modals in settings page */
     box-shadow: var(--shadow-header);
 }
 
-.toggle-sidebar { cursor: pointer; font-size: 1.2rem; color: var(--text-sub); padding: 5px; position: relative; z-index: 9999; pointer-events: auto; }
+.toggle-sidebar { cursor: pointer; font-size: 1.2rem; color: var(--text-sub); padding: 5px; position: relative; z-index: 3001; pointer-events: auto; }
 
 #theme-toggle, #start-tour {
     position: relative;
-    z-index: 9999;
+    z-index: 3001;
     pointer-events: auto;
 }
 

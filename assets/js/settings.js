@@ -1,7 +1,7 @@
 $(document).ready(function() {
     // Tab switching logic
     if(window.location.hash) {
-        var hash = window.location.hash.substring(1);
+        var hash = window.location.hash.substring(1).split('?')[0];
         showTab(hash);
     }
     $('.tab-item').on('click', function() {
