@@ -181,8 +181,16 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
     </div>
 
 <style>
-/* CSS Override specifically for this page if needed, otherwise rely on admin_style.css */
-/* Ensuring text colors adapt to dark mode via variables */
+/* DARK MODE SUPPORT */
+body.dark-mode .filter-section { background-color: #1e293b; border-color: var(--primary-color); }
+body.dark-mode .filter-section select, body.dark-mode .filter-section input { background-color: #0f172a; border-color: #334155; color: #cbd5e1; }
+body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
+body.dark-mode .table thead th { background-color: #334155; color: #94a3b8; border-bottom-color: #475569; }
+body.dark-mode .table td { border-bottom-color: #334155; color: #cbd5e1; }
+body.dark-mode .text-danger { color: #f87171 !important; }
+body.dark-mode .text-warning { color: #fbbf24 !important; }
+body.dark-mode .badge-secondary { background-color: #334155; color: #94a3b8; }
+
 .text-danger { color: var(--danger-text) !important; }
 .text-warning { color: var(--warning-text) !important; }
 </style>

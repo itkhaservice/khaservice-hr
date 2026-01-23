@@ -1,47 +1,80 @@
 /**
  * Khaservice HRMS - Product Tour System
  * Thư viện sử dụng: Driver.js
+ * Cập nhật: 23/01/2026 - Thêm Module Hợp đồng & Topbar
  */
 
 const driver = window.driver.js.driver;
 
 const tourConfigs = {
-    // 1. Hướng dẫn trang Nhân sự
+    // 0. CHUNG (Xuất hiện ở mọi trang qua nút ?)
+    'common': [
+        { element: '#sidebarToggle', popover: { title: 'Thanh điều hướng', description: 'Bấm vào đây để thu gọn hoặc mở rộng danh sách chức năng.', side: "right" } },
+        { element: '#start-tour', popover: { title: 'Hướng dẫn sử dụng', description: 'Bạn có thể nhấn vào đây bất cứ lúc nào để xem lại hướng dẫn của trang này.', side: "bottom" } },
+        { element: '#theme-toggle', popover: { title: 'Chế độ giao diện', description: 'Chuyển đổi linh hoạt giữa giao diện Sáng (Light) và Tối (Dark) để bảo vệ mắt.', side: "bottom" } },
+        { element: '.user-info', popover: { title: 'Tài khoản', description: 'Quản lý thông tin cá nhân, đổi mật khẩu hoặc đăng xuất khỏi hệ thống.', side: "bottom" } }
+    ],
+
+    // 1. MODULE NHÂN SỰ
     '/employees/index.php': [
-        { element: '.page-title', popover: { title: 'Quản lý Nhân sự', description: 'Chào mừng bạn đến với nơi quản lý toàn bộ vòng đời nhân viên.', side: "bottom", align: 'start' } },
-        { element: 'a[href="add.php"]', popover: { title: 'Thêm nhân viên', description: 'Nhấn vào đây để thêm mới một nhân sự vào hệ thống.', side: "left", align: 'center' } },
-        { element: '.filter-section', popover: { title: 'Bộ lọc thông minh', description: 'Bạn có thể lọc nhân viên theo dự án, phòng ban hoặc trạng thái hồ sơ Đủ/Thiếu.', side: "bottom", align: 'center' } },
-        { element: '.badge-warning', popover: { title: 'Cảnh báo hồ sơ', description: 'Hệ thống tự động nhắc nhở nếu nhân viên chưa nộp đủ các chứng từ bắt buộc.', side: "right", align: 'center' } },
-        { element: 'a[title="Hồ sơ"]', popover: { title: 'Kho dữ liệu số', description: 'Quản lý và duyệt các bản scan hồ sơ PDF/Ảnh của nhân viên tại đây.', side: "left", align: 'center' } }
+        { element: '.page-title', popover: { title: 'Quản lý Nhân sự', description: 'Nơi lưu trữ và theo dõi toàn bộ vòng đời của nhân viên.', side: "bottom" } },
+        { element: '.filter-section', popover: { title: 'Bộ lọc thông minh', description: 'Lọc nhanh nhân viên theo dự án hoặc trạng thái hồ sơ (Đủ/Thiếu).', side: "bottom" } },
+        { element: 'button[onclick="openImportModal()"]', popover: { title: 'Nạp dữ liệu hàng loạt', description: 'Nhập hàng trăm nhân viên từ file Excel chỉ trong vài giây.', side: "bottom" } },
+        { element: 'a[title="Hồ sơ"]', popover: { title: 'Giấy tờ pháp lý', description: 'Quản lý bản scan CCCD, Bằng cấp... và duyệt tính hợp lệ.', side: "left" } }
     ],
-    // 2. Hướng dẫn trang Chấm công
+    '/employees/add.php': [
+        { element: '.tab-item[data-tab="personal"]', popover: { title: 'Thông tin cá nhân', description: 'Nhập các thông tin cơ bản, số CCCD và ảnh khuôn mặt.', side: "bottom" } },
+        { element: '.tab-item[data-tab="job"]', popover: { title: 'Thông tin công việc', description: 'Thiết lập Phòng ban, Chức vụ và Dự án công tác.', side: "bottom" } }
+    ],
+    '/employees/pending_docs.php': [
+        { element: '.badge-info', popover: { title: 'Hồ sơ chờ duyệt', description: 'Tổng số hồ sơ do quản lý dự án nộp lên đang chờ bạn xác nhận.', side: "bottom" } }
+    ],
+
+    // 2. MODULE CHẤM CÔNG
     '/attendance/index.php': [
-        { element: '.attendance-table', popover: { title: 'Bảng công Excel', description: 'Nhấn và kéo chuột (Drag Select) để nhập công cho nhiều ngày cùng lúc như đang dùng Excel.', side: "top", align: 'center' } },
-        { element: '.is-sunday', popover: { title: 'Cột Chủ Nhật', description: 'Các ngày Chủ Nhật được tô vàng để bạn dễ phân biệt với ngày thường.', side: "bottom", align: 'center' } },
-        { element: '.att-input.ot', popover: { title: 'Tăng ca & Hỗ trợ', description: 'Nhập giờ tăng ca ở ô dưới. Nhấp chuột phải để gán giờ công này cho một dự án khác.', side: "bottom", align: 'center' } },
-        { element: 'button[onclick="saveAttendance()"]', popover: { title: 'Lưu dữ liệu', description: 'Đừng quên nhấn Lưu sau khi hoàn tất để dữ liệu được ghi nhận vào hệ thống.', side: "bottom", align: 'center' } }
+        { element: '.attendance-table', popover: { title: 'Bảng chấm công', description: 'Kéo chọn vùng để nhập công nhanh. Cột STT và Nhân viên luôn được cố định.', side: "top" } },
+        { element: '.header-actions .btn-primary', popover: { title: 'Lưu dữ liệu', description: 'Hệ thống không tự lưu, hãy nhấn nút này sau khi nhập xong.', side: "bottom" } }
     ],
-    // 3. Hướng dẫn trang Lương
+
+    // 3. MODULE HỢP ĐỒNG & BẢO HIỂM
+    '/contracts/index.php': [
+        { element: 'td:nth-child(4)', popover: { title: 'Thời hạn hợp đồng', description: 'Hệ thống cảnh báo màu Đỏ nếu hết hạn, màu Cam nếu sắp hết hạn (trong 30 ngày).', side: "right" } },
+        { element: 'td:nth-child(6)', popover: { title: 'Trạng thái bảo hiểm', description: 'Theo dõi nhân viên đã được tham gia các chế độ BHXH, BHYT, BHTN hay chưa.', side: "left" } }
+    ],
+    '/contracts/edit.php': [
+        { element: '.tab-item:first-child', popover: { title: 'Chi tiết Hợp đồng', description: 'Số hợp đồng, loại hợp đồng và lương cơ bản dùng để đóng bảo hiểm.', side: "bottom" } },
+        { element: '.tab-item:last-child', popover: { title: 'Thông tin Bảo hiểm', description: 'Thiết lập số sổ BHXH và nơi đăng ký khám chữa bệnh ban đầu.', side: "bottom" } }
+    ],
+
+    // 4. MODULE LƯƠNG
     '/salary/index.php': [
-        { element: 'button[name="calculate_payroll"]', popover: { title: 'Tính lương tự động', description: 'Hệ thống sẽ dựa vào bảng công để tính toán thu nhập, bảo hiểm và thuế.', side: "bottom", align: 'center' } },
-        { element: 'a[href*="config.php"]', popover: { title: 'Cấu hình biến động', description: 'Thiết lập thưởng, phạt, tạm ứng riêng cho tháng này trước khi tính lương.', side: "left", align: 'center' } },
-        { element: 'td[style*="background: #f0fdf4"]', popover: { title: 'Thực lĩnh', description: 'Số tiền cuối cùng sau khi đã trừ hết các khoản giảm trừ.', side: "left", align: 'center' } }
+        { element: 'button[name="calculate_payroll"]', popover: { title: 'Tính toán lương', description: 'Quét dữ liệu từ bảng công và cấu hình lương để xuất số liệu.', side: "bottom" } }
+    ],
+
+    // 5. BÁO CÁO
+    '/reports/index.php': [
+        { element: '.card[style*="border-top"]', popover: { title: 'Tổng quan định biên', description: 'Biểu đồ theo dõi tỷ lệ lấp đầy nhân sự so with kế hoạch.', side: "bottom" } }
     ]
 };
 
 function startProductTour(force = false) {
     const currentPath = window.location.pathname;
-    let steps = null;
+    let steps = [];
 
-    // Tìm kịch bản phù hợp với đường dẫn hiện tại
+    // 1. Luôn thêm các bước chung nếu nhấn nút ?
+    if (force) {
+        steps = [...tourConfigs['common']];
+    }
+
+    // 2. Tìm kịch bản phù hợp với đường dẫn hiện tại
     for (const path in tourConfigs) {
-        if (currentPath.includes(path)) {
-            steps = tourConfigs[path];
+        if (path !== 'common' && currentPath.includes(path)) {
+            steps = [...steps, ...tourConfigs[path]];
             break;
         }
     }
 
-    if (steps) {
+    if (steps.length > 0) {
         const d = driver({
             showProgress: true,
             nextBtnText: 'Tiếp theo',
@@ -50,7 +83,6 @@ function startProductTour(force = false) {
             steps: steps
         });
 
-        // Nếu force = false, kiểm tra xem đã xem chưa
         if (!force) {
             const tourKey = 'tour_seen_' + currentPath.replace(/\//g, '_');
             if (localStorage.getItem(tourKey)) return;
@@ -63,7 +95,6 @@ function startProductTour(force = false) {
     }
 }
 
-// Tự động khởi chạy tour khi load trang (nếu là lần đầu)
 window.addEventListener('load', () => {
-    setTimeout(() => startProductTour(false), 1000);
+    setTimeout(() => startProductTour(false), 800);
 });
