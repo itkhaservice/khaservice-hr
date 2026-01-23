@@ -121,6 +121,19 @@ include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 ?>
 
+<style>
+/* DARK MODE SUPPORT */
+body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
+body.dark-mode h3 { color: #f1f5f9; }
+body.dark-mode .table thead th { background-color: #334155; color: #94a3b8; border-bottom-color: #475569; }
+body.dark-mode .table td { border-bottom-color: #334155; color: #cbd5e1; }
+body.dark-mode .table td div[style*="color:#777"] { color: #64748b !important; }
+body.dark-mode .text-sub { color: #94a3b8 !important; }
+body.dark-mode #uploadModal .card { background-color: #1e293b; border: 1px solid #334155; }
+body.dark-mode .form-control { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
+body.dark-mode .form-group label { color: #94a3b8; }
+</style>
+
 <div class="main-content">
     <?php include '../../../includes/topbar.php'; ?>
 

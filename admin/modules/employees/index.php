@@ -356,6 +356,22 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
     .custom-import-modal .btn-primary:hover { background: #2563eb; }
     .custom-import-modal .btn-success { background: #22c55e; color: white; border: none; }
     .custom-import-modal .btn-success:hover { background: #16a34a; }
+/* DARK MODE SUPPORT */
+body.dark-mode .filter-section { background-color: #1e293b; border-color: var(--primary-color); }
+body.dark-mode .filter-section select, body.dark-mode .filter-section input { background-color: #0f172a; border-color: #334155; color: #cbd5e1; }
+body.dark-mode .card { background-color: #1e293b; border-color: #334155; }
+body.dark-mode .table thead th { background-color: #334155; color: #94a3b8; border-bottom-color: #475569; }
+body.dark-mode .table td { border-bottom-color: #334155; color: #cbd5e1; }
+body.dark-mode .custom-import-modal .modal-box { background-color: #1e293b; color: #f1f5f9; }
+body.dark-mode .custom-import-modal .modal-header { border-bottom-color: #334155; }
+body.dark-mode .custom-import-modal .modal-title { color: #f1f5f9; }
+body.dark-mode .custom-import-modal .alert-info { background-color: rgba(59, 130, 246, 0.1); border-color: #334155; color: #60a5fa; }
+body.dark-mode .custom-import-modal .preview-table { border-color: #334155; }
+body.dark-mode .custom-import-modal .preview-table th { background-color: #0f172a; color: #94a3b8; border-color: #334155; }
+body.dark-mode .custom-import-modal .preview-table td { border-color: #334155; }
+body.dark-mode .custom-import-modal .row-valid { background-color: rgba(34, 197, 94, 0.05); }
+body.dark-mode .custom-import-modal .row-invalid { background-color: rgba(239, 68, 68, 0.05); }
+
 </style>
 
 <div class="main-content">
@@ -438,7 +454,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                                 <tr>
                                     <td colspan="8" style="text-align:center; padding: 30px;">
                                         <div style="color: #64748b; margin-bottom: 10px;">Không tìm thấy nhân viên nào phù hợp.</div>
-                                        <?php if ($proj_id > 0 && $kw != ''): ?>
+                                        <?php if ($proj_id > 0 && $kw != '' && is_admin()): ?>
                                             <a href="index.php?kw=<?php echo urlencode($kw); ?>&proj_id=0" class="btn btn-sm btn-primary">
                                                 <i class="fas fa-search"></i> Thử tìm trong TOÀN BỘ hệ thống
                                             </a>

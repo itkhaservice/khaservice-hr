@@ -109,12 +109,12 @@ if (isset($_POST['calculate_payroll'])) {
         
         $net_salary = $total_income - $bhxh_amount - $advances - $union - $tax_amount;
 
-        // 6. LƯU KẾT QUẢ
-        db_query("INSERT INTO payroll (employee_id, month, year, standard_days, total_work_days, paid_leave_days, holiday_paid_days, holiday_work_days, total_ot_hours, salary_actual, ot_amount, total_allowance, bhxh_amount, salary_advances, union_fee, income_tax, bonus_amount, net_salary) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                  ON DUPLICATE KEY UPDATE standard_days=?, total_work_days=?, paid_leave_days=?, holiday_paid_days=?, holiday_work_days=?, total_ot_hours=?, salary_actual=?, ot_amount=?, total_allowance=?, bhxh_amount=?, salary_advances=?, union_fee=?, income_tax=?, bonus_amount=?, net_salary=?", 
-                  [$e['id'], $month, $year, $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $ot_hours, $salary_actual_work, $ot_amount, $e['allowance_total'], $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary,
-                   $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $ot_hours, $salary_actual_work, $ot_amount, $e['allowance_total'], $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary]);
+        // 6. LƯU KẾT QUẢ (Bổ sung project_id)
+        db_query("INSERT INTO payroll (employee_id, project_id, month, year, standard_days, total_work_days, paid_leave_days, holiday_paid_days, holiday_work_days, total_ot_hours, salary_actual, ot_amount, total_allowance, bhxh_amount, salary_advances, union_fee, income_tax, bonus_amount, net_salary) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+                  ON DUPLICATE KEY UPDATE project_id=?, standard_days=?, total_work_days=?, paid_leave_days=?, holiday_paid_days=?, holiday_work_days=?, total_ot_hours=?, salary_actual=?, ot_amount=?, total_allowance=?, bhxh_amount=?, salary_advances=?, union_fee=?, income_tax=?, bonus_amount=?, net_salary=?", 
+                  [$e['id'], $project_id, $month, $year, $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $ot_hours, $salary_actual_work, $ot_amount, $e['allowance_total'], $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary,
+                   $project_id, $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $ot_hours, $salary_actual_work, $ot_amount, $e['allowance_total'], $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary]);
     }
     set_toast('success', 'Đã tính toán bảng lương chi tiết cho dự án!');
     header("Location: index.php?month=$month&year=$year&project_id=$project_id");
@@ -125,14 +125,15 @@ $projects = db_fetch_all("SELECT * FROM projects WHERE status = 'active' ORDER B
 
 $payroll_data = [];
 if ($project_id > 0) {
+    // Sửa SQL: Lọc theo p.project_id thay vì e.current_project_id để lấy đúng lịch sử
     $payroll_data = db_fetch_all("
         SELECT p.*, e.fullname, e.code, pr.name as proj_name, d.name as dept_name, pos.name as pos_name
         FROM payroll p
         JOIN employees e ON p.employee_id = e.id
-        LEFT JOIN projects pr ON e.current_project_id = pr.id
+        LEFT JOIN projects pr ON p.project_id = pr.id
         LEFT JOIN departments d ON e.department_id = d.id
         LEFT JOIN positions pos ON e.position_id = pos.id
-        WHERE p.month = ? AND p.year = ? AND e.current_project_id = ?
+        WHERE p.month = ? AND p.year = ? AND p.project_id = ?
         ORDER BY d.stt ASC, pos.stt ASC, e.fullname ASC
     ", [$month, $year, $project_id]);
 }

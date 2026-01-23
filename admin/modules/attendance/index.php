@@ -16,12 +16,13 @@ $project_options = ($allowed_projs === 'ALL')
 
 $is_locked = db_fetch_row("SELECT is_locked FROM attendance_locks WHERE month = ? AND year = ? AND (project_id = 0 OR project_id = ?) AND is_locked = 1", [$month, $year, $project_id]) ? true : false;
 
-$employees = ($project_id > 0) ? db_fetch_all("SELECT e.id, e.fullname, e.code, e.position, d.name as dept_name 
+$employees = ($project_id > 0) ? db_fetch_all("SELECT DISTINCT e.id, e.fullname, e.code, e.position, d.name as dept_name 
                                FROM employees e 
                                LEFT JOIN departments d ON e.department_id = d.id 
                                LEFT JOIN positions p ON e.position_id = p.id
-                               WHERE e.current_project_id = ? AND e.status = 'working' 
-                               ORDER BY d.stt ASC, p.stt ASC, e.fullname ASC", [$project_id]) : [];
+                               WHERE (e.current_project_id = ? AND e.status = 'working')
+                                  OR e.id IN (SELECT DISTINCT employee_id FROM attendance WHERE project_id = ? AND MONTH(date) = ? AND YEAR(date) = ?)
+                               ORDER BY d.stt ASC, p.stt ASC, e.fullname ASC", [$project_id, $project_id, $month, $year]) : [];
 
 $att_data = [];
 $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
