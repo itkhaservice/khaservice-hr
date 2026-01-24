@@ -1,59 +1,93 @@
 <?php
 /**
- * API ĐỒNG BỘ DỮ LIỆU (HOSTING -> LOCAL SERVER)
- * Bảo mật bằng Secret API Key
+ * API ĐỒNG BỘ DỮ LIỆU (HOSTING -> LOCAL)
+ * Phiên bản: 2.0 (Hỗ trợ phân trang & chọn bảng)
  */
 require_once '../config/db.php';
 
+// Tăng giới hạn bộ nhớ và thời gian thực thi cho tác vụ nặng
+ini_set('memory_limit', '256M');
+set_time_limit(300);
+
 header('Content-Type: application/json');
 
-// 1. Cấu hình bảo mật (Nên để trong bảng settings hoặc .env)
+// 1. Cấu hình bảo mật
 $SECRET_KEY = "KHA_SERVICE_SECURE_SYNC_2026"; 
 
-// 2. Kiểm tra quyền truy cập
-$headers = getallheaders();
-$received_key = $headers['X-API-KEY'] ?? $_GET['key'] ?? '';
-
+// 2. Kiểm tra quyền
+$received_key = $_SERVER['HTTP_X_API_KEY'] ?? $_GET['key'] ?? '';
 if ($received_key !== $SECRET_KEY) {
     http_response_code(403);
-    echo json_encode(['error' => 'Truy cập bị từ chối. API Key không hợp lệ.']);
+    echo json_encode(['status' => 'error', 'message' => 'Invalid API Key']);
     exit;
 }
 
-// 3. Lấy mốc thời gian đồng bộ cuối cùng từ phía máy chủ công ty gửi lên
-$last_sync = $_GET['last_sync'] ?? '2000-01-01 00:00:00';
+// 3. Nhận tham số
+$table = isset($_GET['table']) ? preg_replace('/[^a-z0-9_]/', '', $_GET['table']) : '';
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
+$offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+$last_sync = isset($_GET['last_sync']) ? $_GET['last_sync'] : '2000-01-01 00:00:00';
 
-$tables_to_sync = [
-    'employees', 
-    'projects', 
-    'attendance', 
-    'attendance_logs', 
-    'leave_requests', 
-    'payroll', 
-    'employee_status_history',
-    'documents'
+// Danh sách bảng được phép đồng bộ
+$allowed_tables = [
+    'employees', 'projects', 'departments', 'positions',
+    'attendance', 'attendance_logs', 'attendance_locks',
+    'payroll', 'employee_salaries',
+    'documents', 'document_settings',
+    'settings', 'users'
 ];
 
-$sync_data = [];
-
-foreach ($tables_to_sync as $table) {
-    // Tìm các dòng mới thêm hoặc mới sửa kể từ lần sync cuối
-    // Giả định các bảng có cột created_at hoặc updated_at
-    // Nếu bảng không có, ta lấy toàn bộ (cần tối ưu sau)
-    $sql = "SELECT * FROM $table WHERE 1=1";
-    
-    // Kiểm tra xem bảng có cột thời gian không
-    $check_col = db_fetch_row("SHOW COLUMNS FROM $table LIKE 'created_at'");
-    if ($check_col) {
-        $sql .= " AND created_at > ?";
-    }
-    
-    $sync_data[$table] = db_fetch_all($sql, $check_col ? [$last_sync] : []);
+if (!in_array($table, $allowed_tables)) {
+    echo json_encode([
+        'status' => 'error', 
+        'message' => 'Table not found or not allowed',
+        'allowed_tables' => $allowed_tables
+    ]);
+    exit;
 }
 
-// 4. Trả về dữ liệu
-echo json_encode([
-    'status' => 'success',
-    'timestamp' => date('Y-m-d H:i:s'),
-    'data' => $sync_data
-]);
+// 4. Truy vấn dữ liệu
+try {
+    // Đếm tổng số dòng thay đổi
+    $count_sql = "SELECT COUNT(*) as total FROM `$table`";
+    $data_sql = "SELECT * FROM `$table`";
+    $params = [];
+
+    // Kiểm tra cột thời gian để sync incremental (nếu có)
+    // Ưu tiên updated_at, sau đó đến created_at
+    $cols = db_fetch_all("SHOW COLUMNS FROM `$table`");
+    $col_names = array_column($cols, 'Field');
+    
+    $time_col = null;
+    if (in_array('updated_at', $col_names)) $time_col = 'updated_at';
+    elseif (in_array('created_at', $col_names)) $time_col = 'created_at';
+
+    if ($time_col && $last_sync != 'full') {
+        $count_sql .= " WHERE `$time_col` > ?";
+        $data_sql .= " WHERE `$time_col` > ?";
+        $params[] = $last_sync;
+    }
+
+    // Thực hiện đếm
+    $total_row = db_fetch_row($count_sql, $params);
+    $total = $total_row['total'];
+
+    // Lấy dữ liệu với Limit/Offset
+    $data_sql .= " LIMIT $limit OFFSET $offset";
+    $data = db_fetch_all($data_sql, $params);
+
+    echo json_encode([
+        'status' => 'success',
+        'table' => $table,
+        'total_changes' => $total,
+        'limit' => $limit,
+        'offset' => $offset,
+        'count' => count($data),
+        'data' => $data
+    ]);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+}
+?>

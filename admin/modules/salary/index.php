@@ -26,13 +26,15 @@ if (isset($_POST['calculate_payroll'])) {
     }
 
     // 2. Lấy danh sách nhân viên (Chỉ 1 Query)
+    // Sửa logic: Lấy cả những dòng chấm công chưa gán dự án (project_id=0) nếu nhân viên đó thuộc dự án này
     $employees = db_fetch_all("
-        SELECT DISTINCT e.id, e.fullname, s.basic_salary, s.insurance_salary, s.allowance_total, s.income_tax_percent, s.salary_advances_default, s.union_fee as emp_union_fee
+        SELECT DISTINCT e.id, e.fullname, s.basic_salary, s.insurance_salary, s.allowance_total, s.income_tax_percent, s.salary_advances_default, s.has_union_fee
         FROM employees e 
         JOIN attendance a ON e.id = a.employee_id
         LEFT JOIN employee_salaries s ON e.id = s.employee_id 
-        WHERE a.project_id = ? AND MONTH(a.date) = ? AND YEAR(a.date) = ?
-    ", [$project_id, $month, $year]);
+        WHERE (a.project_id = ? OR (COALESCE(a.project_id, 0) = 0 AND e.current_project_id = ?))
+        AND MONTH(a.date) = ? AND YEAR(a.date) = ?
+    ", [$project_id, $project_id, $month, $year]);
 
     if (empty($employees)) {
         set_toast('warning', 'Không có nhân viên nào có dữ liệu chấm công trong tháng này.');
@@ -70,11 +72,13 @@ if (isset($_POST['calculate_payroll'])) {
             SUM(CASE WHEN DAYOFWEEK(date) != 1 AND timekeeper_symbol NOT IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_normal,
             SUM(CASE WHEN DAYOFWEEK(date) = 1 AND timekeeper_symbol NOT IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_sunday,
             SUM(CASE WHEN timekeeper_symbol IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_holiday
-        FROM attendance 
-        WHERE project_id = ? AND MONTH(date) = ? AND YEAR(date) = ? AND employee_id IN ($emp_ids_str)
-        GROUP BY employee_id
+        FROM attendance a
+        JOIN employees e ON a.employee_id = e.id
+        WHERE (a.project_id = ? OR (COALESCE(a.project_id, 0) = 0 AND e.current_project_id = ?))
+        AND MONTH(a.date) = ? AND YEAR(a.date) = ? AND a.employee_id IN ($emp_ids_str)
+        GROUP BY a.employee_id
     ";
-    $att_raw = db_fetch_all($sql_att, [$project_id, $month, $year]);
+    $att_raw = db_fetch_all($sql_att, [$project_id, $project_id, $month, $year]);
     
     // Map attendance data by Employee ID for fast lookup
     $att_map = [];
@@ -130,11 +134,6 @@ if (isset($_POST['calculate_payroll'])) {
             $advances = (float)($pay['salary_advances'] ?? $e['salary_advances_default'] ?? 0);
             $bonus = (float)($pay['bonus_amount'] ?? 0);
             
-            // Union Fee Logic
-            if (isset($pay['union_fee'])) $union = (float)$pay['union_fee'];
-            elseif (isset($e['emp_union_fee']) && (float)$e['emp_union_fee'] > 0) $union = (float)$e['emp_union_fee'];
-            else $union = (float)$union_fee_default;
-
             // Calculations
             $day_rate = $work_days_standard > 0 ? ($basic_sal / $work_days_standard) : 0;
             $hour_rate = $day_rate / 8;
@@ -152,7 +151,16 @@ if (isset($_POST['calculate_payroll'])) {
             
             $bhxh_amount = $ins_sal * $ins_total_percent;
             
-            if ($union == 0 && $union_fee_default == 0) $union = $ins_sal * 0.01;
+            // Union Fee Logic (Moved here to use variables)
+            if ((int)($e['has_union_fee'] ?? 1) === 0) {
+                $union = 0; 
+            } else {
+                if (isset($pay['union_fee'])) $union = (float)$pay['union_fee'];
+                elseif (isset($e['emp_union_fee']) && (float)$e['emp_union_fee'] > 0) $union = (float)$e['emp_union_fee'];
+                else $union = (float)$union_fee_default;
+                
+                if ($union == 0 && $union_fee_default == 0) $union = $ins_sal * 0.01;
+            }
             
             $tax_amount = $total_income * ((float)($e['income_tax_percent'] ?? 0) / 100);
             $net_salary = $total_income - $bhxh_amount - $advances - $union - $tax_amount;
@@ -181,7 +189,7 @@ $projects = db_fetch_all("SELECT * FROM projects WHERE status = 'active' ORDER B
 
 $payroll_data = [];
 if ($project_id > 0) {
-    // Sửa SQL: Lọc theo p.project_id thay vì e.current_project_id để lấy đúng lịch sử
+    // Sửa SQL: Lọc theo cả p.project_id hoặc e.current_project_id để tìm thấy dữ liệu cũ bị lệch dự án
     $payroll_data = db_fetch_all("
         SELECT p.*, e.fullname, e.code, pr.name as proj_name, d.name as dept_name, pos.name as pos_name
         FROM payroll p
@@ -189,9 +197,9 @@ if ($project_id > 0) {
         LEFT JOIN projects pr ON p.project_id = pr.id
         LEFT JOIN departments d ON e.department_id = d.id
         LEFT JOIN positions pos ON e.position_id = pos.id
-        WHERE p.month = ? AND p.year = ? AND p.project_id = ?
+        WHERE p.month = ? AND p.year = ? AND (p.project_id = ? OR (p.project_id = 0 AND e.current_project_id = ?))
         ORDER BY d.stt ASC, pos.stt ASC, e.fullname ASC
-    ", [$month, $year, $project_id]);
+    ", [$month, $year, $project_id, $project_id]);
 }
 
 include '../../../includes/header.php';

@@ -396,6 +396,7 @@ ul { list-style: none; padding: 0; margin: 0; }
     flex-direction: column;
     padding: 5px 0;
     margin-top: 10px;
+    z-index: 4000; /* Ensure above header and sticky elements */
 }
 .user-dropdown.show { display: flex; }
 .user-dropdown a { padding: 10px 15px; font-size: 0.9rem; }

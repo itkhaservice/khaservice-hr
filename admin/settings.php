@@ -51,7 +51,7 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
             <div class="settings-sidebar card">
                 <div class="nav flex-column nav-pills">
                     <button class="nav-link active" data-tab="company">
-                        <i class="fas fa-building"></i> <span>Thông tin Công ty</span>
+                        <i class="fas fa-building"></i> <span>Thông tin chung</span>
                     </button>
                     <button class="nav-link" data-tab="organization">
                         <i class="fas fa-sitemap"></i> <span>Cơ cấu Tổ chức</span>
@@ -65,6 +65,11 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
                     <button class="nav-link" data-tab="salary">
                         <i class="fas fa-coins"></i> <span>Cấu hình Lương</span>
                     </button>
+                    <?php if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1'): ?>
+                    <button class="nav-link" data-tab="sync">
+                        <i class="fas fa-sync-alt"></i> <span>Đồng bộ Dữ liệu</span>
+                    </button>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -336,6 +341,15 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
                         </form>
                     </div>
                 </div>
+
+                <!-- Tab: Sync Data (Localhost Only) -->
+                <?php if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1'): ?>
+                <div class="tab-pane" id="sync">
+                    <div class="card" style="height: 600px; overflow: hidden; padding: 0;">
+                        <iframe src="/khaservice-hr/tools/dashboard_sync.php" style="width: 100%; height: 100%; border: none;"></iframe>
+                    </div>
+                </div>
+                <?php endif; ?>
 
             </div>
         </div>
@@ -615,6 +629,20 @@ body.dark-mode .pos-list li:hover { background: rgba(255,255,255,0.03); border-c
 body.dark-mode .pos-actions { background: #334155; }
 body.dark-mode .org-footer { background: #1e293b; border-top-color: #334155; }
 body.dark-mode .btn-add-pos { background: #0f172a; border-color: #334155; }
+
+/* Sync Tab iframe styling */
+#sync .card {
+    height: 600px;
+    overflow: hidden;
+    padding: 0;
+    border-radius: 12px;
+}
+#sync iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
 
 /* Rest of Styles */
 .settings-layout {
@@ -914,6 +942,22 @@ function deleteItem(action, id, msg = 'Bạn có chắc chắn muốn xóa mục
         });
     });
 }
+
+// Sync Theme with Iframe
+function syncIframeTheme() {
+    const iframe = document.querySelector('iframe[src*="dashboard_sync.php"]');
+    if (!iframe) return;
+    
+    const isDark = document.body.classList.contains('dark-mode');
+    const msg = isDark ? 'theme-dark' : 'theme-light';
+    iframe.contentWindow.postMessage(msg, '*');
+}
+
+// Initial Sync & Observer
+window.addEventListener('load', syncIframeTheme);
+// Observer for body class changes
+const observer = new MutationObserver(syncIframeTheme);
+observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 </script>
 
             </div> <!-- End settings-content -->
