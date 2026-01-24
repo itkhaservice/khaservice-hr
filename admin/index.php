@@ -238,6 +238,67 @@ $recent_logs = db_fetch_all("
 
             <!-- Right Side: Quick Links or Stats -->
             <div style="display: flex; flex-direction: column; gap: 25px;">
+                
+                <!-- NEW: Attendance Progress Widget -->
+                <?php
+                // Logic: Trong 5 ngày đầu tháng, mặc định hiển thị tiến độ chốt công của THÁNG TRƯỚC
+                // Sau ngày 5, hiển thị tiến độ của THÁNG HIỆN TẠI
+                $today_d = (int)date('j');
+                $curr_m = (int)date('n');
+                $curr_y = (int)date('Y');
+
+                if ($today_d <= 5) {
+                    $target_m = ($curr_m == 1) ? 12 : $curr_m - 1;
+                    $target_y = ($curr_m == 1) ? $curr_y - 1 : $curr_y;
+                } else {
+                    $target_m = $curr_m;
+                    $target_y = $curr_y;
+                }
+
+                $att_progress = db_fetch_all("
+                    SELECT p.id, p.name, l.is_locked, l.locked_at
+                    FROM projects p
+                    LEFT JOIN attendance_locks l ON p.id = l.project_id AND l.month = $target_m AND l.year = $target_y
+                    WHERE p.status = 'active'
+                    ORDER BY l.is_locked DESC, p.name ASC
+                ");
+                ?>
+                <div class="card" style="padding: 0; overflow: hidden; border-top: 4px solid var(--primary-color);">
+                    <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-size: 1rem;"><i class="fas fa-tasks"></i> Tiến độ Chốt công T<?php echo "$target_m/$target_y"; ?></h3>
+                        <span class="badge badge-secondary"><?php echo count($att_progress); ?> Dự án</span>
+                    </div>
+                    <div class="table-container" style="border: none; border-radius: 0; max-height: 300px;">
+                        <table class="table">
+                            <tbody>
+                                <?php if(empty($att_progress)): ?>
+                                    <tr><td class="text-center" style="color: var(--text-sub);">Không có dự án hoạt động</td></tr>
+                                <?php else: ?>
+                                    <?php foreach($att_progress as $ap): 
+                                        $is_done = ($ap['is_locked'] == 1);
+                                    ?>
+                                        <tr>
+                                            <td style="padding: 10px 15px;">
+                                                <div style="font-weight: 600; color: var(--text-main);"><?php echo $ap['name']; ?></div>
+                                                <div style="font-size: 0.75rem; color: var(--text-sub);">
+                                                    <?php echo $is_done ? 'Chốt lúc: '.date('H:i d/m', strtotime($ap['locked_at'])) : 'Đang thực hiện'; ?>
+                                                </div>
+                                            </td>
+                                            <td style="width: 40px; text-align: right; padding-right: 15px;">
+                                                <?php if($is_done): ?>
+                                                    <i class="fas fa-check-circle" style="color: var(--primary-color); font-size: 1.2rem;" title="Đã chốt sổ"></i>
+                                                <?php else: ?>
+                                                    <i class="far fa-circle" style="color: #cbd5e1; font-size: 1.2rem;" title="Chưa chốt"></i>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h3 style="margin-top: 0; font-size: 1rem;">Lối tắt nhanh</h3>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
