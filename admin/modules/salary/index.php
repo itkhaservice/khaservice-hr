@@ -14,7 +14,7 @@ $project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 // Xử lý TÍNH LƯƠNG
 if (isset($_POST['calculate_payroll'])) {
     // 1. Lấy cài đặt hệ số chung
-    $settings_raw = db_fetch_all("SELECT * FROM settings WHERE setting_key LIKE 'insurance_%' OR setting_key LIKE 'salary_%' OR setting_key = 'union_fee_amount'");
+    $settings_raw = db_fetch_all("SELECT * FROM settings WHERE setting_key LIKE 'insurance_%' OR setting_key LIKE 'salary_%'");
     $g_settings = []; foreach ($settings_raw as $s) $g_settings[$s['setting_key']] = $s['setting_value'];
 
     // 2. Lấy danh sách nhân viên CÓ PHÁT SINH CÔNG tại dự án này trong tháng
@@ -25,7 +25,7 @@ if (isset($_POST['calculate_payroll'])) {
     }
 
     $employees = db_fetch_all("
-        SELECT DISTINCT e.id, e.fullname, s.basic_salary, s.insurance_salary, s.allowance_total, s.income_tax_percent, s.salary_advances_default
+        SELECT DISTINCT e.id, e.fullname, s.basic_salary, s.insurance_salary, s.allowance_total, s.income_tax_percent, s.salary_advances_default, s.union_fee as emp_union_fee
         FROM employees e 
         JOIN attendance a ON e.id = a.employee_id
         LEFT JOIN employee_salaries s ON e.id = s.employee_id 
@@ -95,8 +95,16 @@ if (isset($_POST['calculate_payroll'])) {
         $p_var = db_fetch_row("SELECT salary_advances, union_fee, bonus_amount FROM payroll WHERE employee_id = ? AND month = ? AND year = ?", [$e['id'], $month, $year]);
         
         $advances = (float)($p_var['salary_advances'] ?? $e['salary_advances_default'] ?? 0);
-        $union = (float)($p_var['union_fee'] ?? ($union_fee_default > 0 ? $union_fee_default : 0));
         $bonus = (float)($p_var['bonus_amount'] ?? 0);
+
+        // LOGIC PHÍ ĐOÀN (HIERARCHY): Biến động tháng > Cấu hình riêng NV > Mặc định hệ thống
+        if (isset($p_var['union_fee'])) {
+            $union = (float)$p_var['union_fee'];
+        } elseif (isset($e['emp_union_fee']) && (float)$e['emp_union_fee'] > 0) {
+            $union = (float)$e['emp_union_fee'];
+        } else {
+            $union = (float)$union_fee_default;
+        }
 
         // 5. TÍNH TOÁN
         $day_rate = $work_days_standard > 0 ? ($basic_sal / $work_days_standard) : 0;
@@ -113,13 +121,15 @@ if (isset($_POST['calculate_payroll'])) {
         
         $total_income = $salary_actual_work + $salary_paid_leave + $salary_holiday_paid + $salary_holiday_work + $ot_amount + (float)($e['allowance_total'] ?? 0) + $bonus;
         
-        // BẢO HIỂM
+        // BẢO HIỂM (Sử dụng tỷ lệ từ Settings)
         $bhxh_p = (float)($g_settings['insurance_bhxh_percent'] ?? 8);
         $bhyt_p = (float)($g_settings['insurance_bhyt_percent'] ?? 1.5);
         $bhtn_p = (float)($g_settings['insurance_bhtn_percent'] ?? 1);
         $bhxh_amount = $ins_sal * (($bhxh_p + $bhyt_p + $bhtn_p) / 100);
         
+        // Dự phòng cho trường hợp Công đoàn 1% lương bảo hiểm (nếu không có cấu hình số tiền)
         if ($union == 0 && $union_fee_default == 0) $union = $ins_sal * 0.01;
+        
         $tax_amount = $total_income * ((float)($e['income_tax_percent'] ?? 0) / 100);
         
         $net_salary = $total_income - $bhxh_amount - $advances - $union - $tax_amount;

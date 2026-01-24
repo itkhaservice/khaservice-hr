@@ -15,9 +15,24 @@ foreach ($raw_settings as $s) {
     $settings[$s['setting_key']] = $s['setting_value'];
 }
 
-// Fetch Departments & Positions
+// --- DATA PROCESSING FOR ORGANIZATION TAB ---
+// 1. Get Departments
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY stt ASC, name ASC");
-$positions = db_fetch_all("SELECT p.*, d.name as dept_name FROM positions p JOIN departments d ON p.department_id = d.id ORDER BY d.stt ASC, p.stt ASC");
+// 2. Get Positions
+$positions = db_fetch_all("SELECT * FROM positions ORDER BY stt ASC, name ASC");
+
+// 3. Group Positions by Department
+$org_tree = [];
+foreach ($departments as $dept) {
+    $org_tree[$dept['id']] = $dept;
+    $org_tree[$dept['id']]['children'] = [];
+}
+foreach ($positions as $pos) {
+    if (isset($org_tree[$pos['department_id']])) {
+        $org_tree[$pos['department_id']]['children'][] = $pos;
+    }
+}
+// ---------------------------------------------
 
 // Fetch Document Settings
 $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
@@ -28,137 +43,146 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
 
     <div class="content-wrapper">
         <div class="action-header">
-            <h1 class="page-title"><i class="fas fa-cog"></i> Cài đặt hệ thống</h1>
+            <h1 class="page-title">Cài đặt hệ thống</h1>
         </div>
 
-        <div class="card" style="padding: 0;">
-            <div class="tab-container">
-                <div class="tabs">
-                    <button class="tab-btn active" data-tab="company"><i class="fas fa-building"></i> Thông tin Công ty</button>
-                    <button class="tab-btn" data-tab="organization"><i class="fas fa-sitemap"></i> Phòng ban - Chức vụ</button>
-                    <button class="tab-btn" data-tab="documents"><i class="fas fa-file-alt"></i> Cấu hình Hồ sơ</button>
-                    <button class="tab-btn" data-tab="salary"><i class="fas fa-money-check-alt"></i> Cấu hình Tiền lương</button>
+        <div class="settings-layout">
+            <!-- Settings Sidebar -->
+            <div class="settings-sidebar card">
+                <div class="nav flex-column nav-pills">
+                    <button class="nav-link active" data-tab="company">
+                        <i class="fas fa-building"></i> <span>Thông tin Công ty</span>
+                    </button>
+                    <button class="nav-link" data-tab="organization">
+                        <i class="fas fa-sitemap"></i> <span>Cơ cấu Tổ chức</span>
+                    </button>
+                    <button class="nav-link" data-tab="documents">
+                        <i class="fas fa-file-contract"></i> <span>Cấu hình Hồ sơ</span>
+                    </button>
+                    <button class="nav-link" data-tab="salary">
+                        <i class="fas fa-coins"></i> <span>Cấu hình Lương</span>
+                    </button>
                 </div>
+            </div>
 
-                <div class="tab-content active" id="company">
-                    <form id="company-form" class="settings-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Tên công ty</label>
-                                <input type="text" name="company_name" class="form-control" value="<?php echo $settings['company_name'] ?? ''; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Mã số thuế</label>
-                                <input type="text" name="company_tax_code" class="form-control" value="<?php echo $settings['company_tax_code'] ?? ''; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Địa chỉ</label>
-                                <input type="text" name="company_address" class="form-control" value="<?php echo $settings['company_address'] ?? ''; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Số điện thoại</label>
-                                <input type="text" name="company_phone" class="form-control" value="<?php echo $settings['company_phone'] ?? ''; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Email liên hệ</label>
-                                <input type="email" name="company_email" class="form-control" value="<?php echo $settings['company_email'] ?? ''; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Website</label>
-                                <input type="text" name="company_website" class="form-control" value="<?php echo $settings['company_website'] ?? ''; ?>">
-                            </div>
+            <!-- Settings Content -->
+            <div class="settings-content">
+                
+                <!-- Tab: Company Info -->
+                <div class="tab-pane active" id="company">
+                    <div class="card">
+                        <div class="card-header-simple">
+                            <h3>Thông tin Doanh nghiệp</h3>
+                            <p class="text-muted">Thông tin này sẽ hiển thị trên các báo cáo và phiếu lương.</p>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
-                        </div>
-                    </form>
-                </div>
-
-                <div class="tab-content" id="organization">
-                    <div class="split-layout">
-                        <div class="card-inner">
-                            <div class="card-header-inner">
-                                <h3><i class="fas fa-door-open"></i> Danh sách Phòng ban</h3>
-                                <button class="btn btn-sm btn-success" onclick="openDeptModal()"><i class="fas fa-plus"></i> Thêm</button>
+                        <form id="company-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Tên công ty</label>
+                                    <input type="text" name="company_name" class="form-control" value="<?php echo $settings['company_name'] ?? ''; ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Mã số thuế</label>
+                                    <input type="text" name="company_tax_code" class="form-control" value="<?php echo $settings['company_tax_code'] ?? ''; ?>">
+                                </div>
+                                <div class="form-group span-2">
+                                    <label>Địa chỉ trụ sở</label>
+                                    <input type="text" name="company_address" class="form-control" value="<?php echo $settings['company_address'] ?? ''; ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Số điện thoại</label>
+                                    <input type="text" name="company_phone" class="form-control" value="<?php echo $settings['company_phone'] ?? ''; ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email liên hệ</label>
+                                    <input type="email" name="company_email" class="form-control" value="<?php echo $settings['company_email'] ?? ''; ?>">
+                                </div>
+                                <div class="form-group span-2">
+                                    <label>Website</label>
+                                    <input type="text" name="company_website" class="form-control" value="<?php echo $settings['company_website'] ?? ''; ?>">
+                                </div>
                             </div>
-                            <div class="table-container">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>STT</th>
-                                            <th>Mã</th>
-                                            <th>Tên phòng ban</th>
-                                            <th width="80"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($departments as $d): ?>
-                                            <tr>
-                                                <td><?php echo $d['stt']; ?></td>
-                                                <td><code><?php echo $d['code']; ?></code></td>
-                                                <td><strong><?php echo $d['name']; ?></strong></td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <button class="btn btn-sm" onclick="editDept(<?php echo htmlspecialchars(json_encode($d)); ?>)"><i class="fas fa-edit"></i></button>
-                                                        <button class="btn btn-sm text-danger" onclick="deleteDept(<?php echo $d['id']; ?>)"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                            <div class="form-footer">
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Lưu thay đổi</button>
                             </div>
-                        </div>
-
-                        <div class="card-inner">
-                            <div class="card-header-inner">
-                                <h3><i class="fas fa-user-tie"></i> Danh sách Chức vụ</h3>
-                                <button class="btn btn-sm btn-success" onclick="openPosModal()"><i class="fas fa-plus"></i> Thêm</button>
-                            </div>
-                            <div class="table-container">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Phòng ban</th>
-                                            <th>Tên chức vụ</th>
-                                            <th width="80"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($positions as $p): ?>
-                                            <tr>
-                                                <td><small class="text-sub"><?php echo $p['dept_name']; ?></small></td>
-                                                <td><strong><?php echo $p['name']; ?></strong></td>
-                                                <td>
-                                                    <div class="btn-group">
-                                                        <button class="btn btn-sm" onclick="editPos(<?php echo htmlspecialchars(json_encode($p)); ?>)"><i class="fas fa-edit"></i></button>
-                                                        <button class="btn btn-sm text-danger" onclick="deletePos(<?php echo $p['id']; ?>)"><i class="fas fa-trash"></i></button>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
 
-                <div class="tab-content" id="documents">
-                    <div class="card-inner">
-                        <div class="card-header-inner">
-                            <h3><i class="fas fa-file-medical"></i> Danh mục Hồ sơ Nhân viên</h3>
-                            <button class="btn btn-sm btn-success" onclick="openDocModal()"><i class="fas fa-plus"></i> Thêm loại hồ sơ</button>
+                <!-- Tab: Organization (Redesigned) -->
+                <div class="tab-pane" id="organization">
+                    <div class="section-header-flex">
+                        <div class="section-title">
+                            <h3>Sơ đồ Tổ chức</h3>
+                            <p class="text-muted">Quản lý Phòng ban và Chức vụ trực thuộc</p>
                         </div>
+                        <button class="btn btn-sm btn-success" onclick="openDeptModal()"><i class="fas fa-plus"></i> Thêm Phòng ban</button>
+                    </div>
+
+                    <div class="org-grid">
+                        <?php foreach ($org_tree as $dept): ?>
+                            <div class="org-card">
+                                <div class="org-header">
+                                    <div class="org-title">
+                                        <span class="badge badge-primary"><?php echo $dept['code']; ?></span>
+                                        <strong><?php echo $dept['name']; ?></strong>
+                                    </div>
+                                    <div class="org-actions">
+                                        <button onclick="editDept(<?php echo htmlspecialchars(json_encode($dept)); ?>)" title="Sửa phòng ban"><i class="fas fa-pen"></i></button>
+                                        <button class="text-danger" onclick="deleteDept(<?php echo $dept['id']; ?>)" title="Xóa phòng ban"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <div class="org-body">
+                                    <?php if (empty($dept['children'])): ?>
+                                        <div class="empty-state">Chưa có chức vụ</div>
+                                    <?php else: ?>
+                                        <ul class="pos-list">
+                                            <?php foreach ($dept['children'] as $pos): ?>
+                                                <li>
+                                                    <div class="pos-info">
+                                                        <i class="fas fa-user-tie text-muted" style="font-size: 0.8rem;"></i>
+                                                        <span><?php echo $pos['name']; ?></span>
+                                                        <?php if($pos['code']): ?><small class="text-muted">(<?php echo $pos['code']; ?>)</small><?php endif; ?>
+                                                    </div>
+                                                    <div class="pos-actions">
+                                                        <i class="fas fa-pen text-primary" onclick="editPos(<?php echo htmlspecialchars(json_encode($pos)); ?>)"></i>
+                                                        <i class="fas fa-times text-danger" onclick="deletePos(<?php echo $pos['id']; ?>)"></i>
+                                                    </div>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="org-footer">
+                                    <button class="btn-add-pos" onclick="openPosModal(<?php echo $dept['id']; ?>)">
+                                        <i class="fas fa-plus-circle"></i> Thêm chức vụ
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <!-- Tab: Documents -->
+                <div class="tab-pane" id="documents">
+                    <div class="section-header-flex">
+                        <div class="section-title">
+                            <h3>Cấu hình Hồ sơ</h3>
+                            <p class="text-muted">Định nghĩa các loại giấy tờ bắt buộc trong hồ sơ nhân viên</p>
+                        </div>
+                        <button class="btn btn-sm btn-success" onclick="openDocModal()"><i class="fas fa-plus"></i> Thêm mới</button>
+                    </div>
+
+                    <div class="card">
                         <div class="table-container">
-                            <table class="table">
+                            <table class="table table-hover">
                                 <thead>
                                     <tr>
-                                        <th>Mã loại</th>
-                                        <th>Tên hồ sơ</th>
+                                        <th width="100">Mã</th>
+                                        <th>Tên loại hồ sơ</th>
                                         <th class="text-center">Bắt buộc</th>
-                                        <th class="text-center">Nộp nhiều bản</th>
-                                        <th width="100"></th>
+                                        <th class="text-center">Nhiều bản</th>
+                                        <th width="100" class="text-right">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -167,16 +191,14 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
                                             <td><code><?php echo $ds['code']; ?></code></td>
                                             <td><strong><?php echo $ds['name']; ?></strong></td>
                                             <td class="text-center">
-                                                <?php echo $ds['is_required'] ? '<span class="badge badge-danger">Có</span>' : '<span class="badge badge-secondary">Không</span>'; ?>
+                                                <?php echo $ds['is_required'] ? '<i class="fas fa-check-circle text-success"></i>' : '<i class="fas fa-times-circle text-muted" style="opacity:0.3"></i>'; ?>
                                             </td>
                                             <td class="text-center">
-                                                <?php echo $ds['is_multiple'] ? '<span class="badge badge-primary">Có</span>' : '<span class="badge badge-secondary">Không</span>'; ?>
+                                                <?php echo $ds['is_multiple'] ? '<i class="fas fa-check-circle text-primary"></i>' : '<i class="fas fa-times-circle text-muted" style="opacity:0.3"></i>'; ?>
                                             </td>
-                                            <td>
-                                                <div class="btn-group">
-                                                    <button class="btn btn-sm" onclick="editDoc(<?php echo htmlspecialchars(json_encode($ds)); ?>)"><i class="fas fa-edit"></i></button>
-                                                    <button class="btn btn-sm text-danger" onclick="deleteDoc(<?php echo $ds['id']; ?>)"><i class="fas fa-trash"></i></button>
-                                                </div>
+                                            <td class="text-right">
+                                                <button class="btn-icon text-primary" onclick="editDoc(<?php echo htmlspecialchars(json_encode($ds)); ?>)"><i class="fas fa-edit"></i></button>
+                                                <button class="btn-icon text-danger" onclick="deleteDoc(<?php echo $ds['id']; ?>)"><i class="fas fa-trash-alt"></i></button>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -186,70 +208,127 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
                     </div>
                 </div>
 
-                <div class="tab-content" id="salary">
-                    <form id="salary-settings-form" class="settings-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Tỷ lệ tính lương Tăng ca (Ngày thường)</label>
-                                <input type="number" step="0.1" name="salary_ot_rate_normal" class="form-control" value="<?php echo $settings['salary_ot_rate_normal'] ?? '1.5'; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Tỷ lệ tính lương Tăng ca (Chủ nhật)</label>
-                                <input type="number" step="0.1" name="salary_ot_rate_sunday" class="form-control" value="<?php echo $settings['salary_ot_rate_sunday'] ?? '2.0'; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Tỷ lệ tính lương Tăng ca (Lễ tết)</label>
-                                <input type="number" step="0.1" name="salary_ot_rate_holiday" class="form-control" value="<?php echo $settings['salary_ot_rate_holiday'] ?? '3.0'; ?>">
-                            </div>
-                            <div class="form-group">
-                                <label>Đoàn phí mặc định (VNĐ)</label>
-                                <input type="text" name="salary_union_fee_default" class="form-control input-money" value="<?php echo number_format($settings['salary_union_fee_default'] ?? 0); ?>">
-                            </div>
+                <!-- Tab: Salary -->
+                <div class="tab-pane" id="salary">
+                    <div class="section-header-flex">
+                        <div class="section-title">
+                            <h3>Tham số Lương & Bảo hiểm</h3>
+                            <p class="text-muted">Cấu hình các hệ số tính toán lương tự động</p>
                         </div>
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu cấu hình lương</button>
-                        </div>
-                    </form>
+                    </div>
+
+                    <div class="card">
+                        <form id="salary-settings-form">
+                            <div class="form-section-title">Hệ số Làm thêm giờ (OT)</div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Ngày thường</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.1" name="salary_ot_rate_normal" class="form-control" value="<?php echo $settings['salary_ot_rate_normal'] ?? '1.5'; ?>">
+                                        <span class="input-group-addon">x</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Chủ nhật (Ngày nghỉ tuần)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.1" name="salary_ot_rate_sunday" class="form-control" value="<?php echo $settings['salary_ot_rate_sunday'] ?? '2.0'; ?>">
+                                        <span class="input-group-addon">x</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Ngày Lễ, Tết</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.1" name="salary_ot_rate_holiday" class="form-control" value="<?php echo $settings['salary_ot_rate_holiday'] ?? '3.0'; ?>">
+                                        <span class="input-group-addon">x</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section-title mt-4">Tỷ lệ đóng Bảo hiểm (%)</div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>BHXH (Hưu trí & Tử tuất)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.1" name="insurance_bhxh_percent" class="form-control" value="<?php echo $settings['insurance_bhxh_percent'] ?? '8'; ?>">
+                                        <span class="input-group-addon">%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>BHYT (Y tế)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.1" name="insurance_bhyt_percent" class="form-control" value="<?php echo $settings['insurance_bhyt_percent'] ?? '1.5'; ?>">
+                                        <span class="input-group-addon">%</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>BHTN (Thất nghiệp)</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.1" name="insurance_bhtn_percent" class="form-control" value="<?php echo $settings['insurance_bhtn_percent'] ?? '1'; ?>">
+                                        <span class="input-group-addon">%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-section-title mt-4">Các khoản khấu trừ khác</div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Đoàn phí Công đoàn (Mặc định)</label>
+                                    <div class="input-group">
+                                        <input type="text" name="salary_union_fee_default" class="form-control input-money" value="<?php echo number_format($settings['salary_union_fee_default'] ?? 0); ?>">
+                                        <span class="input-group-addon">VNĐ</span>
+                                    </div>
+                                    <small class="text-muted">Áp dụng cho nhân viên chưa cấu hình riêng.</small>
+                                </div>
+                            </div>
+
+                            <div class="form-footer">
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Lưu cấu hình</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal for Department -->
-<div id="deptModal" class="modal">
-    <div class="modal-content">
+<!-- SHARED MODALS -->
+<!-- Modal Dept -->
+<div id="deptModal" class="modal-overlay">
+    <div class="modal-box">
         <div class="modal-header">
-            <h3 id="deptModalTitle">Thêm Phòng ban</h3>
-            <span class="close" onclick="closeModal('deptModal')">&times;</span>
+            <h3 class="modal-title" id="deptModalTitle">Thêm Phòng ban</h3>
+            <button class="btn-close" onclick="closeModal('deptModal')">&times;</button>
         </div>
         <form id="deptForm">
             <input type="hidden" name="id" id="deptId">
             <div class="form-group">
-                <label>Mã phòng ban</label>
-                <input type="text" name="code" id="deptCode" class="form-control" required>
+                <label>Mã phòng ban <span class="text-danger">*</span></label>
+                <input type="text" name="code" id="deptCode" class="form-control" placeholder="Ví dụ: HR, IT, ACC" required>
             </div>
             <div class="form-group">
-                <label>Tên phòng ban</label>
+                <label>Tên phòng ban <span class="text-danger">*</span></label>
                 <input type="text" name="name" id="deptName" class="form-control" required>
             </div>
             <div class="form-group">
-                <label>STT hiển thị</label>
+                <label>Thứ tự hiển thị</label>
                 <input type="number" name="stt" id="deptStt" class="form-control" value="99">
             </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Xác nhận</button>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('deptModal')">Hủy</button>
+                <button type="submit" class="btn btn-primary btn-sm">Lưu lại</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal for Position -->
-<div id="posModal" class="modal">
-    <div class="modal-content">
+<!-- Modal Pos -->
+<div id="posModal" class="modal-overlay">
+    <div class="modal-box">
         <div class="modal-header">
-            <h3 id="posModalTitle">Thêm Chức vụ</h3>
-            <span class="close" onclick="closeModal('posModal')">&times;</span>
+            <h3 class="modal-title" id="posModalTitle">Thêm Chức vụ</h3>
+            <button class="btn-close" onclick="closeModal('posModal')">&times;</button>
         </div>
         <form id="posForm">
             <input type="hidden" name="id" id="posId">
@@ -262,241 +341,485 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
                 </select>
             </div>
             <div class="form-group">
-                <label>Tên chức vụ</label>
+                <label>Tên chức vụ <span class="text-danger">*</span></label>
                 <input type="text" name="name" id="posName" class="form-control" required>
             </div>
             <div class="form-group">
-                <label>Mã chức vụ (Tùy chọn)</label>
+                <label>Mã chức vụ</label>
                 <input type="text" name="code" id="posCode" class="form-control">
             </div>
             <div class="form-group">
-                <label>STT hiển thị</label>
+                <label>Thứ tự</label>
                 <input type="number" name="stt" id="posStt" class="form-control" value="99">
             </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Xác nhận</button>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('posModal')">Hủy</button>
+                <button type="submit" class="btn btn-primary btn-sm">Lưu lại</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal for Documents -->
-<div id="docModal" class="modal">
-    <div class="modal-content">
+<!-- Modal Doc -->
+<div id="docModal" class="modal-overlay">
+    <div class="modal-box">
         <div class="modal-header">
-            <h3 id="docModalTitle">Cấu hình Hồ sơ</h3>
-            <span class="close" onclick="closeModal('docModal')">&times;</span>
+            <h3 class="modal-title" id="docModalTitle">Cấu hình Hồ sơ</h3>
+            <button class="btn-close" onclick="closeModal('docModal')">&times;</button>
         </div>
         <form id="docForm">
             <input type="hidden" name="id" id="docId">
             <div class="form-group">
-                <label>Mã loại hồ sơ (Viết tắt, không dấu)</label>
-                <input type="text" name="code" id="docCode" class="form-control" placeholder="Ví dụ: CCCD, HK, SYLL" required>
+                <label>Mã hồ sơ <span class="text-danger">*</span></label>
+                <input type="text" name="code" id="docCode" class="form-control" placeholder="Ví dụ: CCCD" required>
             </div>
             <div class="form-group">
-                <label>Tên gọi đầy đủ</label>
+                <label>Tên loại hồ sơ <span class="text-danger">*</span></label>
                 <input type="text" name="name" id="docName" class="form-control" required>
             </div>
-            <div class="form-group" style="display: flex; gap: 20px; align-items: center; margin-top: 10px;">
-                <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer;">
-                    <input type="checkbox" name="is_required" id="docRequired" value="1"> Bắt buộc nộp
+            <div class="form-group checkbox-group">
+                <label class="custom-checkbox">
+                    <input type="checkbox" name="is_required" id="docRequired" value="1"> 
+                    <span>Bắt buộc nộp</span>
                 </label>
-                <label style="margin:0; display:flex; align-items:center; gap:8px; cursor:pointer;">
-                    <input type="checkbox" name="is_multiple" id="docMultiple" value="1"> Cho phép nộp nhiều tệp
+                <label class="custom-checkbox">
+                    <input type="checkbox" name="is_multiple" id="docMultiple" value="1"> 
+                    <span>Cho phép nhiều tệp</span>
                 </label>
             </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Xác nhận</button>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('docModal')">Hủy</button>
+                <button type="submit" class="btn btn-primary btn-sm">Lưu lại</button>
             </div>
         </form>
     </div>
 </div>
 
 <style>
-.tab-container { display: flex; flex-direction: column; }
-.tabs { display: flex; border-bottom: 1px solid #eee; background: #f8fafc; padding: 0 10px; border-radius: 8px 8px 0 0; }
-.tab-btn { padding: 15px 25px; border: none; background: none; cursor: pointer; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
-.tab-btn:hover { color: var(--primary-color); }
-.tab-btn.active { color: var(--primary-color); border-bottom-color: var(--primary-color); background: rgba(36, 162, 92, 0.05); }
+/* New Organization Grid */
+.org-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 25px;
+}
+.org-card {
+    background: #fff;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    position: relative;
+}
+.org-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 4px; height: 100%;
+    background: var(--primary-color);
+    opacity: 0.7;
+}
+.org-card:hover {
+    box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+    transform: translateY(-5px);
+    border-color: var(--primary-light);
+}
+.org-header {
+    padding: 15px 20px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.org-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.org-title strong {
+    font-size: 1rem;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+}
+.org-title .badge {
+    align-self: flex-start;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+}
+.org-actions {
+    display: flex;
+    gap: 5px;
+}
+.org-actions button {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: #64748b;
+    transition: 0.2s;
+}
+.org-actions button:hover { 
+    background: var(--bg-main);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+.org-actions button.text-danger:hover {
+    color: #dc2626;
+    border-color: #dc2626;
+    background: #fee2e2;
+}
 
-.tab-content { display: none; padding: 25px; }
-.tab-content.active { display: block; }
+.org-body {
+    padding: 10px 0;
+    flex: 1;
+    background: #fff;
+}
+.empty-state {
+    padding: 30px 20px;
+    text-align: center;
+    color: #94a3b8;
+    font-size: 0.85rem;
+}
+.pos-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.pos-list li {
+    padding: 10px 20px;
+    margin: 2px 10px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    transition: 0.2s;
+    border: 1px solid transparent;
+}
+.pos-list li:hover { 
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+.pos-info { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    color: var(--text-main);
+    font-weight: 500;
+}
+.pos-info i { width: 16px; text-align: center; opacity: 0.5; }
+.pos-actions { 
+    opacity: 0; 
+    transition: 0.2s; 
+    display: flex; 
+    gap: 12px; 
+    background: #f1f5f9;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+.pos-list li:hover .pos-actions { opacity: 1; }
+.pos-actions i { cursor: pointer; font-size: 0.8rem; }
+.pos-actions i:hover { transform: scale(1.2); }
 
-.settings-form { max-width: 800px; }
-.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-.form-actions { margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+.org-footer {
+    padding: 15px 20px;
+    background: #fff;
+    border-top: 1px solid #f1f5f9;
+}
+.btn-add-pos {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    color: #64748b;
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-add-pos:hover {
+    background: rgba(36, 162, 92, 0.05);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
 
-.split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
-.card-inner { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
-.card-header-inner { padding: 15px 20px; border-bottom: 1px solid #e2e8f0; background: #f8fafc; display: flex; justify-content: space-between; align-items: center; }
-.card-header-inner h3 { margin: 0; font-size: 1rem; color: #1e293b; }
+/* Dark Mode Org */
+body.dark-mode .org-card { background: #1e293b; border-color: #334155; }
+body.dark-mode .org-header { background: #0f172a; border-bottom-color: #334155; }
+body.dark-mode .org-title strong { color: #f1f5f9; }
+body.dark-mode .org-actions button { background: #1e293b; border-color: #334155; color: #94a3b8; }
+body.dark-mode .org-body { background: #1e293b; }
+body.dark-mode .pos-list li:hover { background: rgba(255,255,255,0.03); border-color: #334155; }
+body.dark-mode .pos-actions { background: #334155; }
+body.dark-mode .org-footer { background: #1e293b; border-top-color: #334155; }
+body.dark-mode .btn-add-pos { background: #0f172a; border-color: #334155; }
 
-/* Modal Styles */
-.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-.modal-content { background: #fff; margin: 5% auto; padding: 0; border-radius: 12px; width: 450px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: slideDown 0.3s ease-out; }
-@keyframes slideDown { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-.modal-header { padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-.modal-header h3 { margin: 0; font-size: 1.2rem; }
-.close { cursor: pointer; font-size: 1.5rem; opacity: 0.5; }
-.close:hover { opacity: 1; }
-#deptForm, #posForm, #docForm { padding: 20px; }
-.modal-footer { margin-top: 20px; text-align: right; }
+/* Rest of Styles */
+.settings-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 25px;
+    align-items: start;
+}
 
-.input-money { text-align: right; font-weight: 600; }
+/* Sidebar Nav */
+.settings-sidebar .nav-pills {
+    padding: 10px;
+}
+.nav-pills .nav-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: var(--text-sub);
+    border-radius: 6px;
+    transition: all 0.2s;
+    background: transparent;
+    border: none;
+    width: 100%;
+    text-align: left;
+    font-weight: 500;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+.nav-pills .nav-link i { width: 24px; text-align: center; margin-right: 10px; }
+.nav-pills .nav-link:hover { background-color: var(--bg-main); color: var(--primary-color); }
+.nav-pills .nav-link.active { background-color: rgba(36, 162, 92, 0.1); color: var(--primary-color); font-weight: 600; }
 
-body.dark-mode .tabs { background: #1e293b; border-bottom-color: #334155; }
-body.dark-mode .tab-btn { color: #94a3b8; }
-body.dark-mode .tab-btn.active { background: rgba(255,255,255,0.02); }
-body.dark-mode .card-inner { background: #1e293b; border-color: #334155; }
-body.dark-mode .card-header-inner { background: #1e293b; border-bottom-color: #334155; }
-body.dark-mode .card-header-inner h3 { color: #f1f5f9; }
-body.dark-mode .modal-content { background: #1e293b; color: #f1f5f9; }
-body.dark-mode .modal-header { border-bottom-color: #334155; }
+/* Content Area */
+.tab-pane { display: none; animation: fadeIn 0.3s ease; }
+.tab-pane.active { display: block; }
+
+.card-header-simple { border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 20px; }
+.card-header-simple h3 { margin: 0 0 5px 0; font-size: 1.1rem; color: var(--text-main); }
+.card-header-flex { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; }
+.card-header-flex h3 { margin: 0 0 2px 0; font-size: 1.1rem; }
+
+/* Section Header for Tabs */
+.section-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 25px;
+    padding: 0 5px;
+}
+.section-title h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.25rem;
+    color: var(--text-main);
+    font-weight: 700;
+}
+.section-title p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Forms */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-grid .span-2 { grid-column: span 2; }
+.form-footer { margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border-color); text-align: right; }
+.form-section-title { font-weight: 600; color: var(--primary-dark); margin-bottom: 15px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Input Groups */
+.input-group { display: flex; align-items: center; }
+.input-group .form-control { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.input-group-addon { padding: 10px 15px; background: var(--bg-main); border: 1px solid var(--border-color); border-left: 0; border-radius: 0 6px 6px 0; color: var(--text-sub); font-size: 0.9rem; }
+
+/* Buttons & Badges */
+.btn-icon { background: none; border: none; cursor: pointer; padding: 5px; opacity: 0.7; transition: 0.2s; }
+.btn-icon:hover { opacity: 1; transform: scale(1.1); }
+
+/* Modal specific overrides */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); z-index: 9999; align-items: center; justify-content: center; }
+.modal-box { background: var(--card-bg); padding: 25px; border-radius: 12px; width: 450px; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.2); animation: popIn 0.3s; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.btn-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-sub); }
+.checkbox-group { display: flex; gap: 20px; margin-top: 10px; }
+.custom-checkbox { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .settings-layout { grid-template-columns: 1fr; }
+    .settings-sidebar { margin-bottom: 20px; }
+    .nav-pills { display: flex; overflow-x: auto; padding: 10px; gap: 10px; }
+    .nav-pills .nav-link { white-space: nowrap; width: auto; margin: 0; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-grid .span-2 { grid-column: span 1; }
+    .org-grid { grid-template-columns: 1fr; }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+/* Dark Mode Overrides */
+body.dark-mode .nav-pills .nav-link:hover { background-color: rgba(255,255,255,0.05); }
+body.dark-mode .input-group-addon { background-color: #0f172a; border-color: #334155; }
 </style>
 
 <script>
-// Tab Switching
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.dataset.tab).classList.add('active');
-        localStorage.setItem('active_settings_tab', btn.dataset.tab);
+// Tab Handling
+const tabs = document.querySelectorAll('.nav-link');
+const panes = document.querySelectorAll('.tab-pane');
+
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        // Remove active
+        tabs.forEach(t => t.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active'));
+        
+        // Add active
+        tab.classList.add('active');
+        const target = tab.dataset.tab;
+        document.getElementById(target).classList.add('active');
+        
+        // Save state
+        localStorage.setItem('settings_active_tab', target);
     });
 });
 
-// Restore active tab
-const savedTab = localStorage.getItem('active_settings_tab');
+// Restore Tab
+const savedTab = localStorage.getItem('settings_active_tab');
 if (savedTab) {
-    const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
-    if (tabBtn) tabBtn.click();
+    const activeBtn = document.querySelector(`.nav-link[data-tab="${savedTab}"]`);
+    if (activeBtn) activeBtn.click();
 }
 
-// Money format
+// Money Formatter
 document.addEventListener('input', function(e) {
     if (e.target.classList.contains('input-money')) {
         let value = e.target.value.replace(/[^0-9]/g, '');
-        if (value === '') value = '0';
-        e.target.value = new Intl.NumberFormat('en-US').format(parseInt(value));
+        e.target.value = value ? new Intl.NumberFormat('en-US').format(parseInt(value)) : '';
     }
 });
 
-// Generic AJAX save for settings table
-function saveSettings(formId, action) {
+// AJAX Save Form
+function setupFormSave(formId, action) {
     const form = document.getElementById(formId);
+    if (!form) return;
+    
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-        const formData = new FormData(this);
-        const data = { action: action, settings: {} };
-        formData.forEach((value, key) => {
-            if (this.querySelector(`[name="${key}"]`).classList.contains('input-money')) {
-                value = value.replace(/,/g, '');
-            }
-            data.settings[key] = value;
-        });
-
-        const btn = this.querySelector('button[type="submit"]');
+        const btn = form.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
         btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+
+        const formData = new FormData(form);
+        const data = { action: action, settings: {} };
+        
+        // Handle normal settings forms vs dynamic logic
+        if (formId === 'company-form' || formId === 'salary-settings-form') {
+            formData.forEach((val, key) => {
+                if (form.querySelector(`[name="${key}"]`).classList.contains('input-money')) {
+                    val = val.replace(/,/g, '');
+                }
+                data.settings[key] = val;
+            });
+        }
 
         fetch('modules/system/settings_action.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
+        .then(r => r.json())
         .then(res => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
+            if (res.status === 'success') { Toast.success('Đã lưu cài đặt thành công!'); } 
+            else { Toast.error(res.message || 'Có lỗi xảy ra'); }
         })
-        .then(res => {
-            if (res.status === 'success') {
-                Toast.show('success', 'Thành công', 'Đã lưu cài đặt');
-            } else { Toast.show('error', 'Lỗi', res.message); }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            Toast.show('error', 'Lỗi hệ thống', 'Không thể kết nối với máy chủ hoặc phản hồi không hợp lệ');
-        })
+        .catch(() => Toast.error('Lỗi kết nối máy chủ'))
         .finally(() => { btn.disabled = false; btn.innerHTML = originalText; });
     });
 }
 
-saveSettings('company-form', 'save_company');
-saveSettings('salary-settings-form', 'save_salary');
+setupFormSave('company-form', 'save_company');
+setupFormSave('salary-settings-form', 'save_salary');
 
-// Modal Helpers
-function openModal(id) { document.getElementById(id).style.display = 'block'; }
+// Modal Logic
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-window.onclick = function(event) { if (event.target.className === 'modal') event.target.style.display = 'none'; }
+window.onclick = e => { if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none'; }
 
-// DEPT Logic
+// Department CRUD
 function openDeptModal() {
-    document.getElementById('deptId').value = '';
     document.getElementById('deptForm').reset();
+    document.getElementById('deptId').value = '';
     document.getElementById('deptModalTitle').innerText = 'Thêm Phòng ban';
     openModal('deptModal');
 }
-function editDept(data) {
-    document.getElementById('deptId').value = data.id;
-    document.getElementById('deptCode').value = data.code;
-    document.getElementById('deptName').value = data.name;
-    document.getElementById('deptStt').value = data.stt;
+function editDept(d) {
+    document.getElementById('deptId').value = d.id;
+    document.getElementById('deptCode').value = d.code;
+    document.getElementById('deptName').value = d.name;
+    document.getElementById('deptStt').value = d.stt;
     document.getElementById('deptModalTitle').innerText = 'Sửa Phòng ban';
     openModal('deptModal');
 }
-document.getElementById('deptForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    submitForm(this, 'save_dept');
-});
+document.getElementById('deptForm').onsubmit = e => { e.preventDefault(); submitItemForm('deptForm', 'save_dept'); };
+function deleteDept(id) { deleteItem('delete_dept', id, 'Xóa phòng ban này sẽ ảnh hưởng đến nhân viên trực thuộc?'); }
 
-// POS Logic
-function openPosModal() {
-    document.getElementById('posId').value = '';
+// Position CRUD
+function openPosModal(preselectedDeptId = null) {
     document.getElementById('posForm').reset();
+    document.getElementById('posId').value = '';
     document.getElementById('posModalTitle').innerText = 'Thêm Chức vụ';
+    if (preselectedDeptId) {
+        document.getElementById('posDeptId').value = preselectedDeptId;
+    }
     openModal('posModal');
 }
-function editPos(data) {
-    document.getElementById('posId').value = data.id;
-    document.getElementById('posDeptId').value = data.department_id;
-    document.getElementById('posName').value = data.name;
-    document.getElementById('posCode').value = data.code;
-    document.getElementById('posStt').value = data.stt;
+function editPos(p) {
+    document.getElementById('posId').value = p.id;
+    document.getElementById('posDeptId').value = p.department_id;
+    document.getElementById('posName').value = p.name;
+    document.getElementById('posCode').value = p.code;
+    document.getElementById('posStt').value = p.stt;
     document.getElementById('posModalTitle').innerText = 'Sửa Chức vụ';
     openModal('posModal');
 }
-document.getElementById('posForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    submitForm(this, 'save_pos');
-});
+document.getElementById('posForm').onsubmit = e => { e.preventDefault(); submitItemForm('posForm', 'save_pos'); };
+function deletePos(id) { deleteItem('delete_pos', id); }
 
-// DOC Logic
+// Document CRUD
 function openDocModal() {
-    document.getElementById('docId').value = '';
     document.getElementById('docForm').reset();
-    document.getElementById('docModalTitle').innerText = 'Cấu hình Hồ sơ';
+    document.getElementById('docId').value = '';
+    document.getElementById('docModalTitle').innerText = 'Thêm Loại Hồ sơ';
     openModal('docModal');
 }
-function editDoc(data) {
-    document.getElementById('docId').value = data.id;
-    document.getElementById('docCode').value = data.code;
-    document.getElementById('docName').value = data.name;
-    document.getElementById('docRequired').checked = data.is_required == 1;
-    document.getElementById('docMultiple').checked = data.is_multiple == 1;
-    document.getElementById('docModalTitle').innerText = 'Sửa Hồ sơ';
+function editDoc(d) {
+    document.getElementById('docId').value = d.id;
+    document.getElementById('docCode').value = d.code;
+    document.getElementById('docName').value = d.name;
+    document.getElementById('docRequired').checked = d.is_required == 1;
+    document.getElementById('docMultiple').checked = d.is_multiple == 1;
+    document.getElementById('docModalTitle').innerText = 'Sửa Loại Hồ sơ';
     openModal('docModal');
 }
-document.getElementById('docForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    submitForm(this, 'save_doc');
-});
+document.getElementById('docForm').onsubmit = e => { e.preventDefault(); submitItemForm('docForm', 'save_doc'); };
+function deleteDoc(id) { deleteItem('delete_doc', id); }
 
-function submitForm(form, action) {
+// Helper: Submit Item
+function submitItemForm(formId, action) {
+    const form = document.getElementById(formId);
     const formData = new FormData(form);
     const data = { action: action };
-    formData.forEach((value, key) => { data[key] = value; });
-    // Handle checkboxes
+    formData.forEach((val, key) => data[key] = val);
+    
+    // Checkbox special handling
     if (action === 'save_doc') {
         data.is_required = form.querySelector('[name="is_required"]').checked ? 1 : 0;
         data.is_multiple = form.querySelector('[name="is_multiple"]').checked ? 1 : 0;
@@ -507,37 +830,33 @@ function submitForm(form, action) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     })
+    .then(r => r.json())
     .then(res => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-    })
-    .then(res => {
-        if (res.status === 'success') {
-            location.reload();
-        } else { Toast.show('error', 'Lỗi', res.message); }
-    })
-    .catch(err => {
-        console.error('Error:', err);
-        Toast.show('error', 'Lỗi hệ thống', 'Không thể kết nối với máy chủ');
+        if (res.status === 'success') { location.reload(); }
+        else { Toast.error(res.message); }
     });
 }
 
-function deleteDept(id) { if(confirm('Xóa phòng ban sẽ ảnh hưởng đến nhân sự thuộc phòng này. Tiếp tục?')) { deleteItem('delete_dept', id); } }
-function deletePos(id) { if(confirm('Xác nhận xóa chức vụ này?')) { deleteItem('delete_pos', id); } }
-function deleteDoc(id) { if(confirm('Xác nhận xóa loại hồ sơ này?')) { deleteItem('delete_doc', id); } }
-
-function deleteItem(action, id) {
-    fetch('modules/system/settings_action.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: action, id: id })
-    })
-    .then(res => res.json())
-    .then(res => {
-        if (res.status === 'success') { location.reload(); }
-        else { Toast.show('error', 'Lỗi', res.message); }
+// Helper: Delete Item
+function deleteItem(action, id, msg = 'Bạn có chắc chắn muốn xóa mục này?') {
+    Modal.confirm(msg, () => {
+        fetch('modules/system/settings_action.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action, id: id })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'success') { location.reload(); }
+            else { Toast.error(res.message); }
+        });
     });
 }
 </script>
-</div>
+
+            </div> <!-- End settings-content -->
+        </div> <!-- End settings-layout -->
+    </div> <!-- End content-wrapper -->
+</div> <!-- End main-content -->
+
 <?php include '../includes/footer.php'; ?>
