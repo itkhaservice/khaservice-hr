@@ -111,6 +111,9 @@ include '../../../includes/sidebar.php';
             <div class="header-actions">
                 <?php if (!$is_locked): ?>
                     <button type="button" class="btn btn-primary" onclick="saveAttendance()"><i class="fas fa-save"></i> Lưu dữ liệu</button>
+                    <?php if ($project_id > 0): ?>
+                        <button type="button" class="btn btn-warning" onclick="syncProject()" title="Cập nhật tất cả dữ liệu chấm công cũ của nhân viên về dự án này"><i class="fas fa-sync"></i> Đồng bộ DA</button>
+                    <?php endif; ?>
                 <?php endif; ?>
                 
                 <?php if ($allowed_projs === 'ALL' && $project_id > 0): ?>
@@ -716,6 +719,24 @@ function confirmLock() {
     let msg = action === 'lock' ? 'Bạn có chắc chắn muốn KHÓA bảng chấm công này? Sau khi khóa, các dự án sẽ không thể chỉnh sửa dữ liệu.' : 'Bạn có chắc chắn muốn MỞ KHÓA bảng chấm công này?';
     Modal.confirm(msg, () => {
         $('#lockForm').submit();
+    });
+}
+
+function syncProject() {
+    Modal.confirm('Bạn có chắc muốn đồng bộ dự án cho các dòng chấm công cũ?<br>Hành động này sẽ gán lại toàn bộ dữ liệu chấm công tháng này của nhân viên trong danh sách về dự án hiện tại (ID <?php echo $project_id; ?>).', () => {
+        let $btn = $('button[onclick="syncProject()"]');
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> ...');
+        
+        fetch('sync_project.php', { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ month: <?php echo $month; ?>, year: <?php echo $year; ?>, project_id: <?php echo $project_id; ?> })
+        }).then(r => r.json()).then(data => { 
+            if (data.status === 'success') { 
+                Toast.success(data.message); 
+                setTimeout(() => location.reload(), 1500);
+            } else { Toast.error(data.message); }
+        }).catch(err => { Toast.error('Lỗi kết nối.'); }).finally(() => { $btn.prop('disabled', false).html('<i class="fas fa-sync"></i> Đồng bộ DA'); });
     });
 }
 
