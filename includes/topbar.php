@@ -1,4 +1,10 @@
 <header class="main-header">
+    <script>
+        // Apply expanded state to main-content immediately
+        if (localStorage.getItem('sidebarState') === 'collapsed') {
+            document.currentScript.closest('.main-content').classList.add('expanded');
+        }
+    </script>
     <div class="toggle-sidebar" id="sidebarToggle">
         <i class="fas fa-bars"></i>
     </div>

@@ -95,14 +95,6 @@ $(document).ready(function() {
     // Initial Theme Apply
     Theme.apply();
 
-    // Sidebar State
-    if (window.innerWidth > 768) {
-        if (localStorage.getItem('sidebarState') === 'collapsed') {
-            $('.sidebar').addClass('collapsed');
-            $('.main-content').addClass('expanded');
-        }
-    }
-
     // EVENT DELEGATION - Bám vào document để đảm bảo nút luôn bấm được
     $(document).on('click', '#theme-toggle', function(e) {
         e.preventDefault();

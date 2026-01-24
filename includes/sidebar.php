@@ -10,6 +10,12 @@ if (isset($pdo)) {
 }
 ?>
 <nav class="sidebar" id="sidebar">
+    <script>
+        // Apply collapsed state immediately to prevent FOUC
+        if (localStorage.getItem('sidebarState') === 'collapsed') {
+            document.getElementById('sidebar').classList.add('collapsed');
+        }
+    </script>
     <div class="sidebar-header">
         <!-- <span>KHASERVICE HR</span> -->
         <i class="fas fa-cube" style="display:none;"></i>
