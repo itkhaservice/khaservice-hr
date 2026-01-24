@@ -26,13 +26,32 @@ $employees = ($project_id > 0) ? db_fetch_all("SELECT DISTINCT e.id, e.fullname,
 
 $att_data = [];
 $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+// TỐI ƯU: Tính toán trước mảng thông tin ngày để dùng chung, tránh gọi hàm date() hàng ngàn lần trong loop
+$days_info = [];
+for ($d = 1; $d <= $days_in_month; $d++) {
+    $ts = strtotime("$year-$month-$d");
+    $dow = (int)date('N', $ts);
+    $days_info[$d] = [
+        'is_sun' => ($dow === 7),
+        'dow_text' => ['','T2','T3','T4','T5','T6','T7','CN'][$dow]
+    ];
+}
+
 if ($project_id > 0 && !empty($employees)) {
     $start_date = sprintf("%04d-%02d-01", $year, $month);
     $end_date = sprintf("%04d-%02d-%02d", $year, $month, $days_in_month);
     $emp_ids = array_column($employees, 'id');
     if (!empty($emp_ids)) {
+        // TỐI ƯU: Chỉ SELECT các cột thực sự cần dùng
         $raw_att = db_fetch_all("SELECT employee_id, DAY(date) as day, timekeeper_symbol, overtime_hours, target_project_id FROM attendance WHERE date BETWEEN ? AND ? AND employee_id IN (".implode(',',$emp_ids).")", [$start_date, $end_date]);
-        foreach ($raw_att as $r) $att_data[$r['employee_id']][$r['day']] = ['symbol' => $r['timekeeper_symbol'], 'ot' => $r['overtime_hours'], 'target_proj' => $r['target_project_id']];
+        foreach ($raw_att as $r) {
+            $att_data[$r['employee_id']][$r['day']] = [
+                'symbol' => $r['timekeeper_symbol'], 
+                'ot' => $r['overtime_hours'], 
+                'target_proj' => $r['target_project_id']
+            ];
+        }
     }
 }
 
@@ -238,8 +257,7 @@ include '../../../includes/sidebar.php';
                             </tr>
                             <tr style="height: 25px;">
                                 <?php for($d=1; $d<=$days_in_month; $d++): 
-                                    $ts = strtotime("$year-$month-$d"); $dow = date('N', $ts);
-                                    echo "<th class='text-center ".($dow==7?'is-sunday':'')."' style='font-size:0.7rem; font-weight:400; height:25px; vertical-align: middle;'>" . ['','T2','T3','T4','T5','T6','T7','CN'][$dow] . "</th>";
+                                    echo "<th class='text-center ".($days_info[$d]['is_sun']?'is-sunday':'')."' style='font-size:0.7rem; font-weight:400; height:25px; vertical-align: middle;'>" . $days_info[$d]['dow_text'] . "</th>";
                                 endfor; ?>
                             </tr>
                         </thead>
@@ -254,7 +272,7 @@ include '../../../includes/sidebar.php';
                                     <?php for($d=1; $d<=$days_in_month; $d++): 
                                         $cell = $att_data[$emp['id']][$d] ?? ['symbol'=>'','ot'=>0, 'target_proj'=>0]; 
                                         $sym = strtoupper($cell['symbol']); $ot = (float)$cell['ot']; $t_proj = (int)($cell['target_proj'] ?? 0);
-                                        $is_sun = (date('N', strtotime("$year-$month-$d")) == 7);
+                                        $is_sun = $days_info[$d]['is_sun'];
                                         
                                         // Collect Cross-Project Notes
                                         if ($t_proj > 0 && $t_proj != $project_id && $ot > 0) {

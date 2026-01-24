@@ -11,19 +11,21 @@ $month = isset($_GET['month']) ? (int)$_GET['month'] : (int)date('n');
 $year = isset($_GET['year']) ? (int)$_GET['year'] : (int)date('Y');
 $project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 
-// Xử lý TÍNH LƯƠNG
+// Xử lý TÍNH LƯƠNG (TỐI ƯU HÓA HIỆU NĂNG)
 if (isset($_POST['calculate_payroll'])) {
+    $start_time = microtime(true);
+    
     // 1. Lấy cài đặt hệ số chung
     $settings_raw = db_fetch_all("SELECT * FROM settings WHERE setting_key LIKE 'insurance_%' OR setting_key LIKE 'salary_%'");
     $g_settings = []; foreach ($settings_raw as $s) $g_settings[$s['setting_key']] = $s['setting_value'];
 
-    // 2. Lấy danh sách nhân viên CÓ PHÁT SINH CÔNG tại dự án này trong tháng
     if ($project_id <= 0) {
         set_toast('error', 'Vui lòng chọn dự án để tính lương.');
         header("Location: index.php?month=$month&year=$year");
         exit;
     }
 
+    // 2. Lấy danh sách nhân viên (Chỉ 1 Query)
     $employees = db_fetch_all("
         SELECT DISTINCT e.id, e.fullname, s.basic_salary, s.insurance_salary, s.allowance_total, s.income_tax_percent, s.salary_advances_default, s.union_fee as emp_union_fee
         FROM employees e 
@@ -31,117 +33,146 @@ if (isset($_POST['calculate_payroll'])) {
         LEFT JOIN employee_salaries s ON e.id = s.employee_id 
         WHERE a.project_id = ? AND MONTH(a.date) = ? AND YEAR(a.date) = ?
     ", [$project_id, $month, $year]);
+
+    if (empty($employees)) {
+        set_toast('warning', 'Không có nhân viên nào có dữ liệu chấm công trong tháng này.');
+        header("Location: index.php?month=$month&year=$year&project_id=$project_id");
+        exit;
+    }
+
+    $emp_ids = array_column($employees, 'id');
+    $emp_ids_str = implode(',', $emp_ids);
+
+    // 3. Lấy dữ liệu Chấm công tổng hợp (1 Query thay vì N query)
+    // Group by Employee để lấy tổng công, phép, lễ...
+    $sql_att = "
+        SELECT 
+            employee_id,
+            SUM(CASE 
+                WHEN UPPER(timekeeper_symbol) IN ('X', 'ĐH', 'F1', 'NB') THEN 1.0 
+                WHEN UPPER(timekeeper_symbol) IN ('1/2', '1/F1') THEN 0.5 
+                ELSE 0 
+            END) as real_work_days,
+            SUM(CASE 
+                WHEN UPPER(timekeeper_symbol) IN ('P', 'CĐ', 'VR') THEN 1.0 
+                WHEN UPPER(timekeeper_symbol) = '1/P' THEN 0.5 
+                ELSE 0 
+            END) as paid_leave_days,
+            SUM(CASE 
+                WHEN UPPER(timekeeper_symbol) IN ('L', 'T') THEN 1.0 
+                WHEN UPPER(timekeeper_symbol) = '1/LT' THEN 0.5 
+                ELSE 0 
+            END) as holiday_paid_days,
+            SUM(CASE 
+                WHEN UPPER(timekeeper_symbol) = 'F' THEN 1.0 
+                ELSE 0 
+            END) as holiday_work_days,
+            SUM(CASE WHEN DAYOFWEEK(date) != 1 AND timekeeper_symbol NOT IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_normal,
+            SUM(CASE WHEN DAYOFWEEK(date) = 1 AND timekeeper_symbol NOT IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_sunday,
+            SUM(CASE WHEN timekeeper_symbol IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_holiday
+        FROM attendance 
+        WHERE project_id = ? AND MONTH(date) = ? AND YEAR(date) = ? AND employee_id IN ($emp_ids_str)
+        GROUP BY employee_id
+    ";
+    $att_raw = db_fetch_all($sql_att, [$project_id, $month, $year]);
     
-    // Hệ số từ cài đặt
+    // Map attendance data by Employee ID for fast lookup
+    $att_map = [];
+    foreach ($att_raw as $r) $att_map[$r['employee_id']] = $r;
+
+    // 4. Lấy dữ liệu Payroll hiện tại để giữ lại các khoản nhập tay (1 Query)
+    $sql_pay = "SELECT employee_id, salary_advances, union_fee, bonus_amount FROM payroll WHERE month = ? AND year = ? AND employee_id IN ($emp_ids_str)";
+    $pay_raw = db_fetch_all($sql_pay, [$month, $year]);
+    $pay_map = [];
+    foreach ($pay_raw as $r) $pay_map[$r['employee_id']] = $r;
+
+    // Chuẩn bị tham số
     $work_days_standard = get_standard_working_days($month, $year);
     $ot_rate_normal = (float)($g_settings['salary_ot_rate_normal'] ?? 1.5);
     $ot_rate_sunday = (float)($g_settings['salary_ot_rate_sunday'] ?? 2.0);
     $ot_rate_holiday = (float)($g_settings['salary_ot_rate_holiday'] ?? 3.0);
     $union_fee_default = (float)($g_settings['salary_union_fee_default'] ?? 0);
+    $bhxh_p = (float)($g_settings['insurance_bhxh_percent'] ?? 8);
+    $bhyt_p = (float)($g_settings['insurance_bhyt_percent'] ?? 1.5);
+    $bhtn_p = (float)($g_settings['insurance_bhtn_percent'] ?? 1);
+    $ins_total_percent = ($bhxh_p + $bhyt_p + $bhtn_p) / 100;
 
-    foreach ($employees as $e) {
-        $basic_sal = (float)($e['basic_salary'] ?? 0);
-        $ins_sal = (float)($e['insurance_salary'] ?? 0);
-        // Cho phép tính lương kể cả khi basic_sal = 0 (để hiện thị lỗi hoặc công nhật) 
-        // nhưng ở đây ta vẫn giữ logic an toàn hoặc log lại.
-
-        // 3. Đếm ngày công CHI TIẾT
-        $att_days = db_fetch_row("
-            SELECT 
-                SUM(CASE 
-                    WHEN UPPER(timekeeper_symbol) IN ('X', 'ĐH', 'F1', 'NB') THEN 1.0 
-                    WHEN UPPER(timekeeper_symbol) IN ('1/2', '1/F1') THEN 0.5 
-                    ELSE 0 
-                END) as real_work_days,
-                SUM(CASE 
-                    WHEN UPPER(timekeeper_symbol) IN ('P', 'CĐ', 'VR') THEN 1.0 
-                    WHEN UPPER(timekeeper_symbol) = '1/P' THEN 0.5 
-                    ELSE 0 
-                END) as paid_leave_days,
-                SUM(CASE 
-                    WHEN UPPER(timekeeper_symbol) IN ('L', 'T') THEN 1.0 
-                    WHEN UPPER(timekeeper_symbol) = '1/LT' THEN 0.5 
-                    ELSE 0 
-                END) as holiday_paid_days,
-                SUM(CASE 
-                    WHEN UPPER(timekeeper_symbol) = 'F' THEN 1.0 
-                    ELSE 0 
-                END) as holiday_work_days
-            FROM attendance 
-            WHERE employee_id = ? AND project_id = ? AND MONTH(date) = ? AND YEAR(date) = ?
-        ", [$e['id'], $project_id, $month, $year]);
-
-        // 4. Tính OT theo từng loại ngày
-        $ot_details = db_fetch_row("
-            SELECT 
-                SUM(CASE WHEN DAYOFWEEK(date) != 1 AND timekeeper_symbol NOT IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_normal,
-                SUM(CASE WHEN DAYOFWEEK(date) = 1 AND timekeeper_symbol NOT IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_sunday,
-                SUM(CASE WHEN timekeeper_symbol IN ('L', 'T', 'F') THEN overtime_hours ELSE 0 END) as ot_holiday
-            FROM attendance
-            WHERE employee_id = ? AND project_id = ? AND MONTH(date) = ? AND YEAR(date) = ?
-        ", [$e['id'], $project_id, $month, $year]);
-
-        $real_work = (float)($att_days['real_work_days'] ?? 0);
-        $paid_leave = (float)($att_days['paid_leave_days'] ?? 0);
-        $holiday_paid = (float)($att_days['holiday_paid_days'] ?? 0);
-        $holiday_work = (float)($att_days['holiday_work_days'] ?? 0);
+    // 5. Tính toán trong bộ nhớ (Rất nhanh)
+    try {
+        $pdo->beginTransaction();
         
-        $ot_normal = (float)($ot_details['ot_normal'] ?? 0);
-        $ot_sunday = (float)($ot_details['ot_sunday'] ?? 0);
-        $ot_holiday = (float)($ot_details['ot_holiday'] ?? 0);
-        $total_ot_hours = $ot_normal + $ot_sunday + $ot_holiday;
+        $stmt_insert = $pdo->prepare("
+            INSERT INTO payroll (employee_id, project_id, month, year, standard_days, total_work_days, paid_leave_days, holiday_paid_days, holiday_work_days, total_ot_hours, salary_actual, ot_amount, total_allowance, bhxh_amount, salary_advances, union_fee, income_tax, bonus_amount, net_salary) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+            ON DUPLICATE KEY UPDATE project_id=?, standard_days=?, total_work_days=?, paid_leave_days=?, holiday_paid_days=?, holiday_work_days=?, total_ot_hours=?, salary_actual=?, ot_amount=?, total_allowance=?, bhxh_amount=?, salary_advances=?, union_fee=?, income_tax=?, bonus_amount=?, net_salary=?
+        ");
 
-        // Lấy biến động tháng (nếu có bản ghi lương trước đó)
-        $p_var = db_fetch_row("SELECT salary_advances, union_fee, bonus_amount FROM payroll WHERE employee_id = ? AND month = ? AND year = ?", [$e['id'], $month, $year]);
-        
-        $advances = (float)($p_var['salary_advances'] ?? $e['salary_advances_default'] ?? 0);
-        $bonus = (float)($p_var['bonus_amount'] ?? 0);
+        foreach ($employees as $e) {
+            $eid = $e['id'];
+            $att = $att_map[$eid] ?? [];
+            $pay = $pay_map[$eid] ?? [];
 
-        // LOGIC PHÍ ĐOÀN (HIERARCHY): Biến động tháng > Cấu hình riêng NV > Mặc định hệ thống
-        if (isset($p_var['union_fee'])) {
-            $union = (float)$p_var['union_fee'];
-        } elseif (isset($e['emp_union_fee']) && (float)$e['emp_union_fee'] > 0) {
-            $union = (float)$e['emp_union_fee'];
-        } else {
-            $union = (float)$union_fee_default;
+            $basic_sal = (float)($e['basic_salary'] ?? 0);
+            $ins_sal = (float)($e['insurance_salary'] ?? 0);
+
+            // Attendance Data
+            $real_work = (float)($att['real_work_days'] ?? 0);
+            $paid_leave = (float)($att['paid_leave_days'] ?? 0);
+            $holiday_paid = (float)($att['holiday_paid_days'] ?? 0);
+            $holiday_work = (float)($att['holiday_work_days'] ?? 0);
+            
+            $ot_normal = (float)($att['ot_normal'] ?? 0);
+            $ot_sunday = (float)($att['ot_sunday'] ?? 0);
+            $ot_holiday = (float)($att['ot_holiday'] ?? 0);
+            $total_ot_hours = $ot_normal + $ot_sunday + $ot_holiday;
+
+            // Variable Data
+            $advances = (float)($pay['salary_advances'] ?? $e['salary_advances_default'] ?? 0);
+            $bonus = (float)($pay['bonus_amount'] ?? 0);
+            
+            // Union Fee Logic
+            if (isset($pay['union_fee'])) $union = (float)$pay['union_fee'];
+            elseif (isset($e['emp_union_fee']) && (float)$e['emp_union_fee'] > 0) $union = (float)$e['emp_union_fee'];
+            else $union = (float)$union_fee_default;
+
+            // Calculations
+            $day_rate = $work_days_standard > 0 ? ($basic_sal / $work_days_standard) : 0;
+            $hour_rate = $day_rate / 8;
+            
+            $salary_actual_work = $real_work * $day_rate;
+            $salary_paid_leave = $paid_leave * $day_rate;
+            $salary_holiday_paid = $holiday_paid * $day_rate;
+            $salary_holiday_work = $holiday_work * ($day_rate * $ot_rate_holiday); 
+            
+            $ot_amount = ($ot_normal * $hour_rate * $ot_rate_normal) 
+                        + ($ot_sunday * $hour_rate * $ot_rate_sunday) 
+                        + ($ot_holiday * $hour_rate * $ot_rate_holiday);
+            
+            $total_income = $salary_actual_work + $salary_paid_leave + $salary_holiday_paid + $salary_holiday_work + $ot_amount + (float)($e['allowance_total'] ?? 0) + $bonus;
+            
+            $bhxh_amount = $ins_sal * $ins_total_percent;
+            
+            if ($union == 0 && $union_fee_default == 0) $union = $ins_sal * 0.01;
+            
+            $tax_amount = $total_income * ((float)($e['income_tax_percent'] ?? 0) / 100);
+            $net_salary = $total_income - $bhxh_amount - $advances - $union - $tax_amount;
+
+            // Execute Insert/Update
+            $stmt_insert->execute([
+                $eid, $project_id, $month, $year, $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $total_ot_hours, $salary_actual_work, $ot_amount, ($e['allowance_total'] ?? 0), $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary,
+                $project_id, $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $total_ot_hours, $salary_actual_work, $ot_amount, ($e['allowance_total'] ?? 0), $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary
+            ]);
         }
-
-        // 5. TÍNH TOÁN
-        $day_rate = $work_days_standard > 0 ? ($basic_sal / $work_days_standard) : 0;
-        $hour_rate = $day_rate / 8; // Mặc định 8h/ngày
         
-        $salary_actual_work = $real_work * $day_rate;
-        $salary_paid_leave = $paid_leave * $day_rate;
-        $salary_holiday_paid = $holiday_paid * $day_rate;
-        $salary_holiday_work = $holiday_work * ($day_rate * $ot_rate_holiday); 
+        $pdo->commit();
+        $duration = number_format(microtime(true) - $start_time, 2);
+        set_toast('success', "Đã tính toán xong bảng lương trong $duration giây!");
         
-        $ot_amount = ($ot_normal * $hour_rate * $ot_rate_normal) 
-                    + ($ot_sunday * $hour_rate * $ot_rate_sunday) 
-                    + ($ot_holiday * $hour_rate * $ot_rate_holiday);
-        
-        $total_income = $salary_actual_work + $salary_paid_leave + $salary_holiday_paid + $salary_holiday_work + $ot_amount + (float)($e['allowance_total'] ?? 0) + $bonus;
-        
-        // BẢO HIỂM (Sử dụng tỷ lệ từ Settings)
-        $bhxh_p = (float)($g_settings['insurance_bhxh_percent'] ?? 8);
-        $bhyt_p = (float)($g_settings['insurance_bhyt_percent'] ?? 1.5);
-        $bhtn_p = (float)($g_settings['insurance_bhtn_percent'] ?? 1);
-        $bhxh_amount = $ins_sal * (($bhxh_p + $bhyt_p + $bhtn_p) / 100);
-        
-        // Dự phòng cho trường hợp Công đoàn 1% lương bảo hiểm (nếu không có cấu hình số tiền)
-        if ($union == 0 && $union_fee_default == 0) $union = $ins_sal * 0.01;
-        
-        $tax_amount = $total_income * ((float)($e['income_tax_percent'] ?? 0) / 100);
-        
-        $net_salary = $total_income - $bhxh_amount - $advances - $union - $tax_amount;
-
-        // 6. LƯU KẾT QUẢ
-        db_query("INSERT INTO payroll (employee_id, project_id, month, year, standard_days, total_work_days, paid_leave_days, holiday_paid_days, holiday_work_days, total_ot_hours, salary_actual, ot_amount, total_allowance, bhxh_amount, salary_advances, union_fee, income_tax, bonus_amount, net_salary) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
-                  ON DUPLICATE KEY UPDATE project_id=?, standard_days=?, total_work_days=?, paid_leave_days=?, holiday_paid_days=?, holiday_work_days=?, total_ot_hours=?, salary_actual=?, ot_amount=?, total_allowance=?, bhxh_amount=?, salary_advances=?, union_fee=?, income_tax=?, bonus_amount=?, net_salary=?", 
-                  [$e['id'], $project_id, $month, $year, $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $total_ot_hours, $salary_actual_work, $ot_amount, ($e['allowance_total'] ?? 0), $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary,
-                   $project_id, $work_days_standard, $real_work, $paid_leave, $holiday_paid, $holiday_work, $total_ot_hours, $salary_actual_work, $ot_amount, ($e['allowance_total'] ?? 0), $bhxh_amount, $advances, $union, $tax_amount, $bonus, $net_salary]);
+    } catch (Exception $ex) {
+        $pdo->rollBack();
+        set_toast('error', 'Lỗi tính toán: ' . $ex->getMessage());
     }
-    set_toast('success', 'Đã tính toán bảng lương chi tiết cho dự án!');
+
     header("Location: index.php?month=$month&year=$year&project_id=$project_id");
     exit;
 }
