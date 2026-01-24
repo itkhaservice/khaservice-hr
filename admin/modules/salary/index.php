@@ -203,12 +203,12 @@ body.dark-mode .table td[style*="background: #f0fdf4"] {
             <h1 class="page-title">Bảng lương tháng <?php echo "$month/$year"; ?></h1>
             <div class="header-actions">
                 <form method="POST" style="display:inline;">
-                    <button type="submit" name="calculate_payroll" class="btn btn-primary"><i class="fas fa-sync-alt"></i> Tính chi tiết</button>
+                    <button type="submit" name="calculate_payroll" class="btn btn-primary btn-sm"><i class="fas fa-sync-alt"></i> Tính chi tiết</button>
                 </form>
-                <button class="btn btn-secondary" onclick="printPayslips()">
+                <button class="btn btn-secondary btn-sm" onclick="printPayslips()">
                     <i class="fas fa-print"></i> In Phiếu lương
                 </button>
-                <a href="config.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-secondary"><i class="fas fa-cog"></i> Cấu hình</a>
+                <a href="config.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>" class="btn btn-secondary btn-sm"><i class="fas fa-cog"></i> Cấu hình</a>
             </div>
         </div>
 
@@ -236,9 +236,9 @@ body.dark-mode .table td[style*="background: #f0fdf4"] {
             </select>
             
             <div style="display: flex; gap: 5px;">
-                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
+                <button type="submit" class="btn btn-secondary btn-sm" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
                 <?php if ($project_id > 0): ?>
-                    <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                    <a href="index.php" class="btn btn-danger btn-sm" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
                 <?php endif; ?>
             </div>
         </form>

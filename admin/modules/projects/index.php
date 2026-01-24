@@ -66,7 +66,7 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
         <div class="action-header">
             <h1 class="page-title">Quản lý Dự án</h1>
             <!-- Moved "Add New" button here, separated from Filters -->
-            <a href="add.php" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm dự án mới</a>
+            <a href="add.php" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Thêm dự án mới</a>
         </div>
 
         <!-- Filter Section (Full Width) -->
@@ -78,9 +78,9 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <option value="completed" <?php echo $status == 'completed' ? 'selected' : ''; ?>>Đã hoàn thành</option>
                 <option value="pending" <?php echo $status == 'pending' ? 'selected' : ''; ?>>Tạm dừng</option>
             </select>
-            <button type="submit" class="btn btn-secondary"><i class="fas fa-filter"></i> Lọc dữ liệu</button>
+            <button type="submit" class="btn btn-secondary btn-sm"><i class="fas fa-filter"></i> Lọc dữ liệu</button>
             <?php if ($kw || $status): ?>
-                <a href="index.php" class="btn btn-danger" style="min-width: auto;"><i class="fas fa-times"></i></a>
+                <a href="index.php" class="btn btn-danger btn-sm" style="min-width: auto;"><i class="fas fa-times"></i></a>
             <?php endif; ?>
         </form>
 

@@ -30,7 +30,12 @@ window.Toast = {
             toast.css('animation', 'slideOut 0.3s ease-in forwards');
             setTimeout(() => toast.remove(), 300);
         }, 4000);
-    }
+    },
+    
+    success(message) { this.show('success', 'Thành công', message); },
+    error(message) { this.show('error', 'Lỗi', message); },
+    info(message) { this.show('info', 'Thông báo', message); },
+    warning(message) { this.show('warning', 'Cảnh báo', message); }
 };
 
 // 2. Custom Confirm Modal

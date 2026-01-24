@@ -73,12 +73,12 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
                 <input type="text" name="kw" class="form-control" value="<?php echo htmlspecialchars($kw); ?>" placeholder="Tìm tên nhân viên, mã NV..." style="padding-left: 45px; width: 100%; height: 42px;">
             </div>
             
-            <button type="submit" class="btn btn-primary" style="white-space: nowrap; height: 42px; padding: 0 20px; display: flex; align-items: center; gap: 8px;">
+            <button type="submit" class="btn btn-primary btn-sm" style="white-space: nowrap; height: 42px; padding: 0 20px; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-filter"></i> <span>Lọc dữ liệu</span>
             </button>
 
             <?php if ($kw): ?>
-                <a href="index.php" class="btn btn-secondary" title="Xóa bộ lọc" style="width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                <a href="index.php" class="btn btn-secondary btn-sm" title="Xóa bộ lọc" style="width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                     <i class="fas fa-times"></i>
                 </a>
             <?php endif; ?>

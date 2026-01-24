@@ -381,9 +381,9 @@ body.dark-mode .custom-import-modal .row-invalid { background-color: rgba(239, 6
         <div class="action-header">
             <h1 class="page-title">Quản lý Nhân sự</h1>
             <div style="display: flex; gap: 10px;">
-                <button onclick="openImportModal()" class="btn btn-success"><i class="fas fa-file-upload"></i> Nhập Excel</button>
-                <a href="export.php" class="btn btn-info"><i class="fas fa-file-download"></i> Xuất Excel</a>
-                <a href="add.php" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm nhân viên</a>
+                <button onclick="openImportModal()" class="btn btn-success btn-sm"><i class="fas fa-file-upload"></i> Nhập Excel</button>
+                <a href="export.php" class="btn btn-info btn-sm"><i class="fas fa-file-download"></i> Xuất Excel</a>
+                <a href="add.php" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Thêm nhân viên</a>
             </div>
         </div>
 
@@ -421,9 +421,9 @@ body.dark-mode .custom-import-modal .row-invalid { background-color: rgba(239, 6
                 <option value="incomplete" <?php echo $doc_status == 'incomplete' ? 'selected' : ''; ?>>Chưa hoàn tất</option>
             </select>
             <div style="display: flex; gap: 5px;">
-                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
+                <button type="submit" class="btn btn-secondary btn-sm" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
                 <?php if ($kw || $dept_id || $proj_id || $status || $doc_status): ?>
-                    <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                    <a href="index.php" class="btn btn-danger btn-sm" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
                 <?php endif; ?>
             </div>
         </form>

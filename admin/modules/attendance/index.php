@@ -110,24 +110,24 @@ include '../../../includes/sidebar.php';
             </div>
             <div class="header-actions">
                 <?php if (!$is_locked): ?>
-                    <button type="button" class="btn btn-primary" onclick="saveAttendance()"><i class="fas fa-save"></i> Lưu dữ liệu</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="saveAttendance()"><i class="fas fa-save"></i> Lưu dữ liệu</button>
                     <?php if ($project_id > 0): ?>
-                        <button type="button" class="btn btn-warning" onclick="syncProject()" title="Cập nhật tất cả dữ liệu chấm công cũ của nhân viên về dự án này"><i class="fas fa-sync"></i> Đồng bộ DA</button>
+                        <button type="button" class="btn btn-warning btn-sm" onclick="syncProject()" title="Cập nhật tất cả dữ liệu chấm công cũ của nhân viên về dự án này"><i class="fas fa-sync"></i> Đồng bộ DA</button>
                     <?php endif; ?>
                 <?php endif; ?>
                 
                 <?php if ($allowed_projs === 'ALL' && $project_id > 0): ?>
                     <form method="POST" id="lockForm" style="display:inline;">
                         <input type="hidden" name="toggle_lock" value="<?php echo $is_locked ? 'unlock' : 'lock'; ?>">
-                        <button type="button" class="btn <?php echo $is_locked ? 'btn-warning' : 'btn-danger'; ?>" onclick="confirmLock()">
+                        <button type="button" class="btn <?php echo $is_locked ? 'btn-warning' : 'btn-danger'; ?> btn-sm" onclick="confirmLock()">
                             <i class="fas <?php echo $is_locked ? 'fa-lock-open' : 'fa-lock'; ?>"></i> <?php echo $is_locked ? 'Mở khóa' : 'Khóa sổ'; ?>
                         </button>
                     </form>
                 <?php endif; ?>
 
-                <button type="button" class="btn btn-secondary" onclick="window.open('print.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>', '_blank')"><i class="fas fa-print"></i> In</button>
-                <button type="button" class="btn btn-info"><i class="fas fa-file-excel"></i> Xuất Excel</button>
-                <a href="import.php" class="btn btn-success"><i class="fas fa-file-import"></i> Import</a>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="window.open('print.php?month=<?php echo $month; ?>&year=<?php echo $year; ?>&project_id=<?php echo $project_id; ?>', '_blank')"><i class="fas fa-print"></i> In</button>
+                <button type="button" class="btn btn-info btn-sm"><i class="fas fa-file-excel"></i> Xuất Excel</button>
+                <a href="import.php" class="btn btn-success btn-sm"><i class="fas fa-file-import"></i> Import</a>
             </div>
         </div>
 
@@ -143,9 +143,9 @@ include '../../../includes/sidebar.php';
                 <?php for($y=2023;$y<=2030;$y++) echo "<option value='$y' ".($y==$year?'selected':'').">$y</option>"; ?>
             </select>
             <div style="display: flex; gap: 5px;">
-                <button type="submit" class="btn btn-secondary" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
+                <button type="submit" class="btn btn-secondary btn-sm" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
                 <?php if ($project_id > 0 || $month != date('n') || $year != date('Y')): ?>
-                    <a href="index.php" class="btn btn-danger" title="Xóa lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                    <a href="index.php" class="btn btn-danger btn-sm" title="Xóa lọc" style="min-width: 40px;"><i class="fas fa-times"></i></a>
                 <?php endif; ?>
             </div>
         </form>
@@ -541,6 +541,14 @@ body.dark-mode .attendance-table tbody tr:hover .fix-r { background-color: #3341
 .dropdown-menu { background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
 .dropdown-item:hover { background: #f1f5f9; color: var(--primary-color) !important; }
 
+/* Nút nhỏ hơn cho toolbar */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    gap: 5px;
+    min-width: 80px;
+    height: 32px;
+}
 </style>
 
 <?php include '../../../includes/footer.php'; ?>

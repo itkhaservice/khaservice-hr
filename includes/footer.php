@@ -6,6 +6,9 @@
 </div> <!-- End Wrapper -->
 
 <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
     <script src="<?php echo BASE_URL; ?>assets/js/main.js?v=<?php echo time(); ?>"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/tour.js?v=<?php echo time(); ?>"></script>
     <script>
