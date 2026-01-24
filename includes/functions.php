@@ -93,8 +93,16 @@ function require_permission($permission_code) {
 function sync_leave_balance($employee_id, $year) {
     global $pdo;
     
+    // 0. Get Leave Accrual Rate
+    $setting = db_fetch_row("SELECT setting_value FROM settings WHERE setting_key = 'leave_monthly_accrual'");
+    $monthly_rate = ($setting && $setting['setting_value'] > 0) ? (float)$setting['setting_value'] : 1.0;
+    $total_year = $monthly_rate * 12;
+
     // 1. Chắc chắn đã có dòng số dư phép cho năm này, nếu chưa có thì tạo mặc định
-    db_query("INSERT IGNORE INTO employee_leave_balances (employee_id, year, total_days, used_days) VALUES (?, ?, 12, 0)", [$employee_id, $year]);
+    db_query("INSERT IGNORE INTO employee_leave_balances (employee_id, year, total_days, used_days) VALUES (?, ?, ?, 0)", [$employee_id, $year, $total_year]);
+    
+    // Update total days if setting changed (optional, but good for consistency)
+    db_query("UPDATE employee_leave_balances SET total_days = ? WHERE employee_id = ? AND year = ? AND total_days != ?", [$total_year, $employee_id, $year, $total_year]);
 
     // 2. Đếm số ngày có ký hiệu P (1 công) và 1/P (0.5 công)
     $sql = "SELECT 
@@ -216,14 +224,34 @@ function get_allowed_projects() {
 }
 
 /**
- * Tính công chuẩn trong tháng (Tổng ngày - Chủ nhật)
+ * Tính công chuẩn trong tháng (Tổng ngày - Ngày nghỉ tuần)
  */
 function get_standard_working_days($month, $year) {
+    // 1. Get weekly off days from settings
+    $setting = db_fetch_row("SELECT setting_value FROM settings WHERE setting_key = 'attendance_weekly_off'");
+    $off_days = [7]; // Default Sunday (7 in format 'N')
+    
+    if ($setting && !empty($setting['setting_value'])) {
+        $saved_days = explode(',', $setting['setting_value']);
+        foreach($saved_days as $d) {
+            // Convert JS/Human day (0=Sun, 6=Sat) to PHP 'N' format (7=Sun, 6=Sat)
+            if ($d == '6') $off_days[] = 6; // Saturday
+            if ($d == '0') $off_days[] = 7; // Sunday (though 0 usually means Sun in JS)
+        }
+        $off_days = array_unique($off_days);
+    } else {
+        // Default only Sunday
+        $off_days = [7];
+    }
+
     $days_in_month = cal_days_in_month(CAL_GREGORIAN, $month, $year);
     $standard_days = 0;
+    
     for ($d = 1; $d <= $days_in_month; $d++) {
         $ts = strtotime("$year-$month-$d");
-        if (date('N', $ts) != 7) { // 7 là Chủ nhật
+        $day_of_week = date('N', $ts); // 1 (Mon) to 7 (Sun)
+        
+        if (!in_array($day_of_week, $off_days)) {
             $standard_days++;
         }
     }

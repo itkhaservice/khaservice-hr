@@ -21,7 +21,16 @@ try {
     switch ($action) {
         case 'save_company':
         case 'save_salary':
+        case 'save_attendance':
             if (isset($data['settings']) && is_array($data['settings'])) {
+                // Special handling for checkboxes in attendance settings (array to string)
+                if ($action === 'save_attendance' && isset($data['settings']['attendance_weekly_off']) && is_array($data['settings']['attendance_weekly_off'])) {
+                    $data['settings']['attendance_weekly_off'] = implode(',', $data['settings']['attendance_weekly_off']);
+                } elseif ($action === 'save_attendance' && !isset($data['settings']['attendance_weekly_off'])) {
+                    // If checkbox unchecked, it might not be sent, default to empty or just 0 (Sunday implied)
+                    $data['settings']['attendance_weekly_off'] = ''; 
+                }
+
                 foreach ($data['settings'] as $key => $value) {
                     $key = clean_input($key);
                     $value = clean_input($value);

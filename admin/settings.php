@@ -59,6 +59,9 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
                     <button class="nav-link" data-tab="documents">
                         <i class="fas fa-file-contract"></i> <span>Cấu hình Hồ sơ</span>
                     </button>
+                    <button class="nav-link" data-tab="attendance">
+                        <i class="fas fa-clock"></i> <span>Công & Phép</span>
+                    </button>
                     <button class="nav-link" data-tab="salary">
                         <i class="fas fa-coins"></i> <span>Cấu hình Lương</span>
                     </button>
@@ -205,6 +208,52 @@ $doc_settings = db_fetch_all("SELECT * FROM document_settings ORDER BY id ASC");
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Attendance -->
+                <div class="tab-pane" id="attendance">
+                    <div class="section-header-flex">
+                        <div class="section-title">
+                            <h3>Công & Phép</h3>
+                            <p class="text-muted">Thiết lập ngày nghỉ tiêu chuẩn và định mức phép năm</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <form id="attendance-settings-form">
+                            <div class="form-section-title">Ngày nghỉ hàng tuần</div>
+                            <div class="form-group">
+                                <label class="custom-checkbox">
+                                    <input type="checkbox" checked disabled> 
+                                    <span>Chủ nhật (Mặc định)</span>
+                                </label>
+                                <label class="custom-checkbox" style="margin-top: 10px;">
+                                    <?php 
+                                        $weekly_off = explode(',', $settings['attendance_weekly_off'] ?? ''); 
+                                    ?>
+                                    <input type="checkbox" name="attendance_weekly_off[]" value="6" <?php echo in_array('6', $weekly_off) ? 'checked' : ''; ?>> 
+                                    <span>Thứ 7 (Check nếu công ty nghỉ cả Thứ 7)</span>
+                                </label>
+                                <small class="text-muted d-block mt-2">Ngày được chọn sẽ không tính vào công chuẩn (Standard Working Days).</small>
+                            </div>
+
+                            <div class="form-section-title mt-4">Cấu hình Phép năm</div>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Định mức phép được cấp mỗi tháng</label>
+                                    <div class="input-group">
+                                        <input type="number" step="0.1" name="leave_monthly_accrual" class="form-control" value="<?php echo $settings['leave_monthly_accrual'] ?? '1.0'; ?>">
+                                        <span class="input-group-addon">ngày</span>
+                                    </div>
+                                    <small class="text-muted">Mặc định: 1.0 ngày/tháng (12 ngày/năm).</small>
+                                </div>
+                            </div>
+
+                            <div class="form-footer">
+                                <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-save"></i> Lưu cấu hình</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -721,13 +770,25 @@ function setupFormSave(formId, action) {
         const data = { action: action, settings: {} };
         
         // Handle normal settings forms vs dynamic logic
-        if (formId === 'company-form' || formId === 'salary-settings-form') {
-            formData.forEach((val, key) => {
-                if (form.querySelector(`[name="${key}"]`).classList.contains('input-money')) {
-                    val = val.replace(/,/g, '');
+        if (formId === 'company-form' || formId === 'salary-settings-form' || formId === 'attendance-settings-form') {
+            // Helper to handle multiple values (like checkboxes)
+            for (var pair of formData.entries()) {
+                var key = pair[0];
+                var val = pair[1];
+                
+                if (key.endsWith('[]')) {
+                    var realKey = key.slice(0, -2);
+                    if (!data.settings[realKey]) {
+                        data.settings[realKey] = [];
+                    }
+                    data.settings[realKey].push(val);
+                } else {
+                    if (form.querySelector(`[name="${key}"]`) && form.querySelector(`[name="${key}"]`).classList.contains('input-money')) {
+                        val = val.replace(/,/g, '');
+                    }
+                    data.settings[key] = val;
                 }
-                data.settings[key] = val;
-            });
+            }
         }
 
         fetch('modules/system/settings_action.php', {
@@ -747,6 +808,7 @@ function setupFormSave(formId, action) {
 
 setupFormSave('company-form', 'save_company');
 setupFormSave('salary-settings-form', 'save_salary');
+setupFormSave('attendance-settings-form', 'save_attendance');
 
 // Modal Logic
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }

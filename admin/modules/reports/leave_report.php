@@ -33,6 +33,21 @@ if ($project_id > 0) {
 
     $report_data = db_fetch_all($sql, $params);
 }
+
+// Get global leave accrual rate from settings
+$accrual_setting = db_fetch_row("SELECT setting_value FROM settings WHERE setting_key = 'leave_monthly_accrual'");
+$monthly_rate = ($accrual_setting && $accrual_setting['setting_value'] > 0) ? (float)$accrual_setting['setting_value'] : 1.0;
+
+// Calculate accrued months (e.g., if Jan -> 1, if Dec -> 12)
+$current_year = (int)date('Y');
+if ($year < $current_year) {
+    $accrued_months = 12; // Past years are fully accrued
+} elseif ($year > $current_year) {
+    $accrued_months = 0;  // Future years not accrued yet
+} else {
+    $accrued_months = (int)date('n'); // Current year up to current month
+}
+
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
 $projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
 
@@ -122,7 +137,8 @@ body.dark-mode .text-center[style*="dashed"] {
                         <tr>
                             <th>Nhân viên</th>
                             <th>Đơn vị / Dự án</th>
-                            <th class="text-center">Quỹ phép</th>
+                            <th class="text-center">Tổng năm</th>
+                            <th class="text-center" title="Số phép được cộng dồn theo tháng tính đến hiện tại">Được hưởng</th>
                             <th class="text-center">Dư cũ</th>
                             <th class="text-center">Đã nghỉ</th>
                             <th class="text-center">Còn lại</th>
@@ -131,13 +147,16 @@ body.dark-mode .text-center[style*="dashed"] {
                     </thead>
                     <tbody>
                         <?php if (empty($report_data)): ?>
-                            <tr><td colspan="7" class="text-center" style="padding: 30px;">Không có dữ liệu phù hợp với bộ lọc.</td></tr>
+                            <tr><td colspan="8" class="text-center" style="padding: 30px;">Không có dữ liệu phù hợp với bộ lọc.</td></tr>
                         <?php else: ?>
                             <?php foreach ($report_data as $r): 
-                                $total = ($r['total_days'] ?? 12);
+                                $total_year = ($r['total_days'] ?? 12);
+                                $accrued = $accrued_months * $monthly_rate;
                                 $carried = ($r['carried_over'] ?? 0);
                                 $used = ($r['used_days'] ?? 0);
-                                $remaining = ($total + $carried) - $used;
+                                
+                                // Remaining calculation based on ACCRUED leave
+                                $remaining = ($accrued + $carried) - $used;
                             ?>
                                 <tr>
                                     <td>
@@ -147,7 +166,10 @@ body.dark-mode .text-center[style*="dashed"] {
                                     <td>
                                         <small><i class="fas fa-building text-sub"></i> <?php echo $r['proj_name'] ?: 'Chưa gán'; ?></small>
                                     </td>
-                                    <td class="text-center"><?php echo $total; ?></td>
+                                    <td class="text-center"><?php echo $total_year; ?></td>
+                                    <td class="text-center">
+                                        <span class="badge badge-info" title="Tính đến tháng <?php echo $accrued_months; ?>"><?php echo $accrued; ?></span>
+                                    </td>
                                     <td class="text-center"><?php echo $carried; ?></td>
                                     <td class="text-center text-danger"><strong><?php echo $used; ?></strong></td>
                                     <td class="text-center text-success" style="font-weight: 800; font-size: 1.1rem; background: rgba(16, 185, 129, 0.05);">
