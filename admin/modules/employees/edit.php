@@ -443,33 +443,33 @@ include '../../../includes/sidebar.php';
                                 </div>
 
                                 <!-- Project Assignment Section (Hidden unless Manager) -->
-                                <div id="projectAssignment" style="display: none; background: #f8fafc; padding: 15px; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 20px;">
+                                <div id="projectAssignment" class="project-assignment-box" style="display: none; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
                                     <label style="font-weight: 600; color: var(--primary-color); display: block; margin-bottom: 10px;">
                                         <i class="fas fa-tasks"></i> Phân công quản lý Dự án
                                     </label>
                                     
                                     <?php if ($employee['current_project_id']): ?>
-                                        <div style="background: #e0f2fe; border: 1px solid #bae6fd; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
-                                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; color: #0284c7; cursor: pointer;">
+                                        <div class="current-project-manager-badge" style="padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+                                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer;">
                                                 <input type="checkbox" name="assign_current_project" value="1" <?php echo $is_managing_current ? 'checked' : ''; ?>>
                                                 Quản lý dự án hiện tại: <?php echo $current_proj_name; ?>
                                             </label>
                                         </div>
                                     <?php endif; ?>
 
-                                    <div style="max-height: 200px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div class="project-list-grid" style="max-height: 200px; overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                         <?php foreach ($projects as $proj): 
                                             // Skip if it's the current one (handled above), OR show it too? 
                                             // Better to show all for clarity, but mark if checked.
                                             $is_managed = in_array($proj['id'], $managed_project_ids);
                                         ?>
-                                            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                                            <label class="project-item-label" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
                                                 <input type="checkbox" name="managed_projects[]" value="<?php echo $proj['id']; ?>" <?php echo $is_managed ? 'checked' : ''; ?>>
                                                 <?php echo $proj['name']; ?>
                                             </label>
                                         <?php endforeach; ?>
                                     </div>
-                                    <small style="color: #64748b; display: block; margin-top: 5px;">* Chọn các dự án mà nhân viên này sẽ làm Quản lý (Manager).</small>
+                                    <small style="color: var(--text-sub); display: block; margin-top: 5px;">* Chọn các dự án mà nhân viên này sẽ làm Quản lý (Manager).</small>
                                 </div>
                                 
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -568,4 +568,14 @@ function previewImage(input) {
 .avatar-preview-container img { transition: transform 0.3s ease; }
 .avatar-preview-container img:hover { transform: scale(1.02); }
 .btn-sm { padding: 8px 15px; font-size: 0.85rem; }
+
+/* Project Assignment Styling */
+.project-assignment-box { background: #f8fafc; border: 1px solid #e2e8f0; }
+.current-project-manager-badge { background: #e0f2fe; border: 1px solid #bae6fd; color: #0284c7; }
+.project-item-label { color: var(--text-main); }
+
+/* DARK MODE */
+body.dark-mode .project-assignment-box { background: rgba(255,255,255,0.03); border-color: #334155; }
+body.dark-mode .current-project-manager-badge { background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.3); color: #38bdf8; }
+body.dark-mode .project-item-label { color: #cbd5e1; }
 </style>

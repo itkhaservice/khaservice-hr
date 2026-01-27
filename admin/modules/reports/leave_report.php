@@ -9,6 +9,23 @@ $project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 $where = "WHERE e.status = 'working'";
 $params = [$year];
 
+// Security: Project Filter
+$allowed_projs = get_allowed_projects();
+if ($allowed_projs !== 'ALL') {
+    if (empty($allowed_projs)) {
+        $where .= " AND 1=0";
+    } else {
+        $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
+        $where .= " AND e.current_project_id IN ($in_placeholder)";
+        $params = array_merge($params, $allowed_projs);
+        
+        // If user tries to filter a project they don't own
+        if ($project_id > 0 && !in_array($project_id, $allowed_projs)) {
+            $project_id = 0;
+        }
+    }
+}
+
 if ($dept_id) {
     $where .= " AND e.department_id = ?";
     $params[] = $dept_id;
@@ -19,7 +36,7 @@ if ($project_id) {
 }
 
 $report_data = [];
-if ($project_id > 0) {
+if ($project_id > 0 || ($allowed_projs !== 'ALL' && !empty($allowed_projs))) {
     // Fetch all employees with their leave balances
     $sql = "SELECT e.id, e.code, e.fullname, d.name as dept_name, p.name as proj_name,
                    lb.total_days, lb.carried_over, lb.used_days
@@ -49,7 +66,14 @@ if ($year < $current_year) {
 }
 
 $departments = db_fetch_all("SELECT * FROM departments ORDER BY name ASC");
-$projects = db_fetch_all("SELECT * FROM projects ORDER BY name ASC");
+
+// Filter allowed projects for dropdown
+$proj_sql = "SELECT * FROM projects WHERE 1=1";
+if ($allowed_projs !== 'ALL') {
+    $proj_sql .= " AND id IN (" . implode(',', $allowed_projs) . ")";
+}
+$proj_sql .= " ORDER BY name ASC";
+$projects = db_fetch_all($proj_sql);
 
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';

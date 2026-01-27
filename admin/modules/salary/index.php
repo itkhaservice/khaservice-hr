@@ -185,7 +185,22 @@ if (isset($_POST['calculate_payroll'])) {
     exit;
 }
 
-$projects = db_fetch_all("SELECT * FROM projects WHERE status = 'active' ORDER BY name ASC");
+// Security: Project Filter
+$allowed_projs = get_allowed_projects();
+
+// If not admin and no projects assigned
+if ($allowed_projs !== 'ALL' && empty($allowed_projs)) {
+    $projects = [];
+    $project_id = 0;
+} else {
+    $proj_where = ($allowed_projs === 'ALL') ? "" : " AND id IN (" . implode(',', $allowed_projs) . ")";
+    $projects = db_fetch_all("SELECT * FROM projects WHERE status = 'active' $proj_where ORDER BY name ASC");
+    
+    // Reset project_id if it's not in allowed list
+    if ($project_id > 0 && $allowed_projs !== 'ALL' && !in_array($project_id, $allowed_projs)) {
+        $project_id = 0;
+    }
+}
 
 $payroll_data = [];
 if ($project_id > 0) {

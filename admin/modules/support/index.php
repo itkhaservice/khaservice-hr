@@ -4,11 +4,22 @@ require_once '../../../includes/functions.php';
 include '../../../includes/header.php';
 include '../../../includes/sidebar.php';
 
-// Giả lập một số thông số hệ thống
+// Fetch settings from database
+$raw_settings = db_fetch_all("SELECT * FROM settings WHERE setting_key IN ('company_name', 'company_email', 'company_phone', 'company_website', 'system_version')");
+$settings = [];
+foreach ($raw_settings as $s) {
+    $settings[$s['setting_key']] = $s['setting_value'];
+}
+
+$company_name = $settings['company_name'] ?? 'CÔNG TY TNHH KHASERVICE';
+$company_email = $settings['company_email'] ?? 'it@khaservice.com.vn';
+$company_phone = $settings['company_phone'] ?? '028 3825 3041';
+$company_website = $settings['company_website'] ?? 'www.khaservice.com.vn';
+
 $php_version = phpversion();
 $mysql_version = db_fetch_row("SELECT VERSION() as v")['v'];
 $os = PHP_OS;
-$system_version = db_fetch_row("SELECT setting_value FROM settings WHERE setting_key = 'system_version'")['setting_value'] ?? '1.0.0';
+$system_version = $settings['system_version'] ?? '1.0.0';
 ?>
 
 <div class="main-content">
@@ -32,7 +43,7 @@ $system_version = db_fetch_row("SELECT setting_value FROM settings WHERE setting
                     </div>
                     <div>
                         <h4 style="margin: 0; font-size: 1.2rem;">Phòng Công nghệ Thông tin</h4>
-                        <p style="color: var(--text-sub); margin: 5px 0;">CÔNG TY TNHH KHASERVICE</p>
+                        <p style="color: var(--text-sub); margin: 5px 0;"><?php echo $company_name; ?></p>
                         <span class="badge badge-success">Lead Developer</span>
                     </div>
                 </div>
@@ -40,13 +51,13 @@ $system_version = db_fetch_row("SELECT setting_value FROM settings WHERE setting
                 
                 <div style="margin-top: 20px;">
                     <div class="contact-item">
-                        <i class="fas fa-envelope text-primary"></i> <span>it@khaservice.com.vn</span>
+                        <i class="fas fa-envelope text-primary"></i> <span><?php echo $company_email; ?></span>
                     </div>
                     <div class="contact-item">
-                        <i class="fas fa-phone text-primary"></i> <span>028 3825 3041</span>
+                        <i class="fas fa-phone text-primary"></i> <span><?php echo $company_phone; ?></span>
                     </div>
                     <div class="contact-item">
-                        <i class="fas fa-globe text-primary"></i> <span>www.khaservice.com.vn</span>
+                        <i class="fas fa-globe text-primary"></i> <span><?php echo $company_website; ?></span>
                     </div>
                 </div>
             </div>

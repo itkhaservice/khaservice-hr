@@ -13,6 +13,7 @@ $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 $kw = isset($_GET['kw']) ? clean_input($_GET['kw']) : '';
+$project_id = isset($_GET['project_id']) ? (int)$_GET['project_id'] : 0;
 
 // Query
 $where = "WHERE e.status = 'working'";
@@ -27,7 +28,17 @@ if ($allowed_projs !== 'ALL') {
         $in_placeholder = implode(',', array_fill(0, count($allowed_projs), '?'));
         $where .= " AND e.current_project_id IN ($in_placeholder)";
         $params = array_merge($params, $allowed_projs);
+        
+        // Ensure selected project_id is in allowed list
+        if ($project_id > 0 && !in_array($project_id, $allowed_projs)) {
+            $project_id = 0;
+        }
     }
+}
+
+if ($project_id > 0) {
+    $where .= " AND e.current_project_id = ?";
+    $params[] = $project_id;
 }
 
 if ($kw) {
@@ -35,6 +46,14 @@ if ($kw) {
     $params[] = "%$kw%";
     $params[] = "%$kw%";
 }
+
+// Fetch allowed projects for dropdown
+$proj_sql = "SELECT * FROM projects WHERE status = 'active'";
+if ($allowed_projs !== 'ALL') {
+    $proj_sql .= " AND id IN (" . implode(',', $allowed_projs) . ")";
+}
+$proj_sql .= " ORDER BY name ASC";
+$projects = db_fetch_all($proj_sql);
 
 // Count
 $total_sql = "SELECT COUNT(*) as count FROM employees e $where";
@@ -67,25 +86,27 @@ $link_template = "index.php?" . http_build_query($query_string) . "&page={page}"
         </div>
 
         <!-- Filters -->
-        <form method="GET" class="filter-section" style="display: flex; align-items: center; gap: 10px; flex-wrap: nowrap;">
-            <div style="position: relative; flex: 1; min-width: 200px;">
-                <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-sub);"></i>
-                <input type="text" name="kw" class="form-control" value="<?php echo htmlspecialchars($kw); ?>" placeholder="Tìm tên nhân viên, mã NV..." style="padding-left: 45px; width: 100%; height: 42px;">
-            </div>
+        <form method="GET" class="filter-section">
+            <input type="text" name="kw" class="form-control" value="<?php echo htmlspecialchars($kw); ?>" placeholder="Tìm tên nhân viên, mã NV..." style="flex: 1; min-width: 200px;">
             
-            <button type="submit" class="btn btn-primary btn-sm" style="white-space: nowrap; height: 42px; padding: 0 20px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-filter"></i> <span>Lọc dữ liệu</span>
-            </button>
+            <select name="project_id" class="form-control" style="min-width: 200px;">
+                <option value="0">-- Tất cả Dự án --</option>
+                <?php foreach($projects as $p): ?>
+                    <option value="<?php echo $p['id']; ?>" <?php echo $project_id == $p['id'] ? 'selected' : ''; ?>><?php echo $p['name']; ?></option>
+                <?php endforeach; ?>
+            </select>
+            
+            <div style="display: flex; gap: 5px;">
+                <button type="submit" class="btn btn-secondary btn-sm" style="flex: 1;"><i class="fas fa-filter"></i> Lọc</button>
 
-            <?php if ($kw): ?>
-                <a href="index.php" class="btn btn-secondary btn-sm" title="Xóa bộ lọc" style="width: 42px; height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                    <i class="fas fa-times"></i>
-                </a>
-            <?php endif; ?>
+                <?php if ($kw || $project_id > 0): ?>
+                    <a href="index.php" class="btn btn-danger btn-sm" title="Xóa bộ lọc" style="min-width: 45px;"><i class="fas fa-times"></i></a>
+                <?php endif; ?>
+            </div>
 
-            <div class="header-actions" style="flex-shrink: 0;">
-                <span class="badge badge-info" style="padding: 0 20px; font-size: 0.9rem; border-radius: 8px; height: 42px; display: flex; align-items: center; white-space: nowrap; border: 1px solid rgba(0,0,0,0.05);">
-                    <i class="fas fa-users" style="margin-right: 8px;"></i> Tổng số: <strong><?php echo $total_records; ?></strong> <span class="hide-mobile" style="margin-left:4px;"> NV</span>
+            <div class="header-actions" style="margin-left: auto;">
+                <span class="badge badge-info" style="font-size: 0.9rem; padding: 8px 15px;">
+                    <i class="fas fa-users" style="margin-right: 5px;"></i> Tổng: <strong><?php echo $total_records; ?></strong>
                 </span>
             </div>
         </form>
