@@ -54,13 +54,13 @@ foreach ($projects as $p) {
     }
 }
 
-// Recent activity
+// Recent activity (Show globally for all projects)
 $recent_logs = db_fetch_all("
     SELECT a.*, e.fullname, p.name as proj_name 
     FROM attendance a 
     JOIN employees e ON a.employee_id = e.id 
     JOIN projects p ON a.project_id = p.id 
-    ORDER BY a.created_at DESC LIMIT 5
+    ORDER BY a.updated_at DESC LIMIT 5
 ") ?: [];
 ?>
 
@@ -205,27 +205,25 @@ $recent_logs = db_fetch_all("
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Nhân viên</th>
                                     <th>Dự án</th>
-                                    <th>Thời gian</th>
-                                    <th style="text-align:center;">Hành động</th>
+                                    <th style="text-align:right; padding-right: 20px;">Thời gian ghi nhận</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($recent_logs)): ?>
-                                    <tr><td colspan="4" style="text-align:center; padding: 30px; color: var(--text-sub);">Chưa có hoạt động mới</td></tr>
+                                    <tr><td colspan="2" style="text-align:center; padding: 30px; color: var(--text-sub);">Chưa có hoạt động mới</td></tr>
                                 <?php else: ?>
                                     <?php foreach ($recent_logs as $log): ?>
                                         <tr>
-                                            <td><strong><?php echo $log['fullname']; ?></strong></td>
-                                            <td><?php echo $log['proj_name']; ?></td>
-                                            <td><?php echo date('H:i d/m/Y', strtotime($log['created_at'])); ?></td>
-                                            <td style="text-align:center;">
-                                                <?php if ($log['check_out']): ?>
-                                                    <span class="badge badge-secondary">Ra ca</span>
-                                                <?php else: ?>
-                                                    <span class="badge badge-success">Vào ca</span>
-                                                <?php endif; ?>
+                                            <td style="padding: 12px 15px;">
+                                                <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem; margin-bottom: 2px;"><?php echo $log['proj_name']; ?></div>
+                                                <div style="font-size: 0.85rem; color: var(--text-sub);">
+                                                    Nhân viên: <?php echo $log['fullname']; ?>
+                                                </div>
+                                            </td>
+                                            <td style="text-align:right; padding-right: 20px; vertical-align: middle;">
+                                                <div style="font-weight: 700; color: var(--primary-color); font-size: 1rem;"><?php echo date('H:i', strtotime($log['updated_at'])); ?></div>
+                                                <div style="font-size: 0.75rem; color: var(--text-sub);"><?php echo date('d/m/Y', strtotime($log['updated_at'])); ?></div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
