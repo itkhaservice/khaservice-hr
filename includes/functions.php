@@ -142,7 +142,9 @@ function set_toast($type, $message) {
  */
 function is_active($path) {
     $current_uri = $_SERVER['REQUEST_URI'];
-    return strpos($current_uri, $path) !== false ? 'active' : '';
+    // Remove query strings for comparison
+    $current_path = parse_url($current_uri, PHP_URL_PATH);
+    return (strpos($current_path, $path) !== false) ? 'active' : '';
 }
 
 /**

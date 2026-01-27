@@ -99,7 +99,7 @@ if (isset($pdo)) {
             </a>
         </li>
         <li>
-            <a href="<?php echo BASE_URL; ?>admin/modules/system/sync.php" class="<?php echo is_active('admin/modules/system/sync.php'); ?>" style="color: #4ade80;">
+            <a href="<?php echo BASE_URL; ?>admin/modules/system/sync.php" class="<?php echo is_active('/modules/system/sync.php'); ?>">
                 <i class="fas fa-sync-alt"></i> <span>Đồng bộ Dữ liệu</span>
             </a>
         </li>
