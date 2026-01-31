@@ -22,9 +22,9 @@ if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.
 } else {
     // PRODUCTION ENVIRONMENT (InfinityFree)
     // Cập nhật thông tin từ Control Panel Hosting của bạn vào đây
-    define('DB_HOST', 'sql100.infinityfree.com'); // Thay bằng "MySQL Hostname" trên CPanel
-    define('DB_USER', 'if0_40964643');            // Username hosting của bạn
-    define('DB_PASS', 'qdyu7jD19gNkN');        // Mật khẩu Database (thường là mật khẩu hosting)
+    define('DB_HOST', 'sql100.infinityfree.com'); 
+    define('DB_USER', 'if0_40964643');            
+    define('DB_PASS', 'qdyu7jD19gNkN');        
     define('DB_NAME', 'if0_40964643_khaservice_hr');
     define('BASE_URL', '/');
 }
@@ -40,9 +40,22 @@ try {
         PDO::ATTR_EMULATE_PREPARES   => false,
     ];
     $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    
+    // Create mysqli connection for legacy scripts
+    $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if (!$conn) {
+        error_log("Mysqli Connection failed: " . mysqli_connect_error());
+    } else {
+        mysqli_set_charset($conn, DB_CHARSET);
+    }
 } catch (\PDOException $e) {
-    // Security: Do not reveal DB credentials or specific errors to user
+    // Security: Do not reveal DB credentials or specific errors to user normally
     error_log("Connection failed: " . $e->getMessage()); // Log internally
+    
+    if (isset($_GET['debug'])) {
+        die("Connection failed: " . $e->getMessage());
+    }
+    
     die("Hệ thống đang bảo trì hoặc gặp sự cố kết nối cơ sở dữ liệu. Vui lòng thử lại sau.");
 }
 

@@ -1,4 +1,8 @@
-# SECURITY: Deny all direct access
-# These files should only be included by other scripts
-Order Deny,Allow
-Deny from all
+# SECURITY: Deny all direct access for Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order Deny,Allow
+    Deny from all
+</IfModule>

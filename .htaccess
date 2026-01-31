@@ -15,8 +15,13 @@ Options -Indexes
 
 # 4. Protect core DB Config File specifically
 <Files "db.php">
-    Order allow,deny
-    Deny from all
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
 </Files>
 
 # 5. Prevent XSS/Clickjacking headers (Optional but recommended)
