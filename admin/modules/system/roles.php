@@ -95,7 +95,7 @@ include '../../../includes/sidebar.php';
     <div class="content-wrapper">
         <div class="action-header">
             <h1 class="page-title">Quản lý Phân quyền HR</h1>
-            <button class="btn btn-primary" onclick="$(\'#addRoleModal\').fadeIn()"><i class="fas fa-plus"></i> Thêm Vai trò mới</button>
+            <button class="btn btn-primary" onclick="$('#addRoleModal').css('display', 'flex').hide().fadeIn()"><i class="fas fa-plus"></i> Thêm Vai trò mới</button>
         </div>
 
         <div style="display: grid; grid-template-columns: 300px 1fr; gap: 25px;">
@@ -282,7 +282,7 @@ include '../../../includes/sidebar.php';
                     <input type="text" name="display_name" class="form-control" placeholder="VD: HR Phụ trách lương" required>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="$(\'#addRoleModal\').fadeOut()">Hủy</button>
+                    <button type="button" class="btn btn-secondary" onclick="$('#addRoleModal').fadeOut()">Hủy</button>
                     <button type="submit" name="add_role" class="btn btn-primary">Thêm ngay</button>
                 </div>
             </form>
