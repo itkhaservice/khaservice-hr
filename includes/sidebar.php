@@ -77,6 +77,12 @@ if (isset($pdo)) {
         <?php endif; ?>
 
         <li>
+            <a href="<?php echo BASE_URL; ?>admin/modules/proposals/index.php" class="<?php echo is_active('/modules/proposals/'); ?>">
+                <i class="fas fa-shopping-cart"></i> <span>Quản lý Đề xuất</span>
+            </a>
+        </li>
+
+        <li>
             <a href="<?php echo BASE_URL; ?>admin/modules/reports/index.php" class="<?php echo is_active('/modules/reports/index.php'); ?>">
                 <i class="fas fa-chart-bar"></i> <span>Báo cáo Nhân sự</span>
             </a>
@@ -98,11 +104,11 @@ if (isset($pdo)) {
                 <i class="fas fa-cog"></i> <span>Cài đặt hệ thống</span>
             </a>
         </li>
-        <li>
+        <!-- <li>
             <a href="<?php echo BASE_URL; ?>admin/modules/system/sync.php" class="<?php echo is_active('/modules/system/sync.php'); ?>">
                 <i class="fas fa-sync-alt"></i> <span>Đồng bộ Dữ liệu</span>
             </a>
-        </li>
+        </li> -->
         <?php endif; ?>
 
         <li>

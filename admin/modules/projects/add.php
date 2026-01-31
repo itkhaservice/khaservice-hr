@@ -12,9 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $address = clean_input($_POST['address']);
     $status = clean_input($_POST['status']);
     $headcount_total = (int)$_POST['headcount_required'];
+    $budget_limit = (float)$_POST['budget_limit'];
 
-    $sql = "INSERT INTO projects (code, name, address, status, headcount_required) VALUES (?, ?, ?, ?, ?)";
-    if (db_query($sql, [$code, $name, $address, $status, $headcount_total])) {
+    $sql = "INSERT INTO projects (code, name, address, status, headcount_required, budget_limit) VALUES (?, ?, ?, ?, ?, ?)";
+    if (db_query($sql, [$code, $name, $address, $status, $headcount_total, $budget_limit])) {
         $project_id = db_last_insert_id();
 
         // 1. Save Detailed Headcount (Project Positions)
@@ -102,6 +103,13 @@ include '../../../includes/sidebar.php';
                             <label>Tổng định biên dự kiến</label>
                             <input type="number" name="headcount_required" id="total_hc_input" class="form-control" value="0" min="0" readonly style="background: #f1f5f9;">
                             <small class="text-muted">Tự động tính từ tab Định biên.</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Định mức đề xuất vật tư / tháng</label>
+                            <div style="position: relative;">
+                                <input type="number" name="budget_limit" class="form-control" value="0" min="0" step="1000" style="padding-right: 45px;">
+                                <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8;">VNĐ</span>
+                            </div>
                         </div>
                     </div>
                 </div>

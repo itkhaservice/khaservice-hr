@@ -533,7 +533,7 @@ ul { list-style: none; padding: 0; margin: 0; }
 .form-control {
     width: 100%; padding: 10px 15px;
     border: 1px solid var(--border-color); border-radius: 6px;
-    font-family: inherit; font-size: 0.95rem; transition: 0.2s;
+    font-family: inherit; transition: 0.2s;
 }
 .form-control:focus { border-color: var(--primary-light); box-shadow: 0 0 0 3px rgba(36, 162, 92, 0.1); outline: none; }
 textarea.form-control { resize: vertical; min-height: 100px; }

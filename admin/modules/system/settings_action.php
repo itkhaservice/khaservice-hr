@@ -108,6 +108,31 @@ try {
             echo json_encode(['status' => 'success']);
             break;
 
+        case 'save_supply_cat':
+            $id = isset($data['id']) ? (int)$_POST['id'] : 0; // Fix: should use $data['id'] for json
+            $id = isset($data['id']) ? (int)$data['id'] : 0;
+            $name = clean_input($data['name']);
+
+            if ($id > 0) {
+                db_query("UPDATE supply_categories SET name = ? WHERE id = ?", [$name, $id]);
+            } else {
+                db_query("INSERT INTO supply_categories (name) VALUES (?)", [$name]);
+            }
+            echo json_encode(['status' => 'success']);
+            break;
+
+        case 'delete_supply_cat':
+            $id = (int)$data['id'];
+            // Check if there are items using this category
+            $usage = db_fetch_row("SELECT id FROM supplies WHERE category_id = ? LIMIT 1", [$id]);
+            if ($usage) {
+                echo json_encode(['status' => 'error', 'message' => 'Không thể xóa loại vật tư đang có vật tư chi tiết trực thuộc.']);
+            } else {
+                db_query("DELETE FROM supply_categories WHERE id = ?", [$id]);
+                echo json_encode(['status' => 'success']);
+            }
+            break;
+
         default:
             echo json_encode(['status' => 'error', 'message' => 'Hành động không xác định']);
             break;

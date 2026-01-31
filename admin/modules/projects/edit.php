@@ -27,9 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_project'])) {
     $address = clean_input($_POST['address']);
     $status = clean_input($_POST['status']);
     $headcount = (int)$_POST['headcount_required'];
+    $budget_limit = (float)$_POST['budget_limit'];
 
-    $sql = "UPDATE projects SET stt = ?, code = ?, name = ?, address = ?, status = ?, headcount_required = ? WHERE id = ?";
-    if (db_query($sql, [$stt, $code, $name, $address, $status, $headcount, $id])) {
+    // Check if budget changed to log history
+    if ($budget_limit != $project['budget_limit']) {
+        db_query("INSERT INTO project_budget_history (project_id, old_limit, new_limit, reason, changed_by) VALUES (?, ?, ?, ?, ?)", 
+                 [$id, $project['budget_limit'], $budget_limit, 'Cập nhật thủ công từ Quản lý Dự án', $_SESSION['user_id']]);
+    }
+
+    $sql = "UPDATE projects SET stt = ?, code = ?, name = ?, address = ?, status = ?, headcount_required = ?, budget_limit = ? WHERE id = ?";
+    if (db_query($sql, [$stt, $code, $name, $address, $status, $headcount, $budget_limit, $id])) {
         set_toast('success', 'Cập nhật dự án thành công!');
         $project = db_fetch_row("SELECT * FROM projects WHERE id = ?", [$id]);
     }
@@ -137,6 +144,13 @@ include '../../../includes/sidebar.php';
                         <div class="form-group">
                             <label>Định biên nhân sự (Tổng số)</label>
                             <input type="number" name="headcount_required" class="form-control" value="<?php echo $project['headcount_required']; ?>" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Định mức đề xuất vật tư / tháng</label>
+                            <div style="position: relative;">
+                                <input type="number" name="budget_limit" class="form-control" value="<?php echo $project['budget_limit']; ?>" min="0" step="1000" style="padding-right: 45px;">
+                                <span style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8;">VNĐ</span>
+                            </div>
                         </div>
                     </div>
                 </div>

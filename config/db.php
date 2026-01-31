@@ -12,7 +12,8 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Database Configuration
-if ($_SERVER['SERVER_NAME'] == 'localhost' || $_SERVER['SERVER_NAME'] == '127.0.0.1' || strpos($_SERVER['SERVER_NAME'], '192.168.') === 0) {
+$server_name = $_SERVER['SERVER_NAME'] ?? 'localhost';
+if ($server_name == 'localhost' || $server_name == '127.0.0.1' || strpos($server_name, '192.168.') === 0) {
     // LOCAL ENVIRONMENT (XAMPP)
     define('DB_HOST', 'localhost');
     define('DB_USER', 'root');
